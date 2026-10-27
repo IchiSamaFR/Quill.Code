@@ -65,4 +65,31 @@ public sealed class CSharpLanguageServiceExtensionsTests
         Assert.Contains(reference, second.MetadataReferences);
         Assert.DoesNotContain(reference, without.MetadataReferences);
     }
+
+    [Fact]
+    public async Task OwnProject_CreatedFromNameAndOptions()
+    {
+        using var service = new CSharpLanguageService("Script", () => new CSharpProjectOptions
+        {
+            References = CSharpReferences.FromTrustedPlatformAssemblies(),
+            CompilationOptions = new Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions(OutputKind.ConsoleApplication),
+            AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = "global using System;" },
+        });
+
+        const string code = "Console.Wri";
+        var list = await service.GetCompletionsAsync(code, code.Length);
+
+        Assert.Equal("Script", service.Project.Project.Name);
+        Assert.Contains(list.Items, i => i.Label == "WriteLine");
+    }
+
+    [Fact]
+    public async Task DefaultProject_ReferencesTheFramework()
+    {
+        using var service = new CSharpLanguageService();
+
+        var diagnostics = await service.GetDiagnosticsAsync("class C { System.Uri U => new(\"http://x\"); }");
+
+        Assert.DoesNotContain(diagnostics, d => d.Severity == CodeDiagnosticSeverity.Error);
+    }
 }

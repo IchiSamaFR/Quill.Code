@@ -4,10 +4,10 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Quill.Code.CSharp.Workspaces;
 
 /// <summary>Projet Roslyn créé par <see cref="CSharpWorkspace.AddProject"/>.</summary>
-public sealed class CSharpProjectOptions
+public sealed record CSharpProjectOptions
 {
     /// <summary>Nom du projet (et de son assembly).</summary>
-    public required string Name { get; init; }
+    public string Name { get; init; } = "Document";
 
     /// <summary>Références de métadonnées (voir <see cref="CSharpReferences"/>).</summary>
     public IEnumerable<MetadataReference> References { get; init; } = [];

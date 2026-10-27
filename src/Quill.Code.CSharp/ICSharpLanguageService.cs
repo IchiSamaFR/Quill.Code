@@ -6,10 +6,33 @@ namespace Quill.Code.CSharp;
 
 /// <summary>
 /// Services d'éditeur C# fournis par Roslyn. Les positions reçues et rendues sont celles du texte de l'éditeur
-/// (<see cref="CSharpDocument.Text"/>), jamais celles du source généré.
+/// (<see cref="CSharpDocument.Text"/>), jamais celles du source généré. Les méthodes qui prennent le code travaillent sur
+/// le <see cref="Project"/> du service ; celles qui prennent un document, sur n'importe quel projet.
 /// </summary>
-public interface ICSharpLanguageService
+public interface ICSharpLanguageService : IDisposable
 {
+    /// <summary>Projet du service, créé à la première demande : utilisé par les méthodes qui prennent le code.</summary>
+    CSharpProject Project { get; }
+
+    /// <inheritdoc cref="WarmUpAsync(CSharpDocument, CancellationToken)"/>
+    /// <param name="code">Texte de préchauffage ; « Console. » prépare aussi la recherche des membres.</param>
+    Task WarmUpAsync(string code = "", CancellationToken cancellationToken = default);
+
+    /// <inheritdoc cref="GetCompletionsAsync(CSharpDocument, int, CancellationToken)"/>
+    Task<CompletionList> GetCompletionsAsync(string code, int position, CancellationToken cancellationToken = default);
+
+    /// <inheritdoc cref="GetChangeAsync(CSharpDocument, CompletionItem, CancellationToken)"/>
+    Task<CompletionChange> GetChangeAsync(string code, CompletionItem item, CancellationToken cancellationToken = default);
+
+    /// <inheritdoc cref="GetDiagnosticsAsync(CSharpDocument, CancellationToken)"/>
+    Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(string code, CancellationToken cancellationToken = default);
+
+    /// <inheritdoc cref="GetHoverAsync(CSharpDocument, int, CancellationToken)"/>
+    Task<HoverInfo?> GetHoverAsync(string code, int position, CancellationToken cancellationToken = default);
+
+    /// <inheritdoc cref="GetSignatureHelpAsync(CSharpDocument, int, CancellationToken)"/>
+    Task<SignatureHelpInfo?> GetSignatureHelpAsync(string code, int position, CancellationToken cancellationToken = default);
+
     /// <summary>Précharge Roslyn (composition MEF, métadonnées, JIT) : sinon la première demande prend une à deux secondes.</summary>
     Task WarmUpAsync(CSharpDocument document, CancellationToken cancellationToken = default);
 

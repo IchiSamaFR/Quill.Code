@@ -31,28 +31,29 @@ dotnet nuget update source github-ichisamafr --username IchiSamaFR --password <j
 
 ## Utilisation
 
-```csharp
-services.AddQuillCSharp(); // CSharpWorkspace + ICSharpLanguageService
-```
+Un service par contexte, avec son propre projet Roslyn, créé à la première demande (hors du thread de l'interface) :
 
 ```csharp
-// Une fois : projet déclaré, créé par Quill à la première demande (hors du thread de l'interface).
-var project = workspace.AddProject(() => new CSharpProjectOptions
+using var language = new CSharpLanguageService("Script", () => new CSharpProjectOptions
 {
-    Name = "Script",
     References = CSharpReferences.FromTrustedPlatformAssemblies(),
     CompilationOptions = new(OutputKind.ConsoleApplication),
     AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = "global using System;" },
-    SourceTransform = code => code,              // facultatif : texte -> source, à longueur égale
-    TextReferences = code => [],                 // facultatif : références déclarées par le texte
+    SourceTransform = code => code,   // facultatif : texte -> source, à longueur égale
+    TextReferences = code => [],      // facultatif : références déclarées par le texte
 });
 
-// À chaque demande, directement sur le texte de l'éditeur.
-var completions = await languageService.GetCompletionsAsync(project, code, caret);
-var change = await languageService.GetChangeAsync(project, code, completions.Items[0]);
-var diagnostics = await languageService.GetDiagnosticsAsync(project, code);
+var completions = await language.GetCompletionsAsync(code, caret);
+var change = await language.GetChangeAsync(code, completions.Items[0]);
+var diagnostics = await language.GetDiagnosticsAsync(code);
+```
 
-// Texte placé dans un source généré (ex. requête dans un DbContext) : document explicite.
+Texte placé dans un source généré (ex. requête dans un DbContext) : projets du workspace partagé et documents explicites.
+
+```csharp
+services.AddQuillCSharp(); // CSharpWorkspace + ICSharpLanguageService (projet par défaut)
+
+var project = workspace.AddProject(new CSharpProjectOptions { Name = "Linq", References = references });
 var document = project.CreateDocument(source, code, start);
 var hover = await languageService.GetHoverAsync(document, caret);
 ```
