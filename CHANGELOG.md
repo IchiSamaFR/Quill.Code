@@ -8,3 +8,4 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 - Structure de la solution : `Quill.Code`, `Quill.Code.CSharp`, `Quill.Code.Tests`.
 - Versions de paquets centralisées, métadonnées NuGet, Source Link.
 - CI : build et tests, publication sur GitHub Packages à chaque tag `v*`.
+- Modèles communs : autocomplétion (`CompletionItem`, `CompletionItemKind`, `CompletionList`, `CompletionChange`, `CompletionTrigger`), analyse (`CodeDiagnostic`, `CodeDiagnosticSeverity`, `HoverInfo`, `SignatureHelpInfo`, `SignatureInfo`) et `LinePosition`.
