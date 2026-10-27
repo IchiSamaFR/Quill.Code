@@ -21,7 +21,7 @@ Quill.Code est une bibliothèque .NET (paquets NuGet) qui regroupe les briques c
 * **`Quill.Code.Sql`** (à venir) : lexer, contexte de complétion, diagnostics T-SQL.
 * **`Quill.Code.Tests`** (net10.0, xUnit).
 
-Les contrats « fournisseur » (requête avec connexion, langage, paramètres…) restent dans les applications : Quill expose des moteurs, chaque app les branche sur ses propres contrats.
+Contrats sur le texte brut dans `Quill.Code` (`ICodeCompletionProvider`, `ICodeDiagnosticProvider`), implémentés par `ICSharpLanguageService` : un contrôle d'éditeur s'y lie sans dépendre de Roslyn. Les contrats plus riches d'une application (requête avec connexion, langage, paramètres…) restent chez elle et se branchent sur les moteurs de Quill.
 
 Ce qui est propre à une application reste dans l'application : DbContext EF de Querify, directives NuGet et exécution des scripts de PocketForge, fichiers `.xshd` spécifiques.
 
