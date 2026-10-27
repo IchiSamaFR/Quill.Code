@@ -7,7 +7,7 @@ Briques communes aux éditeurs de code .NET, indépendantes du framework d'inter
 | Paquet | Contenu |
 |---|---|
 | `Quill.Code` | Modèles, contrats, lecture des définitions `.xshd`, découpage en zones colorées, algorithmes d'édition. Aucune dépendance d'interface. |
-| `Quill.Code.CSharp` | C# via Roslyn : autocomplétion, diagnostics, survol, aide à la signature. |
+| `Quill.Code.CSharp` | C# via Roslyn : autocomplétion, diagnostics, survol, aide à la signature, compilation et chargement. |
 
 L'affichage reste à la charge de l'application : chaque app traduit les zones colorées, propositions et diagnostics vers ses propres contrôles.
 
@@ -61,6 +61,22 @@ var language = new CSharpLanguageService("Linq", () => new CSharpProjectOptions
 ```
 
 Pour plusieurs textes dans des contextes différents d'un même projet, `CSharpDocument` reste disponible (`language.Project.CreateDocument(source, text, start)` et les surcharges qui prennent un document).
+
+Compilation du même projet que l'éditeur, chargée dans un contexte déchargeable (l'appel du code reste à l'application) :
+
+```csharp
+using var compiled = await language.CompileAsync(code, new CSharpCompileOptions
+{
+    EmitDebugInformation = true,           // numéros de ligne dans les piles d'appels
+    AssemblyFiles = packageAssemblies,     // assemblies chargeables, lues en mémoire
+});
+
+if (!compiled.Success)
+    foreach (var error in compiled.Errors)
+        Console.WriteLine(error.Describe(code)); // « Ligne 2, colonne 6 : CS0103 … »
+else
+    Run(compiled.Assembly!);
+```
 
 Les positions reçues et rendues sont toujours celles du texte de l'éditeur.
 

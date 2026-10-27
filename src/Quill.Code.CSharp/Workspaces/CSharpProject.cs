@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using System.Text;
 
 namespace Quill.Code.CSharp.Workspaces;
 
@@ -79,6 +80,7 @@ public sealed class CSharpProject
         var document = project.GetDocument(documentId)
             ?? throw new InvalidOperationException("Le document de l'éditeur est introuvable dans le projet.");
 
-        return new CSharpDocument(document.WithText(SourceText.From(source)), text, textStart);
+        // Encodage requis pour émettre les informations de débogage (PDB).
+        return new CSharpDocument(document.WithText(SourceText.From(source, Encoding.UTF8)), text, textStart);
     }
 }

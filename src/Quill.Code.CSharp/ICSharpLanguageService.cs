@@ -1,5 +1,6 @@
 ﻿using Quill.Code.Analysis;
 using Quill.Code.Completion;
+using Quill.Code.CSharp.Compilation;
 using Quill.Code.CSharp.Workspaces;
 
 namespace Quill.Code.CSharp;
@@ -17,6 +18,15 @@ public interface ICSharpLanguageService : ICodeCompletionProvider, ICodeDiagnost
     /// <inheritdoc cref="WarmUpAsync(CSharpDocument, CancellationToken)"/>
     /// <param name="code">Texte de préchauffage ; « Console. » prépare aussi la recherche des membres.</param>
     Task WarmUpAsync(string code = "", CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Compile <paramref name="code"/> dans le projet du service (mêmes références, options et sources que l'éditeur),
+    /// puis charge l'assembly dans un contexte déchargeable. Les erreurs sont rendues, pas levées.
+    /// </summary>
+    Task<CSharpCompilationResult> CompileAsync(string code, CSharpCompileOptions? options = null, CancellationToken cancellationToken = default);
+
+    /// <inheritdoc cref="CompileAsync(string, CSharpCompileOptions?, CancellationToken)"/>
+    Task<CSharpCompilationResult> CompileAsync(CSharpDocument document, CSharpCompileOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <inheritdoc cref="GetHoverAsync(CSharpDocument, int, CancellationToken)"/>
     Task<HoverInfo?> GetHoverAsync(string code, int position, CancellationToken cancellationToken = default);

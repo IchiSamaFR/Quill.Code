@@ -17,7 +17,7 @@ Quill.Code est une bibliothèque .NET (paquets NuGet) qui regroupe les briques c
 `Quill.Code` ← `Quill.Code.[Langage]` (un projet par langage). Un langage ne référence jamais un autre langage.
 
 * **`Quill.Code`** (net8.0) : modèles et contrats (`Completion`, `Analysis`, `Text`), coloration (`Highlighting`), édition (`Editing`). Aucune dépendance.
-* **`Quill.Code.CSharp`** (net8.0) : C# via Roslyn. `CSharpLanguageService(nom, options)` possède son projet (créé à la première demande) et travaille directement sur le texte de l'éditeur : `SourceTransform` le place dans son source (tel quel, neutralisé ou enveloppé de code généré), `TextReferences` ajoute les références qu'il déclare. Autocomplétion, diagnostics, survol et signatures ; positions toujours celles du texte de l'éditeur.
+* **`Quill.Code.CSharp`** (net8.0) : C# via Roslyn. `CSharpLanguageService(nom, options)` possède son projet (créé à la première demande) et travaille directement sur le texte de l'éditeur : `SourceTransform` le place dans son source (tel quel, neutralisé ou enveloppé de code généré), `TextReferences` ajoute les références qu'il déclare. Autocomplétion, diagnostics, survol et signatures ; compilation (`CompileAsync` : émission, PDB facultatif, chargement dans un contexte déchargeable — l'appel du code compilé reste à l'application). Positions toujours celles du texte de l'éditeur.
 * **`Quill.Code.Sql`** (à venir) : lexer, contexte de complétion, diagnostics T-SQL.
 * **`Quill.Code.Tests`** (net10.0, xUnit).
 

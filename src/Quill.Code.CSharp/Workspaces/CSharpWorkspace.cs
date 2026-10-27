@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using System.Reflection;
+using System.Text;
 using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
 namespace Quill.Code.CSharp.Workspaces;
@@ -62,9 +63,9 @@ public sealed class CSharpWorkspace : IDisposable
 
             var projectId = workspace.AddProject(info).Id;
             foreach (var (name, source) in options.AdditionalDocuments)
-                workspace.AddDocument(projectId, name, SourceText.From(source));
+                workspace.AddDocument(projectId, name, SourceText.From(source, Encoding.UTF8));
 
-            var document = workspace.AddDocument(projectId, options.DocumentName, SourceText.From(string.Empty));
+            var document = workspace.AddDocument(projectId, options.DocumentName, SourceText.From(string.Empty, Encoding.UTF8));
             return (document.Project, document.Id, options);
         }
     }

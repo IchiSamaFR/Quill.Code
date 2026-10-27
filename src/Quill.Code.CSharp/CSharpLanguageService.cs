@@ -1,6 +1,7 @@
 ﻿using Quill.Code.Analysis;
 using Quill.Code.Completion;
 using Quill.Code.CSharp.Analysis;
+using Quill.Code.CSharp.Compilation;
 using Quill.Code.CSharp.Completion;
 using Quill.Code.CSharp.Workspaces;
 
@@ -54,6 +55,20 @@ public sealed class CSharpLanguageService : ICSharpLanguageService
     /// <inheritdoc />
     public Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(string code, CancellationToken cancellationToken = default)
         => this.GetDiagnosticsAsync(Project, code, cancellationToken);
+
+    /// <inheritdoc />
+    public Task<CSharpCompilationResult> CompileAsync(string code, CSharpCompileOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(code);
+        return Task.Run(() => CSharpCompiler.CompileAsync(Project.CreateDocument(code), options ?? new(), cancellationToken), cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task<CSharpCompilationResult> CompileAsync(CSharpDocument document, CSharpCompileOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        return Task.Run(() => CSharpCompiler.CompileAsync(document, options ?? new(), cancellationToken), cancellationToken);
+    }
 
     /// <inheritdoc />
     public Task<HoverInfo?> GetHoverAsync(string code, int position, CancellationToken cancellationToken = default)
