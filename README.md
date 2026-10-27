@@ -48,15 +48,19 @@ var change = await language.GetChangeAsync(code, completions.Items[0]);
 var diagnostics = await language.GetDiagnosticsAsync(code);
 ```
 
-Texte placé dans un source généré (ex. requête dans un DbContext) : projets du workspace partagé et documents explicites.
+Texte placé dans du code généré (ex. requête LINQ dans une méthode d'un DbContext) : `SourceTransform` rend le source et la position du texte.
 
 ```csharp
-services.AddQuillCSharp(); // CSharpWorkspace + ICSharpLanguageService (projet par défaut)
-
-var project = workspace.AddProject(new CSharpProjectOptions { Name = "Linq", References = references });
-var document = project.CreateDocument(source, code, start);
-var hover = await languageService.GetHoverAsync(document, caret);
+var language = new CSharpLanguageService("Linq", () => new CSharpProjectOptions
+{
+    References = references,
+    SourceTransform = query => new CSharpSource(prefix + query + suffix, prefix.Length),
+    IncludeSemanticDiagnostics = hasModel,  // faux : fautes de syntaxe seulement
+    AllowImports = false,                   // types non importés insérés avec leur nom complet
+});
 ```
+
+Pour plusieurs textes dans des contextes différents d'un même projet, `CSharpDocument` reste disponible (`language.Project.CreateDocument(source, text, start)` et les surcharges qui prennent un document).
 
 Les positions reçues et rendues sont toujours celles du texte de l'éditeur.
 

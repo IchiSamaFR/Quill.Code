@@ -25,10 +25,23 @@ public sealed record CSharpProjectOptions
     public string DocumentName { get; init; } = "Document.cs";
 
     /// <summary>
-    /// Transforme le texte de l'éditeur en source analysé, à longueur égale pour garder les positions
-    /// (ex. directives d'un script neutralisées) ; null : le texte tel quel.
+    /// Source analysé pour le texte de l'éditeur : le texte neutralisé à longueur égale (ex. directives d'un script,
+    /// une chaîne suffit), ou placé dans du code généré à une position donnée (ex. requête dans une méthode) ;
+    /// null : le texte tel quel. Les positions échangées restent celles du texte de l'éditeur.
     /// </summary>
-    public Func<string, string>? SourceTransform { get; init; }
+    public Func<string, CSharpSource>? SourceTransform { get; init; }
+
+    /// <summary>
+    /// Faux pour ne signaler que les fautes de syntaxe, quand le contexte manque pour résoudre les noms
+    /// (ex. requête sans DbContext).
+    /// </summary>
+    public bool IncludeSemanticDiagnostics { get; init; } = true;
+
+    /// <summary>
+    /// Faux quand le texte ne peut pas recevoir de « using » : un type d'un espace de noms non importé est alors
+    /// inséré avec son nom complet, et une méthode d'extension non importée n'est pas proposée.
+    /// </summary>
+    public bool AllowImports { get; init; } = true;
 
     /// <summary>
     /// Références propres au texte (ex. packages déclarés par un script), ajoutées à <see cref="References"/>.

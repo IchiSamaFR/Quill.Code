@@ -24,19 +24,23 @@ public sealed class CSharpProject
     public Project Project => _state.Value.Project;
 
     /// <summary>
-    /// Document du texte de l'éditeur, transformé par <see cref="CSharpProjectOptions.SourceTransform"/> et
-    /// complété des <see cref="CSharpProjectOptions.TextReferences"/>.
+    /// Document du texte de l'éditeur, placé par <see cref="CSharpProjectOptions.SourceTransform"/>, complété des
+    /// <see cref="CSharpProjectOptions.TextReferences"/> et réglé selon les options du projet.
     /// </summary>
     public CSharpDocument CreateDocument(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
 
         var (project, documentId, options) = _state.Value;
-        var source = options.SourceTransform?.Invoke(text) ?? text;
-        if (source.Length != text.Length)
-            throw new InvalidOperationException("SourceTransform doit conserver la longueur du texte.");
+        var (source, textStart) = options.SourceTransform?.Invoke(text) ?? text;
+        if (source is null || textStart < 0 || textStart + text.Length > source.Length)
+            throw new InvalidOperationException("SourceTransform doit rendre un source qui contient le texte (même longueur) à TextStart.");
 
-        return Create(WithTextReferences(project, options, text), documentId, source, text, 0);
+        return Create(WithTextReferences(project, options, text), documentId, source, text, textStart) with
+        {
+            IncludeSemanticDiagnostics = options.IncludeSemanticDiagnostics,
+            AllowImports = options.AllowImports,
+        };
     }
 
     /// <summary>Document dont le source contient le texte de l'éditeur à la position <paramref name="textStart"/>.</summary>

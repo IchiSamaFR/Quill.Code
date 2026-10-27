@@ -16,8 +16,8 @@ Quill.Code est une bibliothèque .NET (paquets NuGet) qui regroupe les briques c
 
 `Quill.Code` ← `Quill.Code.[Langage]` (un projet par langage). Un langage ne référence jamais un autre langage.
 
-* **`Quill.Code`** (net8.0) : modèles (`Completion`, `Analysis`, `Text`), lecture des `.xshd`, découpage en zones colorées, algorithmes d'édition. Seule dépendance : `Microsoft.Extensions.DependencyInjection.Abstractions`.
-* **`Quill.Code.CSharp`** (net8.0) : C# via Roslyn. `CSharpWorkspace` (composition MEF unique) → `CSharpProject` (références, options) → `CSharpDocument` (texte de l'éditeur placé dans un source, à la position `TextStart`). `ICSharpLanguageService` fournit autocomplétion, diagnostics, survol et signatures ; ses positions sont toujours celles du texte de l'éditeur.
+* **`Quill.Code`** (net8.0) : modèles et contrats (`Completion`, `Analysis`, `Text`), coloration (`Highlighting`), édition (`Editing`). Aucune dépendance.
+* **`Quill.Code.CSharp`** (net8.0) : C# via Roslyn. `CSharpLanguageService(nom, options)` possède son projet (créé à la première demande) et travaille directement sur le texte de l'éditeur : `SourceTransform` le place dans son source (tel quel, neutralisé ou enveloppé de code généré), `TextReferences` ajoute les références qu'il déclare. Autocomplétion, diagnostics, survol et signatures ; positions toujours celles du texte de l'éditeur.
 * **`Quill.Code.Sql`** (à venir) : lexer, contexte de complétion, diagnostics T-SQL.
 * **`Quill.Code.Tests`** (net10.0, xUnit).
 
@@ -30,7 +30,7 @@ Ce qui est propre à une application reste dans l'application : DbContext EF de 
 ## Conventions
 
 * **Un type par fichier**, nommé comme lui. Seule exception : une classe privée imbriquée.
-* **Injection de dépendances** : pas d'attribut `[AutoRegister]` (propre à chaque app). Chaque paquet expose une méthode `AddQuillXxx(this IServiceCollection)`.
+* **Instanciation** : pas d'injection de dépendances dans Quill ni d'attribut `[AutoRegister]` (propre à chaque app). Les apps instancient les services (`new CSharpLanguageService(nom, options)`) ou les enregistrent par une fabrique ; le travail coûteux (MEF, références) est différé à la première demande.
 * **API publique minimale** : `internal` par défaut, `public` seulement ce que les apps consomment. `sealed` par défaut.
 * **Async** : `CancellationToken` en dernier paramètre de toute méthode asynchrone ; accès concurrents à un workspace Roslyn protégés par un `SemaphoreSlim`.
 * **Versions de paquets** : uniquement dans `src/Directory.Packages.props`, jamais de `Version` dans un `PackageReference`.

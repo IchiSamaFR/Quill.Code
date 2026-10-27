@@ -28,15 +28,43 @@ public sealed class CSharpLanguageServiceExtensionsTests
     }
 
     [Fact]
-    public void SourceTransform_MustKeepLength()
+    public void SourceTransform_MustContainTheText()
     {
         var project = CSharpTestProjects.SharedWorkspace.AddProject(new CSharpProjectOptions
         {
             Name = "BadTransform",
-            SourceTransform = code => code + " ",
+            SourceTransform = code => code[1..],
         });
 
-        Assert.Throws<InvalidOperationException>(() => project.CreateDocument("x"));
+        Assert.Throws<InvalidOperationException>(() => project.CreateDocument("xy"));
+    }
+
+    [Fact]
+    public async Task SourceTransform_WrapsTheTextInGeneratedCode()
+    {
+        const string prefix = "class Wrapper { int Run() { var value = 41; return ";
+        using var service = new CSharpLanguageService("Wrapped", () => new CSharpProjectOptions
+        {
+            References = CSharpReferences.FromTrustedPlatformAssemblies(),
+            SourceTransform = code => new CSharpSource(prefix + code + "; } }", prefix.Length),
+            AllowImports = false,
+        });
+
+        const string code = "value.ToStr";
+        var list = await service.GetCompletionsAsync(code, code.Length);
+        var diagnostics = await service.GetDiagnosticsAsync("value + unknown");
+
+        Assert.Contains(list.Items, i => i.Label == "ToString");
+        Assert.Equal("value.".Length, list.SpanStart);
+        Assert.Equal("unknown", "value + unknown".Substring(Assert.Single(diagnostics).Start, "unknown".Length));
+    }
+
+    [Fact]
+    public async Task SemanticDiagnostics_CanBeDisabledByProject()
+    {
+        using var service = new CSharpLanguageService("SyntaxOnly", () => new CSharpProjectOptions { IncludeSemanticDiagnostics = false });
+
+        Assert.Empty(await service.GetDiagnosticsAsync("class C { Unknown U; }"));
     }
 
     [Fact]

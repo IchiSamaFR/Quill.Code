@@ -1,13 +1,10 @@
-<Project>
+﻿<Project>
 	<!-- Versions des paquets, une seule fois pour toute la solution (les csproj n'indiquent pas de Version). -->
 	<PropertyGroup>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!-- Enregistrement des services (AddQuillCode / AddQuillCSharp). -->
-		<PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
-
 		<!-- C# : autocompletion, diagnostics, survol, aide a la signature. Meme version que Querify. -->
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="5.0.0" />
