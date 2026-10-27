@@ -23,4 +23,17 @@ public sealed class CSharpProjectOptions
 
     /// <summary>Nom du document qui reçoit le texte de l'éditeur.</summary>
     public string DocumentName { get; init; } = "Document.cs";
+
+    /// <summary>
+    /// Transforme le texte de l'éditeur en source analysé, à longueur égale pour garder les positions
+    /// (ex. directives d'un script neutralisées) ; null : le texte tel quel.
+    /// </summary>
+    public Func<string, string>? SourceTransform { get; init; }
+
+    /// <summary>
+    /// Références propres au texte (ex. packages déclarés par un script), ajoutées à <see cref="References"/>.
+    /// Le projet n'est recréé que lorsqu'elles changent : à renvoyer sous forme d'instances réutilisées
+    /// (<see cref="CSharpReferences.FromFile"/>).
+    /// </summary>
+    public Func<string, IEnumerable<MetadataReference>>? TextReferences { get; init; }
 }

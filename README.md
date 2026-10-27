@@ -36,22 +36,25 @@ services.AddQuillCSharp(); // CSharpWorkspace + ICSharpLanguageService
 ```
 
 ```csharp
-// Une fois : projet Roslyn avec les références et options de l'exécution.
-var project = workspace.AddProject(new CSharpProjectOptions
+// Une fois : projet déclaré, créé par Quill à la première demande (hors du thread de l'interface).
+var project = workspace.AddProject(() => new CSharpProjectOptions
 {
     Name = "Script",
     References = CSharpReferences.FromTrustedPlatformAssemblies(),
     CompilationOptions = new(OutputKind.ConsoleApplication),
     AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = "global using System;" },
+    SourceTransform = code => code,              // facultatif : texte -> source, à longueur égale
+    TextReferences = code => [],                 // facultatif : références déclarées par le texte
 });
 
-// À chaque demande : instantané du texte de l'éditeur.
-var document = project.CreateDocument(text);              // texte = source
-var wrapped = project.CreateDocument(source, text, start); // texte placé dans un source généré
+// À chaque demande, directement sur le texte de l'éditeur.
+var completions = await languageService.GetCompletionsAsync(project, code, caret);
+var change = await languageService.GetChangeAsync(project, code, completions.Items[0]);
+var diagnostics = await languageService.GetDiagnosticsAsync(project, code);
 
-var completions = await languageService.GetCompletionsAsync(document, caret);
-var change = await languageService.GetChangeAsync(document, completions.Items[0]);
-var diagnostics = await languageService.GetDiagnosticsAsync(document);
+// Texte placé dans un source généré (ex. requête dans un DbContext) : document explicite.
+var document = project.CreateDocument(source, code, start);
+var hover = await languageService.GetHoverAsync(document, caret);
 ```
 
 Les positions reçues et rendues sont toujours celles du texte de l'éditeur.

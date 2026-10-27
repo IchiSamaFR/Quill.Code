@@ -4,28 +4,40 @@ using Microsoft.CodeAnalysis.Text;
 namespace Quill.Code.CSharp.Workspaces;
 
 /// <summary>
-/// Instantané d'un projet Roslyn et de son document d'éditeur. Immuable : créer un document ou changer
-/// les références ne modifie jamais le workspace, et Roslyn réutilise sa compilation tant que les références sont les mêmes.
+/// Projet Roslyn d'un éditeur et son document. Créé par Quill à la première demande (composition MEF, lecture des
+/// références) ; chaque document est ensuite un instantané : le workspace n'est jamais modifié.
 /// </summary>
 public sealed class CSharpProject
 {
-    private readonly DocumentId _documentId;
+    private readonly Lazy<(Project Project, DocumentId DocumentId, CSharpProjectOptions Options)> _state;
+    private readonly object _gate = new();
 
-    internal CSharpProject(Project project, DocumentId documentId)
+    // Dernières références propres au texte : Roslyn réutilise sa compilation tant qu'elles ne changent pas.
+    private (MetadataReference[] References, Project Project)? _textProject;
+
+    internal CSharpProject(Func<(Project Project, DocumentId DocumentId, CSharpProjectOptions Options)> create)
     {
-        Project = project;
-        _documentId = documentId;
+        _state = new(create);
     }
 
-    /// <summary>Projet Roslyn.</summary>
-    public Project Project { get; }
+    /// <summary>Projet Roslyn (créé au premier accès).</summary>
+    public Project Project => _state.Value.Project;
 
-    /// <summary>Même projet avec d'autres références (ex. assemblies des packages d'un script).</summary>
-    public CSharpProject WithReferences(IEnumerable<MetadataReference> references)
-        => new(Project.WithMetadataReferences(references), _documentId);
+    /// <summary>
+    /// Document du texte de l'éditeur, transformé par <see cref="CSharpProjectOptions.SourceTransform"/> et
+    /// complété des <see cref="CSharpProjectOptions.TextReferences"/>.
+    /// </summary>
+    public CSharpDocument CreateDocument(string text)
+    {
+        ArgumentNullException.ThrowIfNull(text);
 
-    /// <summary>Document dont le source est exactement le texte de l'éditeur.</summary>
-    public CSharpDocument CreateDocument(string text) => CreateDocument(text, text, 0);
+        var (project, documentId, options) = _state.Value;
+        var source = options.SourceTransform?.Invoke(text) ?? text;
+        if (source.Length != text.Length)
+            throw new InvalidOperationException("SourceTransform doit conserver la longueur du texte.");
+
+        return Create(WithTextReferences(project, options, text), documentId, source, text, 0);
+    }
 
     /// <summary>Document dont le source contient le texte de l'éditeur à la position <paramref name="textStart"/>.</summary>
     /// <param name="source">Source complet analysé par Roslyn.</param>
@@ -33,12 +45,34 @@ public sealed class CSharpProject
     /// <param name="textStart">Position de <paramref name="text"/> dans <paramref name="source"/>.</param>
     public CSharpDocument CreateDocument(string source, string text, int textStart)
     {
+        var (project, documentId, _) = _state.Value;
+        return Create(project, documentId, source, text, textStart);
+    }
+
+    private Project WithTextReferences(Project project, CSharpProjectOptions options, string text)
+    {
+        if (options.TextReferences?.Invoke(text).Distinct().ToArray() is not { Length: > 0 } references)
+            return project;
+
+        lock (_gate)
+        {
+            if (_textProject is { } last && last.References.SequenceEqual(references))
+                return last.Project;
+
+            var withReferences = project.AddMetadataReferences(references);
+            _textProject = (references, withReferences);
+            return withReferences;
+        }
+    }
+
+    private static CSharpDocument Create(Project project, DocumentId documentId, string source, string text, int textStart)
+    {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(text);
         if (textStart < 0 || textStart + text.Length > source.Length)
             throw new ArgumentOutOfRangeException(nameof(textStart), "Le texte de l'éditeur doit être contenu dans le source.");
 
-        var document = Project.GetDocument(_documentId)
+        var document = project.GetDocument(documentId)
             ?? throw new InvalidOperationException("Le document de l'éditeur est introuvable dans le projet.");
 
         return new CSharpDocument(document.WithText(SourceText.From(source)), text, textStart);

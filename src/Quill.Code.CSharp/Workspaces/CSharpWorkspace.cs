@@ -7,8 +7,8 @@ using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 namespace Quill.Code.CSharp.Workspaces;
 
 /// <summary>
-/// Workspace Roslyn partagé par l'application : la composition MEF (une à deux secondes) n'est faite qu'une fois.
-/// Un projet par contexte (références, options) ; les documents sont des instantanés.
+/// Workspace Roslyn partagé par l'application : la composition MEF (une à deux secondes) n'est faite qu'une fois,
+/// à la première demande. Un projet par contexte (références, options) ; les documents sont des instantanés.
 /// </summary>
 public sealed class CSharpWorkspace : IDisposable
 {
@@ -18,16 +18,38 @@ public sealed class CSharpWorkspace : IDisposable
             .Concat([typeof(RoslynCompletion.CompletionService).Assembly, Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features")])
             .Distinct()));
 
-    private readonly AdhocWorkspace _workspace = new(Host.Value);
+    private readonly Lazy<AdhocWorkspace> _workspace = new(() => new AdhocWorkspace(Host.Value));
     private readonly object _gate = new();
 
-    /// <summary>Ajoute un projet et son document d'éditeur (vide).</summary>
+    /// <summary>Déclare un projet : il n'est créé qu'à sa première utilisation.</summary>
     public CSharpProject AddProject(CSharpProjectOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
+        return AddProject(() => options);
+    }
 
+    /// <summary>
+    /// Déclare un projet dont les options ne sont construites qu'à sa première utilisation
+    /// (ex. références lues sur le disque) : rien n'est fait à l'appel, donc rien sur le thread de l'interface.
+    /// </summary>
+    public CSharpProject AddProject(Func<CSharpProjectOptions> options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        return new CSharpProject(() => Create(options()));
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_workspace.IsValueCreated)
+            _workspace.Value.Dispose();
+    }
+
+    private (Project Project, DocumentId DocumentId, CSharpProjectOptions Options) Create(CSharpProjectOptions options)
+    {
         lock (_gate)
         {
+            var workspace = _workspace.Value;
             var info = ProjectInfo.Create(
                 ProjectId.CreateNewId(),
                 VersionStamp.Create(),
@@ -38,15 +60,12 @@ public sealed class CSharpWorkspace : IDisposable
                 parseOptions: options.ParseOptions,
                 metadataReferences: options.References);
 
-            var projectId = _workspace.AddProject(info).Id;
+            var projectId = workspace.AddProject(info).Id;
             foreach (var (name, source) in options.AdditionalDocuments)
-                _workspace.AddDocument(projectId, name, SourceText.From(source));
+                workspace.AddDocument(projectId, name, SourceText.From(source));
 
-            var document = _workspace.AddDocument(projectId, options.DocumentName, SourceText.From(string.Empty));
-            return new CSharpProject(document.Project, document.Id);
+            var document = workspace.AddDocument(projectId, options.DocumentName, SourceText.From(string.Empty));
+            return (document.Project, document.Id, options);
         }
     }
-
-    /// <inheritdoc />
-    public void Dispose() => _workspace.Dispose();
 }

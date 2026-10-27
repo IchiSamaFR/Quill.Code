@@ -30,6 +30,18 @@ internal static class CSharpTestProjects
         References = References.Value,
     });
 
+    /// <summary>Script dont les lignes « #! » sont neutralisées à longueur égale, comme les directives de PocketForge.</summary>
+    public static CSharpProject Transformed { get; } = Workspace.AddProject(() => new CSharpProjectOptions
+    {
+        Name = "Transformed",
+        References = References.Value,
+        CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication),
+        AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = "global using System;" },
+        SourceTransform = code => code.Replace("#!", "//", StringComparison.Ordinal),
+    });
+
+    public static CSharpWorkspace SharedWorkspace => Workspace;
+
     public static CSharpDocument Wrap(string text)
         => Wrapped.CreateDocument(WrapperPrefix + text + WrapperSuffix, text, WrapperPrefix.Length);
 }
