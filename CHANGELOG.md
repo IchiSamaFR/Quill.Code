@@ -19,4 +19,5 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 - `CSharpLanguageService(string projectName, Func<CSharpProjectOptions>?)` : service sur son propre projet, méthodes sur le code (`GetCompletionsAsync(code, position)`…) ; `CSharpProjectOptions` devient un record au nom facultatif.
 - `CSharpWorkspace.AddProject` ne crée le projet qu'à sa première utilisation (surcharge avec options différées) ; `CSharpProjectOptions.SourceTransform` et `TextReferences` ; extensions de `ICSharpLanguageService` sur le texte brut (`CSharpLanguageServiceExtensions`).
 - Sources ajoutées à la volée (`CSharpProject.SetSource`, `SetSourceFileAsync`, `RemoveSource`, `ClearSources`, `Sources`, `SourcesChanged`) : vues par l'éditeur et compilées avec lui ; leurs erreurs de compilation citent le fichier.
+- `CSharpCompileOptions.Collectible` (assembly chargée pour toute la vie de l'application) et `CSharpCompilationResult.Reference` (compiler un autre projet contre l'assembly émise).
 - `CSharpDiagnosticMapper.MapAsync` : diagnostics Roslyn calculés hors de Quill (erreurs d'émission) ramenés au texte de l'éditeur.

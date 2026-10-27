@@ -44,13 +44,13 @@ internal static class CSharpCompiler
             return new CSharpCompilationResult(diagnostics, null, null);
         }
 
-        image.Position = 0;
+        var bytes = image.ToArray();
         if (symbols is not null)
             symbols.Position = 0;
 
         var context = new CompiledCodeLoadContext(name, options);
-        var assembly = context.LoadFromStream(image, symbols);
-        return new CSharpCompilationResult(diagnostics, assembly, context);
+        var assembly = context.LoadFromStream(new MemoryStream(bytes), symbols);
+        return new CSharpCompilationResult(diagnostics, assembly, context, bytes);
     }
 
     private static string Describe(Diagnostic diagnostic)

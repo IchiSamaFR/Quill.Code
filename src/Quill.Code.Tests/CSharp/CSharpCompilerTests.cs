@@ -28,6 +28,31 @@ public sealed class CSharpCompilerTests
     }
 
     [Fact]
+    public async Task Compile_ReferenceCompilesAnotherProject()
+    {
+        using var library = new CSharpLanguageService("Library", () => new CSharpProjectOptions
+        {
+            References = CSharpReferences.FromTrustedPlatformAssemblies(),
+            CompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+        });
+        var model = await library.CompileAsync("public static class Model { public static int Answer => 42; }", new CSharpCompileOptions { Collectible = false });
+        model.Dispose(); // sans effet : assembly non déchargeable
+
+        using var service = new CSharpLanguageService("Client", () => new CSharpProjectOptions
+        {
+            References = [.. CSharpReferences.FromTrustedPlatformAssemblies(), model.Reference!],
+            CompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+        });
+        using var compiled = await service.CompileAsync("public static class Q { public static int Run() => Model.Answer; }", new CSharpCompileOptions
+        {
+            ResolveAssembly = name => name.Name == model.Assembly!.GetName().Name ? model.Assembly : null,
+        });
+
+        Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
+        Assert.Equal(42, compiled.Assembly!.GetType("Q")!.GetMethod("Run")!.Invoke(null, null));
+    }
+
+    [Fact]
     public async Task Compile_ErrorsPointToEditorText()
     {
         const string prefix = "public static class Q { public static object Run() => ";

@@ -22,4 +22,10 @@ public sealed record CSharpCompileOptions
     /// chargé dans un autre contexte) ; null : le runtime les fournit.
     /// </summary>
     public Func<AssemblyName, Assembly?>? ResolveAssembly { get; init; }
+
+    /// <summary>
+    /// Faux pour charger l'assembly pour toute la vie de l'application (ex. modèle dont une bibliothèque garde les
+    /// types en cache) : <see cref="CSharpCompilationResult.Dispose"/> ne la décharge alors pas.
+    /// </summary>
+    public bool Collectible { get; init; } = true;
 }

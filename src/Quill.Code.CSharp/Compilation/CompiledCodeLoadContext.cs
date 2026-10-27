@@ -4,7 +4,7 @@ using System.Runtime.Loader;
 namespace Quill.Code.CSharp.Compilation;
 
 /// <summary>
-/// Contexte déchargeable du code compilé : chaque exécution ne laisse pas son assembly en mémoire. Les assemblies
+/// Contexte du code compilé, déchargeable par défaut : chaque exécution ne laisse pas son assembly en mémoire. Les assemblies
 /// demandées viennent de <see cref="CSharpCompileOptions.ResolveAssembly"/>, puis des fichiers fournis, puis du runtime.
 /// </summary>
 internal sealed class CompiledCodeLoadContext : AssemblyLoadContext
@@ -13,7 +13,7 @@ internal sealed class CompiledCodeLoadContext : AssemblyLoadContext
     private readonly Dictionary<string, string> _files;
 
     public CompiledCodeLoadContext(string name, CSharpCompileOptions options)
-        : base(name, isCollectible: true)
+        : base(name, options.Collectible)
     {
         _resolve = options.ResolveAssembly;
         _files = options.AssemblyFiles
