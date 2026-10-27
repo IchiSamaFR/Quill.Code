@@ -16,10 +16,12 @@ Quill.Code est une bibliothèque .NET (paquets NuGet) qui regroupe les briques c
 
 `Quill.Code` ← `Quill.Code.[Langage]` (un projet par langage). Un langage ne référence jamais un autre langage.
 
-* **`Quill.Code`** (net8.0) : modèles, contrats (`ICompletionProvider`, `IDiagnosticProvider`…), lecture des `.xshd`, découpage en zones colorées, algorithmes d'édition. Seule dépendance : `Microsoft.Extensions.DependencyInjection.Abstractions`.
-* **`Quill.Code.CSharp`** (net8.0) : C# via Roslyn. L'application fournit son document via `IRoslynDocumentSource` (code enveloppant, décalage de position).
+* **`Quill.Code`** (net8.0) : modèles (`Completion`, `Analysis`, `Text`), lecture des `.xshd`, découpage en zones colorées, algorithmes d'édition. Seule dépendance : `Microsoft.Extensions.DependencyInjection.Abstractions`.
+* **`Quill.Code.CSharp`** (net8.0) : C# via Roslyn. `CSharpWorkspace` (composition MEF unique) → `CSharpProject` (références, options) → `CSharpDocument` (texte de l'éditeur placé dans un source, à la position `TextStart`). `ICSharpLanguageService` fournit autocomplétion, diagnostics, survol et signatures ; ses positions sont toujours celles du texte de l'éditeur.
 * **`Quill.Code.Sql`** (à venir) : lexer, contexte de complétion, diagnostics T-SQL.
 * **`Quill.Code.Tests`** (net10.0, xUnit).
+
+Les contrats « fournisseur » (requête avec connexion, langage, paramètres…) restent dans les applications : Quill expose des moteurs, chaque app les branche sur ses propres contrats.
 
 Ce qui est propre à une application reste dans l'application : DbContext EF de Querify, directives NuGet et exécution des scripts de PocketForge, fichiers `.xshd` spécifiques.
 

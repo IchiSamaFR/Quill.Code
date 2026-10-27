@@ -29,12 +29,32 @@ Puis s'authentifier avec un jeton GitHub (scope `read:packages`) :
 dotnet nuget update source github-ichisamafr --username IchiSamaFR --password <jeton> --store-password-in-clear-text
 ```
 
-## Utilisation (à venir)
+## Utilisation
 
 ```csharp
-services.AddQuillCode();
-services.AddQuillCSharp();
+services.AddQuillCSharp(); // CSharpWorkspace + ICSharpLanguageService
 ```
+
+```csharp
+// Une fois : projet Roslyn avec les références et options de l'exécution.
+var project = workspace.AddProject(new CSharpProjectOptions
+{
+    Name = "Script",
+    References = CSharpReferences.FromTrustedPlatformAssemblies(),
+    CompilationOptions = new(OutputKind.ConsoleApplication),
+    AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = "global using System;" },
+});
+
+// À chaque demande : instantané du texte de l'éditeur.
+var document = project.CreateDocument(text);              // texte = source
+var wrapped = project.CreateDocument(source, text, start); // texte placé dans un source généré
+
+var completions = await languageService.GetCompletionsAsync(document, caret);
+var change = await languageService.GetChangeAsync(document, completions.Items[0]);
+var diagnostics = await languageService.GetDiagnosticsAsync(document);
+```
+
+Les positions reçues et rendues sont toujours celles du texte de l'éditeur.
 
 ## Développement
 
