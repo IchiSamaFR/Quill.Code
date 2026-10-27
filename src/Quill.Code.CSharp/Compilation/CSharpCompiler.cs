@@ -29,6 +29,12 @@ internal static class CSharpCompiler
         var reported = result.Diagnostics.Where(d => d.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error).ToArray();
         var diagnostics = (await CSharpDiagnosticMapper.MapAsync(document, reported, cancellationToken)).ToList();
 
+        // Erreurs des sources ajoutées au projet (ex. classe utilitaire) : sans position dans l'éditeur, le fichier est cité.
+        var tree = await document.Document.GetSyntaxTreeAsync(cancellationToken);
+        diagnostics.InsertRange(0, reported
+            .Where(d => d.Severity == DiagnosticSeverity.Error && d.Location.SourceTree is { FilePath.Length: > 0 } source && source != tree)
+            .Select(d => new CodeDiagnostic(0, 0, CodeDiagnosticSeverity.Error, Describe(d), d.Id)));
+
         if (!result.Success)
         {
             // Erreur dans le code qui entoure le texte : sans position utile, mais jamais silencieuse.
@@ -45,5 +51,11 @@ internal static class CSharpCompiler
         var context = new CompiledCodeLoadContext(name, options);
         var assembly = context.LoadFromStream(image, symbols);
         return new CSharpCompilationResult(diagnostics, assembly, context);
+    }
+
+    private static string Describe(Diagnostic diagnostic)
+    {
+        var position = diagnostic.Location.GetLineSpan().StartLinePosition;
+        return $"{Path.GetFileName(diagnostic.Location.SourceTree!.FilePath)} ({position.Line + 1}, {position.Character + 1}) : {diagnostic.GetMessage(CultureInfo.CurrentUICulture)}";
     }
 }

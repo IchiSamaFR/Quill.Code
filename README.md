@@ -80,6 +80,17 @@ else
 
 Les positions reçues et rendues sont toujours celles du texte de l'éditeur.
 
+Sources ajoutées à la volée (ex. classe utilitaire) : visibles par la complétion et l'analyse, compilées avec le texte.
+
+```csharp
+language.Project.SetSource("FileHelper.cs", helperCode);                // nom → code
+var key = await language.Project.SetSourceFileAsync(@"C:\Helpers\FileHelper.cs"); // relu à chaque appel
+language.Project.RemoveSource(key);
+language.Project.SourcesChanged += (_, _) => RefreshDiagnostics();
+```
+
+Une erreur dans une source est rendue en position 0 avec le fichier : « FileHelper.cs (12, 5) : … ».
+
 ## Développement
 
 ```
