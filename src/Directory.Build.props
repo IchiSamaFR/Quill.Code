@@ -1,0 +1,46 @@
+<Project>
+	<!-- Reglages communs a tous les projets : chaque csproj ne garde que ce qui lui est propre. -->
+	<PropertyGroup>
+		<!-- Surchargee en CI par -p:Version=<tag>. -->
+		<Version>0.1.0</Version>
+		<Authors>IchiSamaFR</Authors>
+		<Company>IchiSamaFR</Company>
+		<Product>Quill.Code</Product>
+		<Copyright>Copyright (c) 2026 IchiSamaFR</Copyright>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+		<NoWarn>$(NoWarn);CA2007</NoWarn>
+	</PropertyGroup>
+
+	<!-- Analyse complete du code des librairies ; les tests en sont dispenses. -->
+	<PropertyGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+	</PropertyGroup>
+
+	<!-- Paquets NuGet : metadonnees, documentation XML et Source Link (PDB embarque, GitHub Packages ne prend pas les .snupkg). -->
+	<PropertyGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">
+		<IsPackable>true</IsPackable>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>code-editor;syntax-highlighting;completion;roslyn</PackageTags>
+		<RepositoryUrl>https://github.com/IchiSamaFR/Quill.Code</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<DebugType>embedded</DebugType>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+
+	<ItemGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">
+		<None Include="$(MSBuildThisFileDirectory)..\README.md" Pack="true" PackagePath="\" Visible="false" />
+	</ItemGroup>
+</Project>

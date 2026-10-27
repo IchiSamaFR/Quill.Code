@@ -1,0 +1,33 @@
+# Build et tests a chaque push / PR sur master.
+name: Build
+
+on:
+  push:
+    branches: [master]
+    paths: ['src/**', '.github/workflows/build.yml']
+  pull_request:
+    paths: ['src/**', '.github/workflows/build.yml']
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # SDK 10 pour les tests ; runtime 8 car les librairies ciblent net8.0.
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Build
+        run: dotnet build src/Quill.Code.slnx -c Release
+
+      - name: Tests
+        run: dotnet test src/Quill.Code.slnx -c Release --no-build
