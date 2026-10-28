@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Emit;
 using Quill.Code.Analysis;
 using Quill.Code.CSharp.Analysis;
+using Quill.Code.CSharp.Scripting;
 using Quill.Code.CSharp.Workspaces;
 using System.Globalization;
 
@@ -50,6 +51,20 @@ internal static class CSharpCompiler
 
         var context = new CompiledCodeLoadContext(name, options);
         var assembly = context.LoadFromStream(new MemoryStream(bytes), symbols);
+
+        if (options.Log is { } log)
+        {
+            try
+            {
+                CSharpScriptRuntime.BindLog(assembly, log);
+            }
+            catch when (context.IsCollectible)
+            {
+                context.Unload();
+                throw;
+            }
+        }
+
         return new CSharpCompilationResult(diagnostics, assembly, context, bytes);
     }
 

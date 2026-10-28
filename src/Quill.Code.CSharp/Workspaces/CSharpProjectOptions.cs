@@ -49,4 +49,11 @@ public sealed record CSharpProjectOptions
     /// (<see cref="CSharpReferences.FromFile"/>).
     /// </summary>
     public Func<string, IEnumerable<MetadataReference>>? TextReferences { get; init; }
+
+    /// <summary>
+    /// Ajoute le runtime des scripts, généré dans l'assembly (aucune référence vers l'application) : <c>Log</c> et
+    /// <c>LogLevel</c>, branchés par <see cref="Compilation.CSharpCompileOptions.Log"/>, et <c>Script.CancellationToken</c>,
+    /// fixé par <see cref="Compilation.CSharpCompilationResult.RunAsync{T}"/>.
+    /// </summary>
+    public bool IncludeScriptRuntime { get; init; }
 }

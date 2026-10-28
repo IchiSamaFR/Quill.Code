@@ -16,14 +16,14 @@ Quill.Code est une bibliothèque .NET (paquets NuGet) qui regroupe les briques c
 
 `Quill.Code` ← `Quill.Code.[Langage]` (un projet par langage). Un langage ne référence jamais un autre langage.
 
-* **`Quill.Code`** (net8.0) : modèles et contrats (`Completion`, `Analysis`, `Text`), coloration (`Highlighting`), édition (`Editing`). Aucune dépendance.
-* **`Quill.Code.CSharp`** (net8.0) : C# via Roslyn. `CSharpLanguageService(nom, options)` possède son projet (créé à la première demande) et travaille directement sur le texte de l'éditeur : `SourceTransform` le place dans son source (tel quel, neutralisé ou enveloppé de code généré), `TextReferences` ajoute les références qu'il déclare ; `Project.SetSource`/`SetSourceFileAsync`/`RemoveSource` ajoutent des sources à la volée (appliquées à la prochaine demande, compilées avec le texte). Autocomplétion, diagnostics, survol et signatures ; compilation (`CompileAsync` : émission, PDB facultatif, chargement dans un contexte déchargeable — l'appel du code compilé reste à l'application). Positions toujours celles du texte de l'éditeur.
+* **`Quill.Code`** (net8.0) : modèles et contrats (`Completion`, `Analysis`, `Text`, `Scripting.LogLevel`), coloration (`Highlighting`), édition (`Editing`). Aucune dépendance.
+* **`Quill.Code.CSharp`** (net8.0) : C# via Roslyn. `CSharpLanguageService(nom, options)` possède son projet (créé à la première demande) et travaille directement sur le texte de l'éditeur : `SourceTransform` le place dans son source (tel quel, neutralisé ou enveloppé de code généré), `TextReferences` ajoute les références qu'il déclare ; `Project.SetSource`/`SetSourceFileAsync`/`RemoveSource` ajoutent des sources à la volée (appliquées à la prochaine demande, compilées avec le texte). Autocomplétion, diagnostics, survol et signatures ; compilation (`CompileAsync` : émission, PDB facultatif, chargement dans un contexte déchargeable) et exécution (`CSharpCompilationResult.RunAsync` / `RunEntryPointAsync` : hors du thread appelant, abandon à l'annulation, déchargement à la fin réelle — le contrat d'appel reste à l'application). Runtime des scripts (`CSharpProjectOptions.IncludeScriptRuntime`) : `Log`, `LogLevel`, `Script` générés dans chaque assembly et branchés par réflexion (`CSharpCompileOptions.Log`, `Script.CancellationToken`), donc propres à chaque exécution et sans référence vers l'application. Positions toujours celles du texte de l'éditeur.
 * **`Quill.Code.Sql`** (à venir) : lexer, contexte de complétion, diagnostics T-SQL.
 * **`Quill.Code.Tests`** (net10.0, xUnit).
 
 Contrats sur le texte brut dans `Quill.Code` (`ICodeCompletionProvider`, `ICodeDiagnosticProvider`), implémentés par `ICSharpLanguageService` : un contrôle d'éditeur s'y lie sans dépendre de Roslyn. Les contrats plus riches d'une application (requête avec connexion, langage, paramètres…) restent chez elle et se branchent sur les moteurs de Quill.
 
-Ce qui est propre à une application reste dans l'application : DbContext EF de Querify, directives NuGet et exécution des scripts de PocketForge, fichiers `.xshd` spécifiques.
+Ce qui est propre à une application reste dans l'application : DbContext EF de Querify, directives NuGet et point d'entrée des scripts de PocketForge, fichiers `.xshd` spécifiques.
 
 ---
 

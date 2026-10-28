@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using Quill.Code.Scripting;
+using System.Reflection;
 
 namespace Quill.Code.CSharp.Compilation;
 
@@ -28,4 +29,10 @@ public sealed record CSharpCompileOptions
     /// types en cache) : <see cref="CSharpCompilationResult.Dispose"/> ne la décharge alors pas.
     /// </summary>
     public bool Collectible { get; init; } = true;
+
+    /// <summary>
+    /// Reçoit les messages <c>Log</c> (niveau, texte) du code compilé, propres à cette compilation ; demande
+    /// <see cref="Workspaces.CSharpProjectOptions.IncludeScriptRuntime"/>. Null : les messages sont ignorés.
+    /// </summary>
+    public Action<LogLevel, string>? Log { get; init; }
 }
