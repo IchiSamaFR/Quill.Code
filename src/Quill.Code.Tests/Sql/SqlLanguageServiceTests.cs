@@ -1,5 +1,4 @@
-﻿using Quill.Code.Analysis;
-using Quill.Code.Languages;
+﻿using Quill.Code.Languages;
 using Quill.Code.Sql;
 
 namespace Quill.Code.Tests.Sql;
@@ -20,28 +19,16 @@ public class SqlLanguageServiceTests
     }
 
     [Fact]
-    public async Task OtherServices_ProposeNothing()
-    {
-        Assert.Empty((await _service.GetCompletionsAsync("SELECT ", 7)).Items);
-        Assert.Null(await _service.GetHoverAsync("SELECT 1", 2));
-        Assert.Null(await _service.GetSignatureHelpAsync("SELECT 1", 2));
-    }
+    public async Task SignatureHelp_ProposesNothing()
+        => Assert.Null(await _service.GetSignatureHelpAsync("SELECT 1", 2));
 
     [Fact]
-    public async Task HostServices_ReplaceTheDefaults()
+    public async Task Change_ReplacesTheLastWord()
     {
-        var hover = new FixedHover(new HoverInfo(0, 6, "SELECT"));
-        var service = new SqlLanguageService(hover: hover);
+        var list = await _service.GetCompletionsAsync("SELECT * FR", 11);
 
-        Assert.Same(hover.Info, await service.GetHoverAsync("SELECT 1", 2));
-        Assert.NotEmpty(await service.GetDiagnosticsAsync("SELECT * FORM t"));
-    }
+        var change = await _service.GetChangeAsync("SELECT * FR", list.Items.First(i => i.Label == "FROM"));
 
-    private sealed class FixedHover(HoverInfo info) : ICodeHover
-    {
-        public HoverInfo Info { get; } = info;
-
-        public Task<HoverInfo?> GetHoverAsync(string code, int position, CancellationToken cancellationToken = default)
-            => Task.FromResult<HoverInfo?>(Info);
+        Assert.Equal((9, 2, "FROM"), (change.SpanStart, change.SpanLength, change.NewText));
     }
 }

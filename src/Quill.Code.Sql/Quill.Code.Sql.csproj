@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Code.Sql</RootNamespace>
-		<Description>Langage T-SQL pour Quill.Code : analyse du contexte de saisie, diagnostics de syntaxe fournis par ScriptDom.</Description>
+		<Description>Langage T-SQL pour Quill.Code : diagnostics de syntaxe (ScriptDom), autocompletion et survol sur un catalogue fourni par l'hote.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -1,6 +1,5 @@
-﻿using Quill.Code.Analysis;
-
-namespace Quill.Code;
+﻿
+namespace Quill.Code.Analysis;
 
 /// <summary>
 /// Source d'aide à la frappe d'un éditeur, sur le texte brut : découple le contrôle du moteur (Roslyn…).

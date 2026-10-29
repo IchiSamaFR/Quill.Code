@@ -1,6 +1,5 @@
-﻿using Quill.Code.Completion;
-
-namespace Quill.Code;
+﻿
+namespace Quill.Code.Completion;
 
 /// <summary>Source d'autocomplétion d'un éditeur, sur le texte brut : découple le contrôle du moteur (Roslyn…).</summary>
 public interface ICodeCompletion

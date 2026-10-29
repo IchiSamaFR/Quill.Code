@@ -14,6 +14,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 - `ICodeCompilation` (vide) et `CodeLanguageServiceProvider` (registre statique inutilisé).
 
 ### Ajouté
+- `Quill.Code.Sql` : autocomplétion et survol sur un catalogue fourni par l'hôte (`ISqlCatalog`, modèle `SqlDatabaseInfo` / `SqlDatabaseSchema` / `SqlSchemaObject` / `SqlColumn`, `SqlCatalog` en mémoire), mots-clés T-SQL intégrés, variables de l'hôte (`SqlVariable`) ; `SqlLanguageService(SqlLanguageOptions)` remplace le constructeur à services substituables, les services par fonctionnalité deviennent internes.
 - `CompletionFilter.Filter` : filtre et tri des propositions sur le mot en cours (commence par, début de segment, contient), repris de Querify.
 - Structure de la solution : `Quill.Code`, `Quill.Code.CSharp`, `Quill.Code.Sql`, `Quill.Code.Tests`.
 - `Quill.Code.CSharp` : `CSharpLanguageService` relaie à `CSharpCompletionService`, `CSharpDiagnosticService`, `CSharpHoverService` et `CSharpSignatureService` (`ICodeCompletion`, `ICodeDiagnostic`, `ICodeHover`, `ICodeSignature`), utilisables seuls sur un `CSharpProject` (exposés par `CSharpLanguageService.Completion`, `.Diagnostics`, `.Hover`, `.Signature`, avec les surcharges sur un `CSharpDocument`).

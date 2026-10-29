@@ -1,4 +1,7 @@
-﻿namespace Quill.Code;
+﻿using Quill.Code.Analysis;
+using Quill.Code.Completion;
+
+namespace Quill.Code;
 
 /// <summary>Services d'éditeur d'un langage, sur le texte brut : autocomplétion, diagnostics, survol et signatures.</summary>
 public interface ICodeLanguageService : ICodeCompletion, ICodeDiagnostic, ICodeSignature, ICodeHover

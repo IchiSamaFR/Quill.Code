@@ -1,6 +1,5 @@
-﻿using Quill.Code.Analysis;
-
-namespace Quill.Code;
+﻿
+namespace Quill.Code.Analysis;
 
 /// <summary>Source des diagnostics d'un éditeur, sur le texte brut : découple le contrôle du compilateur.</summary>
 public interface ICodeDiagnostic

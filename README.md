@@ -8,7 +8,7 @@ Briques communes aux éditeurs de code .NET, indépendantes du framework d'inter
 |---|---|
 | `Quill.Code` | Modèles, contrats, lecture des définitions `.xshd`, découpage en zones colorées, algorithmes d'édition. Aucune dépendance d'interface. |
 | `Quill.Code.CSharp` | C# via Roslyn : autocomplétion, diagnostics, survol, aide à la signature, compilation et chargement. |
-| `Quill.Code.Sql` | T-SQL : lexer, analyse du contexte de saisie (ce qu'attend la grammaire au curseur, tables et alias du lot, base du `USE`) et diagnostics de syntaxe par ScriptDom. Autocomplétion, survol et signature : à venir (schéma de la base requis). |
+| `Quill.Code.Sql` | T-SQL : lexer, analyse du contexte de saisie (ce qu'attend la grammaire au curseur, tables et alias du lot, base du `USE`) diagnostics de syntaxe par ScriptDom, autocomplétion et survol sur le catalogue fourni par l'hôte (`ISqlCatalog`). |
 
 L'affichage reste à la charge de l'application : chaque app traduit les zones colorées, propositions et diagnostics vers ses propres contrôles.
 
@@ -81,6 +81,23 @@ language.SourcesChanged += (_, _) => RefreshDiagnostics();
 ```
 
 Une erreur dans une source est rendue en position 0 avec le fichier : « FileHelper.cs (12, 5) : … ».
+
+### T-SQL
+
+Quill ne se connecte à aucune base : l'hôte fournit un `ISqlCatalog` (bases, puis schéma complet d'une base, colonnes comprises), ou un `SqlCatalog` en mémoire.
+
+```csharp
+var language = new SqlLanguageService(new SqlLanguageOptions
+{
+    Catalog = new SqlCatalog([new SqlDatabaseSchema("Shop", objects)]), // ou l'implémentation de l'hôte
+    Database = "Shop",                                                   // null : base par défaut du catalogue
+    Variables = [new SqlVariable("@MaxRows", "int", "Paramètre")],       // connues sans DECLARE
+});
+
+var completions = await language.GetCompletionsAsync("SELECT u.| FROM dbo.Users u", caret); // colonnes de Users
+```
+
+Sans catalogue, l'autocomplétion propose les mots-clés, les mots du document et les variables. Un catalogue indisponible rend une liste vide (ou null) ; une exception est traitée comme une absence de schéma.
 
 ## Développement
 

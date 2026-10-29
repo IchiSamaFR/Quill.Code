@@ -7,24 +7,23 @@ using Quill.Code.Sql.Completion;
 namespace Quill.Code.Sql;
 
 /// <summary>
-/// Point d'entrée T-SQL : relaie chaque demande au service de la fonctionnalité (complétion, diagnostics, survol,
-/// signature). Par défaut ce sont ceux de Quill (diagnostics de syntaxe seulement) ; l'hôte qui connaît le schéma de la
-/// base fournit les siens pour les autres.
+/// Services d'éditeur T-SQL : fautes de syntaxe (ScriptDom), autocomplétion et survol. Sans catalogue, les propositions
+/// se limitent aux mots-clés, aux mots du document et aux variables ; avec <see cref="SqlLanguageOptions.Catalog"/>,
+/// bases, schémas, tables, vues, procédures et colonnes s'y ajoutent.
 /// </summary>
 public sealed class SqlLanguageService : ICodeLanguageService
 {
-    private readonly ICodeCompletion _completion;
-    private readonly ICodeDiagnostic _diagnostic;
-    private readonly ICodeHover _hover;
-    private readonly ICodeSignature _signature;
+    private readonly SqlCompletionService _completion;
+    private readonly SqlDiagnosticService _diagnostic = new();
+    private readonly SqlHoverService _hover;
+    private readonly SqlSignatureService _signature = new();
 
-    /// <summary>Services choisis par l'hôte ; chaque <c>null</c> garde celui de Quill.</summary>
-    public SqlLanguageService(ICodeCompletion? completion = null, ICodeDiagnostic? diagnostic = null, ICodeHover? hover = null, ICodeSignature? signature = null)
+    /// <param name="options">Catalogue, base et variables connus ; à défaut, aucun.</param>
+    public SqlLanguageService(SqlLanguageOptions? options = null)
     {
-        _completion = completion ?? new SqlCompletionService();
-        _diagnostic = diagnostic ?? new SqlDiagnosticService();
-        _hover = hover ?? new SqlHoverService();
-        _signature = signature ?? new SqlSignatureService();
+        options ??= new SqlLanguageOptions();
+        _completion = new SqlCompletionService(options);
+        _hover = new SqlHoverService(options);
     }
 
     /// <inheritdoc />
