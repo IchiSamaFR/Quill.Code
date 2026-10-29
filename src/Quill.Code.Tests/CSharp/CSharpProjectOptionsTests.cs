@@ -1,19 +1,19 @@
 ﻿using Microsoft.CodeAnalysis;
 using Quill.Code.Analysis;
 using Quill.Code.CSharp;
+using Quill.Code.CSharp.Analysis;
+using Quill.Code.CSharp.Completion;
 using Quill.Code.CSharp.Workspaces;
 
 namespace Quill.Code.Tests.CSharp;
 
-public sealed class CSharpLanguageServiceExtensionsTests
+public sealed class CSharpProjectOptionsTests
 {
-    private readonly CSharpLanguageService _service = new();
-
     [Fact]
     public async Task Completions_FromCode_WithSourceTransform()
     {
         const string code = "#! directive\nConsole.Wri";
-        var list = await _service.GetCompletionsAsync(CSharpTestProjects.Transformed, code, code.Length);
+        var list = await new CSharpCompletionService(CSharpTestProjects.Transformed).GetCompletionsAsync(code, code.Length);
 
         Assert.Contains(list.Items, i => i.Label == "WriteLine");
         Assert.Equal(code.Length - 3, list.SpanStart);
@@ -22,7 +22,7 @@ public sealed class CSharpLanguageServiceExtensionsTests
     [Fact]
     public async Task Diagnostics_TransformedLinesAreNotCode()
     {
-        var diagnostics = await _service.GetDiagnosticsAsync(CSharpTestProjects.Transformed, "#! not C#\nConsole.WriteLine();");
+        var diagnostics = await new CSharpDiagnosticService(CSharpTestProjects.Transformed).GetDiagnosticsAsync("#! not C#\nConsole.WriteLine();");
 
         Assert.DoesNotContain(diagnostics, d => d.Severity == CodeDiagnosticSeverity.Error);
     }

@@ -6,7 +6,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ### Ajouté
 - Structure de la solution : `Quill.Code`, `Quill.Code.CSharp`, `Quill.Code.Sql`, `Quill.Code.Tests`.
-- `Quill.Code.CSharp` : `CSharpLanguageService` relaie à `CSharpCompletionService`, `CSharpDiagnosticService`, `CSharpHoverService` et `CSharpSignatureService` (`ICodeCompletion`, `ICodeDiagnostic`, `ICodeHover`, `ICodeSignature`), utilisables seuls sur un `CSharpProject` ; API de `ICSharpLanguageService` inchangée.
+- `Quill.Code.CSharp` : `CSharpLanguageService` relaie à `CSharpCompletionService`, `CSharpDiagnosticService`, `CSharpHoverService` et `CSharpSignatureService` (`ICodeCompletion`, `ICodeDiagnostic`, `ICodeHover`, `ICodeSignature`), utilisables seuls sur un `CSharpProject` (exposés par `CSharpLanguageService.Completion`, `.Diagnostics`, `.Hover`, `.Signature`, avec les surcharges sur un `CSharpDocument`).
+- Suppression de `ICSharpLanguageService` (les apps utilisent `CSharpLanguageService`, qui implémente `ICodeLanguageProvider`) et de `CSharpLanguageServiceExtensions` (remplacées par les services de fonctionnalité).
 - `Quill.Code.Sql` : `SqlLexer`, `SqlContextAnalyzer` (`Analyze`, `AnalyzeScope` : nature de la saisie attendue, qualificatif, tables et alias du lot GO courant, base du dernier `USE`), `SqlSyntaxChecker` (diagnostics ScriptDom, lots GO compris) et `SqlLanguageService` (`ICodeLanguageProvider`) qui relaie à `SqlCompletionService`, `SqlDiagnosticService`, `SqlHoverService` et `SqlSignatureService` (diagnostics réels ; les autres ne proposent rien) ; l'hôte peut substituer chaque service par le sien.
 - Versions de paquets centralisées, métadonnées NuGet, Source Link.
 - CI : build et tests, publication sur GitHub Packages à chaque tag `v*`.

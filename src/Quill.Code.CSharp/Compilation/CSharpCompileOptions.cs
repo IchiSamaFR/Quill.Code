@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Quill.Code.CSharp.Compilation;
 
-/// <summary>Réglages de <see cref="ICSharpLanguageService.CompileAsync(string, CSharpCompileOptions?, CancellationToken)"/>.</summary>
+/// <summary>Réglages de <see cref="CSharpLanguageService.CompileAsync(string, CSharpCompileOptions?, CancellationToken)"/>.</summary>
 public sealed record CSharpCompileOptions
 {
     /// <summary>Nom de l'assembly émise ; par défaut le nom du projet suivi d'un identifiant unique.</summary>

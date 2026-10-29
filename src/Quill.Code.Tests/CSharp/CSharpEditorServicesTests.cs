@@ -1,18 +1,22 @@
 ﻿using Quill.Code.Analysis;
 using Quill.Code.Completion;
-using Quill.Code.CSharp;
+using Quill.Code.CSharp.Analysis;
+using Quill.Code.CSharp.Completion;
 
 namespace Quill.Code.Tests.CSharp;
 
-public sealed class CSharpLanguageServiceTests
+public sealed class CSharpEditorServicesTests
 {
-    private readonly CSharpLanguageService _service = new();
+    private readonly CSharpCompletionService _completion = new(CSharpTestProjects.Script);
+    private readonly CSharpDiagnosticService _diagnostics = new(CSharpTestProjects.Script);
+    private readonly CSharpHoverService _hover = new(CSharpTestProjects.Script);
+    private readonly CSharpSignatureService _signature = new(CSharpTestProjects.Script);
 
     [Fact]
     public async Task Completion_ProposesMembers()
     {
         const string text = "Console.Wri";
-        var list = await _service.GetCompletionsAsync(CSharpTestProjects.Script.CreateDocument(text), text.Length);
+        var list = await _completion.GetCompletionsAsync(CSharpTestProjects.Script.CreateDocument(text), text.Length);
 
         var writeLine = Assert.Single(list.Items, i => i.Label == "WriteLine");
         Assert.Equal(CompletionItemKind.Method, writeLine.Kind);
@@ -24,7 +28,7 @@ public sealed class CSharpLanguageServiceTests
     public async Task Completion_PositionsAreRelativeToEditorText()
     {
         const string text = "var s = \"\"; s.Len";
-        var list = await _service.GetCompletionsAsync(CSharpTestProjects.Wrap(text), text.Length);
+        var list = await _completion.GetCompletionsAsync(CSharpTestProjects.Wrap(text), text.Length);
 
         Assert.Contains(list.Items, i => i.Label == "Length" && i.Kind == CompletionItemKind.Property);
         Assert.Equal(text.Length - 3, list.SpanStart);
@@ -35,9 +39,9 @@ public sealed class CSharpLanguageServiceTests
     {
         const string text = "Console.Wri";
         var document = CSharpTestProjects.Script.CreateDocument(text);
-        var list = await _service.GetCompletionsAsync(document, text.Length);
+        var list = await _completion.GetCompletionsAsync(document, text.Length);
 
-        var change = await _service.GetChangeAsync(document, list.Items.First(i => i.Label == "WriteLine"));
+        var change = await _completion.GetChangeAsync(document, list.Items.First(i => i.Label == "WriteLine"));
 
         Assert.Equal(8, change.SpanStart);
         Assert.Equal(3, change.SpanLength);
@@ -47,7 +51,7 @@ public sealed class CSharpLanguageServiceTests
     [Fact]
     public async Task Diagnostics_ReportSyntaxErrors()
     {
-        var diagnostics = await _service.GetDiagnosticsAsync(CSharpTestProjects.Script.CreateDocument("int x = ;"));
+        var diagnostics = await _diagnostics.GetDiagnosticsAsync(CSharpTestProjects.Script.CreateDocument("int x = ;"));
 
         var error = Assert.Single(diagnostics, d => d.Code == "CS1525");
         Assert.Equal(CodeDiagnosticSeverity.Error, error.Severity);
@@ -58,7 +62,7 @@ public sealed class CSharpLanguageServiceTests
     public async Task Diagnostics_MissingTokenAfterTextIsAttachedToItsEnd()
     {
         const string text = "var x = 1";
-        var diagnostics = await _service.GetDiagnosticsAsync(CSharpTestProjects.Wrap(text));
+        var diagnostics = await _diagnostics.GetDiagnosticsAsync(CSharpTestProjects.Wrap(text));
 
         var error = Assert.Single(diagnostics, d => d.Code == "CS1002");
         Assert.InRange(error.Start, 0, text.Length - 1);
@@ -70,13 +74,13 @@ public sealed class CSharpLanguageServiceTests
     {
         var document = CSharpTestProjects.Wrap("unknown.Foo();") with { IncludeSemanticDiagnostics = false };
 
-        Assert.Empty(await _service.GetDiagnosticsAsync(document));
+        Assert.Empty(await _diagnostics.GetDiagnosticsAsync(document));
     }
 
     [Fact]
     public async Task Hover_DescribesSymbol()
     {
-        var hover = await _service.GetHoverAsync(CSharpTestProjects.Wrap("System.Console.WriteLine();"), 17);
+        var hover = await _hover.GetHoverAsync(CSharpTestProjects.Wrap("System.Console.WriteLine();"), 17);
 
         Assert.NotNull(hover);
         Assert.Equal(15, hover.Start);
@@ -88,7 +92,7 @@ public sealed class CSharpLanguageServiceTests
     public async Task SignatureHelp_TracksActiveParameter()
     {
         const string text = "System.Math.Max(1, ";
-        var help = await _service.GetSignatureHelpAsync(CSharpTestProjects.Wrap(text), text.Length);
+        var help = await _signature.GetSignatureHelpAsync(CSharpTestProjects.Wrap(text), text.Length);
 
         Assert.NotNull(help);
         Assert.NotEmpty(help.Signatures);
