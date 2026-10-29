@@ -1,4 +1,4 @@
-﻿namespace Quill.Code.Sql;
+﻿namespace Quill.Code.Sql.Completion;
 
 /// <summary>Ce que la grammaire attend à la position du curseur.</summary>
 public enum SqlContextKind

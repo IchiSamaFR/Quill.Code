@@ -1,6 +1,7 @@
-﻿using System.Text.RegularExpressions;
+﻿using Quill.Code.Sql.Lexing;
+using System.Text.RegularExpressions;
 
-namespace Quill.Code.Sql;
+namespace Quill.Code.Sql.Completion;
 
 /// <summary>
 /// Devine ce que le T-SQL attend au curseur, sans vrai parser : jeton precedent d'abord,

@@ -1,8 +1,9 @@
 ﻿using Microsoft.SqlServer.TransactSql.ScriptDom;
 using Quill.Code.Analysis;
+using Quill.Code.Sql.Lexing;
 using System.Globalization;
 
-namespace Quill.Code.Sql;
+namespace Quill.Code.Sql.Analysis;
 
 /// <summary>
 /// Fautes de syntaxe T-SQL, par le parseur de SQL Server (ScriptDom) : lots GO compris, sans connexion.

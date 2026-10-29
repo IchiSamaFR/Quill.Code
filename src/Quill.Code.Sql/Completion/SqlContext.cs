@@ -1,4 +1,4 @@
-﻿namespace Quill.Code.Sql;
+﻿namespace Quill.Code.Sql.Completion;
 
 /// <summary>Résultat de l'analyse du texte autour du curseur.</summary>
 public sealed class SqlContext

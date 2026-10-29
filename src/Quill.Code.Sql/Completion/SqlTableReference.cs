@@ -1,4 +1,4 @@
-﻿namespace Quill.Code.Sql;
+﻿namespace Quill.Code.Sql.Completion;
 
 /// <summary>Table (ou source) citée par une requête.</summary>
 /// <param name="Database">Base, si le nom est qualifié sur trois parties.</param>

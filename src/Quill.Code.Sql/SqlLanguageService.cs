@@ -1,6 +1,7 @@
 ﻿using Quill.Code.Analysis;
 using Quill.Code.Completion;
 using Quill.Code.Languages;
+using Quill.Code.Sql.Analysis;
 
 namespace Quill.Code.Sql;
 
