@@ -8,7 +8,7 @@ namespace Quill.Code.Sql.Execution;
 /// Decoupe un script sur les separateurs GO, comme SSMS : GO n'est pas du T-SQL,
 /// le serveur le rejetterait. Un GO dans une chaine ou un commentaire bloc est ignore.
 /// </summary>
-public static partial class SqlBatchSplitter
+internal static partial class SqlBatchSplitter
 {
     [GeneratedRegex(@"^\s*GO(?:\s+(?<count>\d+))?\s*(?:--.*)?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex GoLineRegex();

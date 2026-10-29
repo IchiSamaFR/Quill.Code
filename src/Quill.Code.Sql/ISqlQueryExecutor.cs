@@ -1,4 +1,6 @@
-﻿namespace Quill.Code.Sql.Execution;
+﻿using Quill.Code.Sql.Execution;
+
+namespace Quill.Code.Sql;
 
 /// <summary>Execution de SQL sur un moteur, a partir d'une chaine de connexion. Une implementation par moteur.</summary>
 public interface ISqlQueryExecutor

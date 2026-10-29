@@ -2,8 +2,9 @@
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
+using Quill.Code.Sql.Execution;
 
-namespace Quill.Code.Sql.Execution;
+namespace Quill.Code.Sql;
 
 /// <summary>
 /// Execution SQL Server, calquee sur le comportement de SSMS : decoupage sur GO, un lot en
