@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Code.Sql</RootNamespace>
+		<Description>Langage T-SQL pour Quill.Code : analyse du contexte de saisie, diagnostics de syntaxe fournis par ScriptDom.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Code\Quill.Code.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Quill.Code.Tests" />
+	</ItemGroup>
+
+</Project>

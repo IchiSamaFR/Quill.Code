@@ -1,4 +1,4 @@
-# Quill.Code
+﻿# Quill.Code
 
 Briques communes aux éditeurs de code .NET, indépendantes du framework d'interface (WPF, MAUI…) : coloration syntaxique, autocomplétion, diagnostics et algorithmes d'édition.
 
@@ -8,6 +8,7 @@ Briques communes aux éditeurs de code .NET, indépendantes du framework d'inter
 |---|---|
 | `Quill.Code` | Modèles, contrats, lecture des définitions `.xshd`, découpage en zones colorées, algorithmes d'édition. Aucune dépendance d'interface. |
 | `Quill.Code.CSharp` | C# via Roslyn : autocomplétion, diagnostics, survol, aide à la signature, compilation et chargement. |
+| `Quill.Code.Sql` | T-SQL : lexer, analyse du contexte de saisie (ce qu'attend la grammaire au curseur, tables et alias du lot, base du `USE`) et diagnostics de syntaxe par ScriptDom. Autocomplétion, survol et signature : à venir (schéma de la base requis). |
 
 L'affichage reste à la charge de l'application : chaque app traduit les zones colorées, propositions et diagnostics vers ses propres contrôles.
 

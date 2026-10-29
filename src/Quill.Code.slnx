@@ -1,4 +1,4 @@
-<Solution>
+﻿<Solution>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
@@ -9,4 +9,5 @@
   </Folder>
   <Project Path="Quill.Code/Quill.Code.csproj" />
   <Project Path="Quill.Code.CSharp/Quill.Code.CSharp.csproj" />
+  <Project Path="Quill.Code.Sql/Quill.Code.Sql.csproj" />
 </Solution>
