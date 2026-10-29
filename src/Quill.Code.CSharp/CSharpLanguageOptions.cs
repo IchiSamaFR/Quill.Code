@@ -1,10 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Quill.Code.CSharp.Workspaces;
+namespace Quill.Code.CSharp;
 
-/// <summary>Projet Roslyn créé par <see cref="CSharpWorkspace.AddProject"/>.</summary>
-public sealed record CSharpProjectOptions
+/// <summary>Projet Roslyn d'un <see cref="CSharpLanguageService"/>.</summary>
+public sealed record CSharpLanguageOptions
 {
     /// <summary>Nom du projet (et de son assembly).</summary>
     public string Name { get; init; } = "Document";
@@ -25,23 +25,10 @@ public sealed record CSharpProjectOptions
     public string DocumentName { get; init; } = "Document.cs";
 
     /// <summary>
-    /// Source analysé pour le texte de l'éditeur : le texte neutralisé à longueur égale (ex. directives d'un script,
-    /// une chaîne suffit), ou placé dans du code généré à une position donnée (ex. requête dans une méthode) ;
-    /// null : le texte tel quel. Les positions échangées restent celles du texte de l'éditeur.
+    /// Source analysé à la place du texte de l'éditeur, de même longueur pour garder les positions
+    /// (ex. directives d'un script neutralisées en commentaires) ; null : le texte tel quel.
     /// </summary>
-    public Func<string, CSharpSource>? SourceTransform { get; init; }
-
-    /// <summary>
-    /// Faux pour ne signaler que les fautes de syntaxe, quand le contexte manque pour résoudre les noms
-    /// (ex. requête sans DbContext).
-    /// </summary>
-    public bool IncludeSemanticDiagnostics { get; init; } = true;
-
-    /// <summary>
-    /// Faux quand le texte ne peut pas recevoir de « using » : un type d'un espace de noms non importé est alors
-    /// inséré avec son nom complet, et une méthode d'extension non importée n'est pas proposée.
-    /// </summary>
-    public bool AllowImports { get; init; } = true;
+    public Func<string, string>? SourceTransform { get; init; }
 
     /// <summary>
     /// Références propres au texte (ex. packages déclarés par un script), ajoutées à <see cref="References"/>.
@@ -49,6 +36,12 @@ public sealed record CSharpProjectOptions
     /// (<see cref="CSharpReferences.FromFile"/>).
     /// </summary>
     public Func<string, IEnumerable<MetadataReference>>? TextReferences { get; init; }
+
+    /// <summary>
+    /// Faux pour ne signaler que les fautes de syntaxe, quand le contexte manque pour résoudre les noms
+    /// (ex. requête sans DbContext).
+    /// </summary>
+    public bool IncludeSemanticDiagnostics { get; init; } = true;
 
     /// <summary>
     /// Ajoute le runtime des scripts, généré dans l'assembly (aucune référence vers l'application) : <c>Log</c> et

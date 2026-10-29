@@ -4,6 +4,15 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Modifié
+- `Quill.Code.CSharp` simplifié : `CSharpLanguageService(Func<CSharpLanguageOptions>?)` est le seul point d'entrée (nom du projet dans les options) ; les sources à la volée y sont exposées directement (`SetSource`, `SetSourceFileAsync`, `RemoveSource`, `ClearSources`, `Sources`, `SourcesChanged`). Le service n'est plus `IDisposable` : l'hôte Roslyn est partagé et les projets sont des instantanés.
+- `CSharpProjectOptions` devient `CSharpLanguageOptions` ; `CSharpReferences` passe dans `Quill.Code.CSharp`. `SourceTransform` rend une chaîne de même longueur que le texte (plus d'enveloppe de code généré).
+- `ICodeLanguageProvider` devient `ICodeLanguageService`.
+
+### Supprimé
+- `CSharpWorkspace`, `CSharpCompletionService`, `CSharpDiagnosticService`, `CSharpHoverService`, `CSharpSignatureService`, `CSharpSource`, `CSharpLanguageOptions.AllowImports` ; `CSharpProject`, `CSharpDocument` et `CSharpDiagnosticMapper` deviennent internes.
+- `ICodeCompilation` (vide) et `CodeLanguageServiceProvider` (registre statique inutilisé).
+
 ### Ajouté
 - Structure de la solution : `Quill.Code`, `Quill.Code.CSharp`, `Quill.Code.Sql`, `Quill.Code.Tests`.
 - `Quill.Code.CSharp` : `CSharpLanguageService` relaie à `CSharpCompletionService`, `CSharpDiagnosticService`, `CSharpHoverService` et `CSharpSignatureService` (`ICodeCompletion`, `ICodeDiagnostic`, `ICodeHover`, `ICodeSignature`), utilisables seuls sur un `CSharpProject` (exposés par `CSharpLanguageService.Completion`, `.Diagnostics`, `.Hover`, `.Signature`, avec les surcharges sur un `CSharpDocument`).

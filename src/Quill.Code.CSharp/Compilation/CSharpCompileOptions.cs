@@ -32,7 +32,7 @@ public sealed record CSharpCompileOptions
 
     /// <summary>
     /// Reçoit les messages <c>Log</c> (niveau, texte) du code compilé, propres à cette compilation ; demande
-    /// <see cref="Workspaces.CSharpProjectOptions.IncludeScriptRuntime"/>. Null : les messages sont ignorés.
+    /// <see cref="CSharpLanguageOptions.IncludeScriptRuntime"/>. Null : les messages sont ignorés.
     /// </summary>
     public Action<LogLevel, string>? Log { get; init; }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Quill.Code.Analysis;
 
-namespace Quill.Code.CSharp.Analysis;
+namespace Quill.Code.CSharp.Features;
 
 /// <summary>Textes des signatures et précisions du survol, comme Visual Studio : types sans espace de noms, mots-clés C#.</summary>
 internal static class CSharpSymbolFormatter

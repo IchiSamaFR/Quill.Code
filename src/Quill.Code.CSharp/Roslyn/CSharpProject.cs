@@ -2,20 +2,17 @@
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
 
-namespace Quill.Code.CSharp.Workspaces;
+namespace Quill.Code.CSharp.Roslyn;
 
 /// <summary>
-/// Projet Roslyn d'un éditeur et son document. Créé par Quill à la première demande (composition MEF, lecture des
-/// références) ; chaque document est ensuite un instantané : le workspace n'est jamais modifié.
-/// Des sources peuvent être ajoutées, remplacées ou retirées à la volée (ex. classe utilitaire lue d'un fichier .cs) :
-/// le texte de l'éditeur les voit (complétion, analyse) et elles sont compilées avec lui.
+/// Projet Roslyn d'un <see cref="CSharpLanguageService"/>, créé à la première demande ; chaque document est ensuite un
+/// instantané. Les sources ajoutées à la volée sont appliquées au projet à sa prochaine utilisation.
 /// </summary>
-public sealed class CSharpProject
+internal sealed class CSharpProject
 {
-    private readonly Lazy<(Project Project, DocumentId DocumentId, CSharpProjectOptions Options)> _state;
+    private readonly Lazy<(Project Project, DocumentId DocumentId, CSharpLanguageOptions Options)> _state;
     private readonly object _gate = new();
 
-    // Sources ajoutées à la volée (clé → document) ; appliquées au projet à sa prochaine utilisation.
     private readonly Dictionary<string, (string Name, string? FilePath, SourceText Text)> _sources = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, DocumentId> _sourceIds = new(StringComparer.OrdinalIgnoreCase);
     private Project? _project;
@@ -24,18 +21,21 @@ public sealed class CSharpProject
     // Dernières références propres au texte : Roslyn réutilise sa compilation tant qu'elles ne changent pas.
     private (Project Base, MetadataReference[] References, Project Project)? _textProject;
 
-    internal CSharpProject(Func<(Project Project, DocumentId DocumentId, CSharpProjectOptions Options)> create)
+    public CSharpProject(Func<CSharpLanguageOptions> options)
     {
-        _state = new(create);
+        _state = new(() =>
+        {
+            var created = options();
+            var (project, documentId) = RoslynHost.CreateProject(created);
+            return (project, documentId, created);
+        });
     }
 
-    /// <summary>Levé quand une source est ajoutée, remplacée ou retirée (ex. pour relancer l'analyse de l'éditeur).</summary>
     public event EventHandler? SourcesChanged;
 
     /// <summary>Projet Roslyn (créé au premier accès), sources ajoutées à la volée comprises.</summary>
     public Project Project => Current().Project;
 
-    /// <summary>Clés des sources ajoutées à la volée.</summary>
     public IReadOnlyCollection<string> Sources
     {
         get
@@ -45,18 +45,13 @@ public sealed class CSharpProject
         }
     }
 
-    /// <summary>Ajoute ou remplace une source (ex. une classe utilitaire), identifiée par son nom.</summary>
-    /// <param name="name">Nom du document (ex. <c>FileHelper.cs</c>), repris dans les erreurs de compilation.</param>
-    /// <param name="code">Code C# de la source.</param>
     public void SetSource(string name, string code)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         SetSource(name, name, null, code);
     }
 
-    /// <summary>Lit un fichier .cs et l'ajoute (ou le remplace) ; il est identifié par son chemin complet.</summary>
-    /// <returns>Clé de la source, à passer à <see cref="RemoveSource"/>.</returns>
-    public async Task<string> SetSourceFileAsync(string path, CancellationToken cancellationToken = default)
+    public async Task<string> SetSourceFileAsync(string path, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
 
@@ -66,8 +61,6 @@ public sealed class CSharpProject
         return fullPath;
     }
 
-    /// <summary>Retire une source ajoutée à la volée (nom ou chemin complet).</summary>
-    /// <returns>Faux si aucune source ne porte cette clé.</returns>
     public bool RemoveSource(string key)
     {
         ArgumentNullException.ThrowIfNull(key);
@@ -84,7 +77,6 @@ public sealed class CSharpProject
         return true;
     }
 
-    /// <summary>Retire toutes les sources ajoutées à la volée.</summary>
     public void ClearSources()
     {
         lock (_gate)
@@ -99,34 +91,21 @@ public sealed class CSharpProject
         SourcesChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>
-    /// Document du texte de l'éditeur, placé par <see cref="CSharpProjectOptions.SourceTransform"/>, complété des
-    /// <see cref="CSharpProjectOptions.TextReferences"/> et réglé selon les options du projet.
-    /// </summary>
+    /// <summary>Document du texte de l'éditeur, transformé et complété de ses références propres.</summary>
     public CSharpDocument CreateDocument(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
 
         var (project, documentId, options) = Current();
-        var (source, textStart) = options.SourceTransform?.Invoke(text) ?? text;
-        if (source is null || textStart < 0 || textStart + text.Length > source.Length)
-            throw new InvalidOperationException("SourceTransform doit rendre un source qui contient le texte (même longueur) à TextStart.");
+        var source = options.SourceTransform?.Invoke(text) ?? text;
+        if (source.Length != text.Length)
+            throw new InvalidOperationException("SourceTransform doit rendre un source de même longueur que le texte.");
 
-        return Create(WithTextReferences(project, options, text), documentId, source, text, textStart) with
-        {
-            IncludeSemanticDiagnostics = options.IncludeSemanticDiagnostics,
-            AllowImports = options.AllowImports,
-        };
-    }
+        var document = WithTextReferences(project, options, text).GetDocument(documentId)
+            ?? throw new InvalidOperationException("Le document de l'éditeur est introuvable dans le projet.");
 
-    /// <summary>Document dont le source contient le texte de l'éditeur à la position <paramref name="textStart"/>.</summary>
-    /// <param name="source">Source complet analysé par Roslyn.</param>
-    /// <param name="text">Texte de l'éditeur.</param>
-    /// <param name="textStart">Position de <paramref name="text"/> dans <paramref name="source"/>.</param>
-    public CSharpDocument CreateDocument(string source, string text, int textStart)
-    {
-        var (project, documentId, _) = Current();
-        return Create(project, documentId, source, text, textStart);
+        // Encodage requis pour émettre les informations de débogage (PDB).
+        return new CSharpDocument(document.WithText(SourceText.From(source, Encoding.UTF8)), text, options);
     }
 
     private void SetSource(string key, string name, string? filePath, string code)
@@ -135,7 +114,6 @@ public sealed class CSharpProject
 
         lock (_gate)
         {
-            // Encodage requis pour émettre les informations de débogage (PDB).
             _sources[key] = (name, filePath, SourceText.From(code, Encoding.UTF8));
             _sourcesChanged = true;
         }
@@ -143,8 +121,8 @@ public sealed class CSharpProject
         SourcesChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>Projet à jour des sources ajoutées à la volée (rien n'est créé avant la première utilisation).</summary>
-    private (Project Project, DocumentId DocumentId, CSharpProjectOptions Options) Current()
+    /// <summary>Projet à jour des sources ajoutées à la volée.</summary>
+    private (Project Project, DocumentId DocumentId, CSharpLanguageOptions Options) Current()
     {
         var (initial, documentId, options) = _state.Value;
         lock (_gate)
@@ -183,7 +161,7 @@ public sealed class CSharpProject
         }
     }
 
-    private Project WithTextReferences(Project project, CSharpProjectOptions options, string text)
+    private Project WithTextReferences(Project project, CSharpLanguageOptions options, string text)
     {
         if (options.TextReferences?.Invoke(text).Distinct().ToArray() is not { Length: > 0 } references)
             return project;
@@ -197,19 +175,5 @@ public sealed class CSharpProject
             _textProject = (project, references, withReferences);
             return withReferences;
         }
-    }
-
-    private static CSharpDocument Create(Project project, DocumentId documentId, string source, string text, int textStart)
-    {
-        ArgumentNullException.ThrowIfNull(source);
-        ArgumentNullException.ThrowIfNull(text);
-        if (textStart < 0 || textStart + text.Length > source.Length)
-            throw new ArgumentOutOfRangeException(nameof(textStart), "Le texte de l'éditeur doit être contenu dans le source.");
-
-        var document = project.GetDocument(documentId)
-            ?? throw new InvalidOperationException("Le document de l'éditeur est introuvable dans le projet.");
-
-        // Encodage requis pour émettre les informations de débogage (PDB).
-        return new CSharpDocument(document.WithText(SourceText.From(source, Encoding.UTF8)), text, textStart);
     }
 }

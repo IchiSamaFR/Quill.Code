@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Quill.Code.Analysis;
-using Quill.Code.CSharp.Workspaces;
+using Quill.Code.CSharp.Roslyn;
 
-namespace Quill.Code.CSharp.Analysis;
+namespace Quill.Code.CSharp.Features;
 
 /// <summary>Surcharges de la méthode dont le curseur est dans la liste d'arguments.</summary>
 internal static class CSharpSignatureHelpEngine
@@ -13,9 +13,8 @@ internal static class CSharpSignatureHelpEngine
         if (position <= 0 || position > document.Text.Length || await document.Document.GetSyntaxRootAsync(cancellationToken) is not { } root)
             return null;
 
-        var sourcePosition = document.ToSource(position);
-        var argumentList = FindArgumentList(root, sourcePosition);
-        if (argumentList?.Parent is not InvocationExpressionSyntax invocation || !document.Contains(argumentList.OpenParenToken.Span))
+        var argumentList = FindArgumentList(root, position);
+        if (argumentList?.Parent is not InvocationExpressionSyntax invocation)
             return null;
 
         if (await document.Document.GetSemanticModelAsync(cancellationToken) is not { } semantic)
@@ -30,7 +29,7 @@ internal static class CSharpSignatureHelpEngine
         if (methods.Count == 0)
             return null;
 
-        var activeParameter = argumentList.Arguments.GetSeparators().Count(separator => separator.SpanStart < sourcePosition);
+        var activeParameter = argumentList.Arguments.GetSeparators().Count(separator => separator.SpanStart < position);
         var activeSignature = resolved.Symbol is IMethodSymbol chosen ? methods.FindIndex(m => IsSameMethod(m, chosen)) : -1;
         if (activeSignature < 0)
             activeSignature = Math.Max(0, methods.FindIndex(m => m.Parameters.Length > activeParameter || m.Parameters.LastOrDefault()?.IsParams == true));
@@ -39,7 +38,7 @@ internal static class CSharpSignatureHelpEngine
             methods.Select(CSharpSymbolFormatter.ToSignature).ToArray(),
             activeSignature,
             activeParameter,
-            document.ToText(argumentList.OpenParenToken.SpanStart));
+            argumentList.OpenParenToken.SpanStart);
     }
 
     // Même méthode, qu'elle soit vue comme extension réduite (x.Where) ou statique (Queryable.Where).

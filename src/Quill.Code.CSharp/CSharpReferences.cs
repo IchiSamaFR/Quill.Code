@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 
-namespace Quill.Code.CSharp.Workspaces;
+namespace Quill.Code.CSharp;
 
 /// <summary>Construction des références de métadonnées d'un projet.</summary>
 public static class CSharpReferences

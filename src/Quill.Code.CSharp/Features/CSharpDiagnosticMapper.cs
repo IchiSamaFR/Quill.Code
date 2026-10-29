@@ -1,38 +1,25 @@
 ﻿using Microsoft.CodeAnalysis;
 using Quill.Code.Analysis;
-using Quill.Code.CSharp.Workspaces;
+using Quill.Code.CSharp.Roslyn;
 using System.Globalization;
 
-namespace Quill.Code.CSharp.Analysis;
+namespace Quill.Code.CSharp.Features;
 
 /// <summary>Diagnostics Roslyn ramenés au texte de l'éditeur (positions, gravité, message localisé).</summary>
-public static class CSharpDiagnosticMapper
+internal static class CSharpDiagnosticMapper
 {
     // Au-delà, une erreur en amont fait cascader les suivantes : les premières suffisent.
     private const int MaxDiagnostics = 100;
 
-    /// <summary>
-    /// Ramène au texte de l'éditeur des diagnostics calculés hors de Quill (ex. erreurs d'émission de la compilation du document).
-    /// Ceux qui portent sur le source hors du texte sont écartés, sauf une faute de syntaxe juste après lui, rattachée à sa fin.
-    /// </summary>
+    /// <summary>Diagnostics d'une compilation (plusieurs documents) : seuls ceux du texte de l'éditeur sont gardés.</summary>
     public static async Task<IReadOnlyList<CodeDiagnostic>> MapAsync(CSharpDocument document, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(document);
-        ArgumentNullException.ThrowIfNull(diagnostics);
-
         var tree = await document.Document.GetSyntaxTreeAsync(cancellationToken);
-        if (tree is null)
-            return [];
-
-        // Une compilation peut contenir d'autres documents : seuls ceux du texte de l'éditeur ont une position.
-        var syntax = tree.GetDiagnostics(cancellationToken).ToHashSet();
-        return Map(diagnostics.Where(d => d.Location.SourceTree == tree), syntax, document);
+        return tree is null ? [] : Map(diagnostics.Where(d => d.Location.SourceTree == tree), document.Text);
     }
 
-    /// <param name="syntax">Fautes de syntaxe : seules celles-là sont rattachées à la fin du texte quand elles le dépassent.</param>
-    internal static List<CodeDiagnostic> Map(IEnumerable<Diagnostic> diagnostics, HashSet<Diagnostic> syntax, CSharpDocument document)
+    public static IReadOnlyList<CodeDiagnostic> Map(IEnumerable<Diagnostic> diagnostics, string text)
     {
-        var text = document.Text;
         List<CodeDiagnostic> result = [];
         foreach (var diagnostic in diagnostics.OrderBy(d => d.Location.SourceSpan.Start))
         {
@@ -40,20 +27,7 @@ public static class CSharpDiagnosticMapper
                 continue;
 
             var span = diagnostic.Location.SourceSpan;
-            var start = document.ToText(span.Start);
-            if (start < 0)
-                continue;
-
-            if (start > text.Length)
-            {
-                // « ) » ou « ; » attendu est signalé sur le source qui suit le texte : rattaché à sa fin.
-                // Une erreur sémantique au-delà du texte concerne le code généré lui-même.
-                if (!syntax.Contains(diagnostic))
-                    continue;
-
-                start = text.Length;
-            }
-
+            var start = Math.Min(span.Start, text.Length);
             var (visibleStart, visibleLength) = Widen(text, start, Math.Min(span.Length, text.Length - start));
             if (visibleLength == 0)
                 continue;
@@ -72,7 +46,7 @@ public static class CSharpDiagnosticMapper
         return result;
     }
 
-    /// <summary>Un diagnostic sans longueur (symbole manquant) souligne le caractère visible le plus proche.</summary>
+    /// <summary>Un diagnostic sans longueur (« ; » attendu en fin de texte…) souligne le caractère visible le plus proche.</summary>
     private static (int Start, int Length) Widen(string text, int start, int length)
     {
         if (length > 0)

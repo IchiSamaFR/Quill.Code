@@ -1,9 +1,9 @@
 ﻿using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Quill.Code.Analysis;
-using Quill.Code.CSharp.Workspaces;
+using Quill.Code.CSharp.Roslyn;
 
-namespace Quill.Code.CSharp.Analysis;
+namespace Quill.Code.CSharp.Features;
 
 /// <summary>Infobulle du nom survolé, calculée par le QuickInfo de Roslyn.</summary>
 internal static class CSharpHoverEngine
@@ -14,9 +14,9 @@ internal static class CSharpHoverEngine
             return null;
 
         // Infobulle de Visual Studio : libellés localisés, surcharges ; le nom touché par la souris compte aussi.
-        var info = await service.GetQuickInfoAsync(document.Document, document.ToSource(position), cancellationToken);
+        var info = await service.GetQuickInfoAsync(document.Document, position, cancellationToken);
         var signature = info?.Sections.FirstOrDefault(section => section.Kind == QuickInfoSectionKinds.Description);
-        if (info is null || signature is null || !document.Contains(info.Span))
+        if (info is null || signature is null)
             return null;
 
         // Un [Description] (table, colonne d'un modèle généré) prime sur la documentation XML.
@@ -24,6 +24,6 @@ internal static class CSharpHoverEngine
         var details = (symbol is null ? null : CSharpSymbolFormatter.Details(symbol))
             ?? info.Sections.FirstOrDefault(section => section.Kind == QuickInfoSectionKinds.DocumentationComments)?.Text;
 
-        return new HoverInfo(document.ToText(info.Span.Start), info.Span.Length, signature.Text, details);
+        return new HoverInfo(info.Span.Start, info.Span.Length, signature.Text, details);
     }
 }

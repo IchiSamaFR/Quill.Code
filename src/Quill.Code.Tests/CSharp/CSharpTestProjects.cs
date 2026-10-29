@@ -1,47 +1,33 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Quill.Code.CSharp.Workspaces;
+using Quill.Code.CSharp;
 
 namespace Quill.Code.Tests.CSharp;
 
-/// <summary>Projets partagés par les tests : la composition MEF de Roslyn est coûteuse.</summary>
+/// <summary>Services partagés par les tests : les références du framework sont coûteuses à lire.</summary>
 internal static class CSharpTestProjects
 {
-    public const string WrapperPrefix = "class Wrapper { void Run() { ";
-    public const string WrapperSuffix = " } }";
+    public static IEnumerable<MetadataReference> References => LazyReferences.Value;
 
-    private static readonly CSharpWorkspace Workspace = new();
+    private static readonly Lazy<IEnumerable<MetadataReference>> LazyReferences = new(() => CSharpReferences.FromTrustedPlatformAssemblies());
 
-    private static readonly Lazy<IEnumerable<MetadataReference>> References = new(() => CSharpReferences.FromTrustedPlatformAssemblies());
+    /// <summary>Instructions de niveau supérieur, comme un script PocketForge ou une requête LINQ de Querify.</summary>
+    public static CSharpLanguageService Script { get; } = new(() => ScriptOptions("Script"));
 
-    /// <summary>Instructions de niveau supérieur, comme un script PocketForge.</summary>
-    public static CSharpProject Script { get; } = Workspace.AddProject(new CSharpProjectOptions
+    /// <summary>Options d'un script : application console, <c>System</c> importé.</summary>
+    public static CSharpLanguageOptions ScriptOptions(string name) => new()
     {
-        Name = "Script",
-        References = References.Value,
+        Name = name,
+        References = References,
         CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullableContextOptions: NullableContextOptions.Enable),
         AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = "global using System;" },
-    });
+    };
 
-    /// <summary>Texte enveloppé dans une méthode, comme une requête LINQ de Querify.</summary>
-    public static CSharpProject Wrapped { get; } = Workspace.AddProject(new CSharpProjectOptions
+    /// <summary>Options d'une bibliothèque.</summary>
+    public static CSharpLanguageOptions LibraryOptions(string name) => new()
     {
-        Name = "Wrapped",
-        References = References.Value,
-    });
-
-    /// <summary>Script dont les lignes « #! » sont neutralisées à longueur égale, comme les directives de PocketForge.</summary>
-    public static CSharpProject Transformed { get; } = Workspace.AddProject(() => new CSharpProjectOptions
-    {
-        Name = "Transformed",
-        References = References.Value,
-        CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication),
-        AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = "global using System;" },
-        SourceTransform = code => code.Replace("#!", "//", StringComparison.Ordinal),
-    });
-
-    public static CSharpWorkspace SharedWorkspace => Workspace;
-
-    public static CSharpDocument Wrap(string text)
-        => Wrapped.CreateDocument(WrapperPrefix + text + WrapperSuffix, text, WrapperPrefix.Length);
+        Name = name,
+        References = References,
+        CompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+    };
 }

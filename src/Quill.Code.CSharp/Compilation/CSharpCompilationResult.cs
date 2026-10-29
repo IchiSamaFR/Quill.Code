@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Quill.Code.Analysis;
-using Quill.Code.CSharp.Scripting;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.Loader;

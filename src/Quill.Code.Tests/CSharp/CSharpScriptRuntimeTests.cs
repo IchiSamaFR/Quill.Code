@@ -2,14 +2,13 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Quill.Code.CSharp;
 using Quill.Code.CSharp.Compilation;
-using Quill.Code.CSharp.Workspaces;
 using Quill.Code.Scripting;
 
 namespace Quill.Code.Tests.CSharp;
 
 public sealed class CSharpScriptRuntimeTests
 {
-    private static CSharpLanguageService CreateService() => new("Script", () => new CSharpProjectOptions
+    private static CSharpLanguageService CreateService() => new(() => new CSharpLanguageOptions
     {
         References = CSharpReferences.FromTrustedPlatformAssemblies(),
         CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullableContextOptions: NullableContextOptions.Enable),
@@ -19,7 +18,7 @@ public sealed class CSharpScriptRuntimeTests
     [Fact]
     public async Task Log_IsBoundToTheCompileOptions()
     {
-        using var service = CreateService();
+        var service = CreateService();
         List<(LogLevel Level, string Text)> logs = [];
         using var compiled = await service.CompileAsync("""
             Log.Information("a");
@@ -36,7 +35,7 @@ public sealed class CSharpScriptRuntimeTests
     [Fact]
     public async Task Log_IsSpecificToEachCompilation()
     {
-        using var service = CreateService();
+        var service = CreateService();
         List<string> first = [];
         List<string> second = [];
         using var a = await service.CompileAsync("Log.Information(\"a\");", new CSharpCompileOptions { Log = (_, text) => first.Add(text) });
@@ -51,7 +50,7 @@ public sealed class CSharpScriptRuntimeTests
     [Fact]
     public async Task Log_WithoutRuntimeIsRejected()
     {
-        using var service = new CSharpLanguageService("NoRuntime", () => new CSharpProjectOptions
+        var service = new CSharpLanguageService(() => new CSharpLanguageOptions
         {
             References = CSharpReferences.FromTrustedPlatformAssemblies(),
             CompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
@@ -63,7 +62,7 @@ public sealed class CSharpScriptRuntimeTests
     [Fact]
     public async Task Run_ExposesTheCancellationToken()
     {
-        using var service = CreateService();
+        var service = CreateService();
         using var compiled = await service.CompileAsync("return Script.CancellationToken.CanBeCanceled ? 1 : 0;");
         using var cancellation = new CancellationTokenSource();
 
@@ -73,7 +72,7 @@ public sealed class CSharpScriptRuntimeTests
     [Fact]
     public async Task Run_RethrowsTheScriptException()
     {
-        using var service = CreateService();
+        var service = CreateService();
         using var compiled = await service.CompileAsync("throw new System.InvalidOperationException(\"boum\");");
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => compiled.RunEntryPointAsync());
@@ -83,7 +82,7 @@ public sealed class CSharpScriptRuntimeTests
     [Fact]
     public async Task Run_IsAbandonedWhenTheCodeIgnoresCancellation()
     {
-        using var service = CreateService();
+        var service = CreateService();
         using var compiled = await service.CompileAsync("System.Threading.Thread.Sleep(1000);");
         using var cancellation = new CancellationTokenSource(100);
 

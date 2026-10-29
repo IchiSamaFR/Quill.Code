@@ -2,7 +2,7 @@
 using Quill.Code.Completion;
 using System.Collections.Immutable;
 
-namespace Quill.Code.CSharp.Completion;
+namespace Quill.Code.CSharp.Features;
 
 /// <summary>Nature d'une proposition Roslyn d'après ses étiquettes.</summary>
 internal static class CompletionKindMapper

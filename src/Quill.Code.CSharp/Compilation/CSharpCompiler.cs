@@ -1,9 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Quill.Code.Analysis;
-using Quill.Code.CSharp.Analysis;
-using Quill.Code.CSharp.Scripting;
-using Quill.Code.CSharp.Workspaces;
+using Quill.Code.CSharp.Features;
+using Quill.Code.CSharp.Roslyn;
 using System.Globalization;
 
 namespace Quill.Code.CSharp.Compilation;

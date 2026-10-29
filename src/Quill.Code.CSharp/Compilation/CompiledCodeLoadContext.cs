@@ -21,6 +21,7 @@ internal sealed class CompiledCodeLoadContext : AssemblyLoadContext
             .ToDictionary(g => g.Key!, g => g.First(), StringComparer.OrdinalIgnoreCase);
     }
 
+    /// <inheritdoc cref="AssemblyLoadContext.Load(AssemblyName)"/>
     protected override Assembly? Load(AssemblyName assemblyName)
     {
         if (_resolve?.Invoke(assemblyName) is { } resolved)

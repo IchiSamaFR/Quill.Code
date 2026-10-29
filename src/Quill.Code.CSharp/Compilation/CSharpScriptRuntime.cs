@@ -1,10 +1,10 @@
 ﻿using Quill.Code.Scripting;
 using System.Reflection;
 
-namespace Quill.Code.CSharp.Scripting;
+namespace Quill.Code.CSharp.Compilation;
 
 /// <summary>
-/// Runtime des scripts (<see cref="Workspaces.CSharpProjectOptions.IncludeScriptRuntime"/>) : <c>Log</c>, <c>LogLevel</c>
+/// Runtime des scripts (<see cref="CSharpLanguageOptions.IncludeScriptRuntime"/>) : <c>Log</c>, <c>LogLevel</c>
 /// et <c>Script</c>, générés dans chaque assembly puis branchés par réflexion. Propres à chaque compilation : des
 /// exécutions simultanées ne se mélangent pas, et le script ne référence aucune assembly de l'application.
 /// </summary>
@@ -62,7 +62,7 @@ internal static class CSharpScriptRuntime
     public static void BindLog(Assembly assembly, Action<LogLevel, string> log)
     {
         var sink = FindProperty(assembly, "Log", "Sink")
-            ?? throw new InvalidOperationException("CSharpCompileOptions.Log demande CSharpProjectOptions.IncludeScriptRuntime.");
+            ?? throw new InvalidOperationException("CSharpCompileOptions.Log demande CSharpLanguageOptions.IncludeScriptRuntime.");
 
         // LogLevel du script : mêmes noms et valeurs que celui de Quill, dont il est généré.
         sink.SetValue(null, new Action<int, string>((level, text) => log((LogLevel)level, text)));

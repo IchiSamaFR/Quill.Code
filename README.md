@@ -35,13 +35,15 @@ dotnet nuget update source github-ichisamafr --username IchiSamaFR --password <j
 Un service par contexte, avec son propre projet Roslyn, créé à la première demande (hors du thread de l'interface) :
 
 ```csharp
-using var language = new CSharpLanguageService("Script", () => new CSharpProjectOptions
+var language = new CSharpLanguageService(() => new CSharpLanguageOptions
 {
+    Name = "Script",
     References = CSharpReferences.FromTrustedPlatformAssemblies(),
     CompilationOptions = new(OutputKind.ConsoleApplication),
     AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = "global using System;" },
-    SourceTransform = code => code,   // facultatif : texte -> source, à longueur égale
+    SourceTransform = code => code,   // facultatif : source analysé, de même longueur que le texte
     TextReferences = code => [],      // facultatif : références déclarées par le texte
+    IncludeSemanticDiagnostics = true, // faux : fautes de syntaxe seulement
 });
 
 var completions = await language.GetCompletionsAsync(code, caret);
@@ -49,19 +51,7 @@ var change = await language.GetChangeAsync(code, completions.Items[0]);
 var diagnostics = await language.GetDiagnosticsAsync(code);
 ```
 
-Texte placé dans du code généré (ex. requête LINQ dans une méthode d'un DbContext) : `SourceTransform` rend le source et la position du texte.
-
-```csharp
-var language = new CSharpLanguageService("Linq", () => new CSharpProjectOptions
-{
-    References = references,
-    SourceTransform = query => new CSharpSource(prefix + query + suffix, prefix.Length),
-    IncludeSemanticDiagnostics = hasModel,  // faux : fautes de syntaxe seulement
-    AllowImports = false,                   // types non importés insérés avec leur nom complet
-});
-```
-
-Pour plusieurs textes dans des contextes différents d'un même projet, `CSharpDocument` reste disponible (`language.Project.CreateDocument(source, text, start)` et les surcharges qui prennent un document).
+`CSharpLanguageService` implémente `ICodeLanguageService` : un contrôle d'éditeur s'y lie sans dépendre de Roslyn. Sans options, le service analyse une bibliothèque qui référence le framework.
 
 Compilation du même projet que l'éditeur, chargée dans un contexte déchargeable (l'appel du code reste à l'application) :
 
@@ -84,10 +74,10 @@ Les positions reçues et rendues sont toujours celles du texte de l'éditeur.
 Sources ajoutées à la volée (ex. classe utilitaire) : visibles par la complétion et l'analyse, compilées avec le texte.
 
 ```csharp
-language.Project.SetSource("FileHelper.cs", helperCode);                // nom → code
-var key = await language.Project.SetSourceFileAsync(@"C:\Helpers\FileHelper.cs"); // relu à chaque appel
-language.Project.RemoveSource(key);
-language.Project.SourcesChanged += (_, _) => RefreshDiagnostics();
+language.SetSource("FileHelper.cs", helperCode);                       // nom → code
+var key = await language.SetSourceFileAsync(@"C:\Helpers\FileHelper.cs"); // relu à chaque appel
+language.RemoveSource(key);
+language.SourcesChanged += (_, _) => RefreshDiagnostics();
 ```
 
 Une erreur dans une source est rendue en position 0 avec le fichier : « FileHelper.cs (12, 5) : … ».

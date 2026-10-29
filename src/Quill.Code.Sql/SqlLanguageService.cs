@@ -11,7 +11,7 @@ namespace Quill.Code.Sql;
 /// signature). Par défaut ce sont ceux de Quill (diagnostics de syntaxe seulement) ; l'hôte qui connaît le schéma de la
 /// base fournit les siens pour les autres.
 /// </summary>
-public sealed class SqlLanguageService : ICodeLanguageProvider
+public sealed class SqlLanguageService : ICodeLanguageService
 {
     private readonly ICodeCompletion _completion;
     private readonly ICodeDiagnostic _diagnostic;
