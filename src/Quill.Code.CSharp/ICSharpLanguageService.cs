@@ -10,7 +10,7 @@ namespace Quill.Code.CSharp;
 /// (<see cref="CSharpDocument.Text"/>), jamais celles du source généré. Les méthodes qui prennent le code travaillent sur
 /// le <see cref="Project"/> du service ; celles qui prennent un document, sur n'importe quel projet.
 /// </summary>
-public interface ICSharpLanguageService : ICodeCompletionProvider, ICodeDiagnosticProvider, IDisposable
+public interface ICSharpLanguageService : ICodeLanguageProvider, IDisposable
 {
     /// <summary>Projet du service, créé à la première demande : utilisé par les méthodes qui prennent le code.</summary>
     CSharpProject Project { get; }
@@ -27,12 +27,6 @@ public interface ICSharpLanguageService : ICodeCompletionProvider, ICodeDiagnost
 
     /// <inheritdoc cref="CompileAsync(string, CSharpCompileOptions?, CancellationToken)"/>
     Task<CSharpCompilationResult> CompileAsync(CSharpDocument document, CSharpCompileOptions? options = null, CancellationToken cancellationToken = default);
-
-    /// <inheritdoc cref="GetHoverAsync(CSharpDocument, int, CancellationToken)"/>
-    Task<HoverInfo?> GetHoverAsync(string code, int position, CancellationToken cancellationToken = default);
-
-    /// <inheritdoc cref="GetSignatureHelpAsync(CSharpDocument, int, CancellationToken)"/>
-    Task<SignatureHelpInfo?> GetSignatureHelpAsync(string code, int position, CancellationToken cancellationToken = default);
 
     /// <summary>Précharge Roslyn (composition MEF, métadonnées, JIT) : sinon la première demande prend une à deux secondes.</summary>
     Task WarmUpAsync(CSharpDocument document, CancellationToken cancellationToken = default);

@@ -1,7 +1,9 @@
-﻿namespace Quill.Code.Completion;
+﻿using Quill.Code.Completion;
+
+namespace Quill.Code;
 
 /// <summary>Source d'autocomplétion d'un éditeur, sur le texte brut : découple le contrôle du moteur (Roslyn…).</summary>
-public interface ICodeCompletionProvider
+public interface ICodeCompletion
 {
     /// <summary>Propositions valables à <paramref name="position"/> dans <paramref name="code"/>.</summary>
     Task<CompletionList> GetCompletionsAsync(string code, int position, CancellationToken cancellationToken = default);

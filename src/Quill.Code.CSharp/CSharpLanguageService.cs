@@ -4,6 +4,7 @@ using Quill.Code.CSharp.Analysis;
 using Quill.Code.CSharp.Compilation;
 using Quill.Code.CSharp.Completion;
 using Quill.Code.CSharp.Workspaces;
+using Quill.Code.Languages;
 
 namespace Quill.Code.CSharp;
 
@@ -15,6 +16,9 @@ namespace Quill.Code.CSharp;
 public sealed class CSharpLanguageService : ICSharpLanguageService
 {
     private const string DefaultProjectName = "Document";
+
+    /// <inheritdoc />
+    public string Language => CodeLanguages.CSharp;
 
     private readonly CSharpWorkspace _workspace = new();
 
