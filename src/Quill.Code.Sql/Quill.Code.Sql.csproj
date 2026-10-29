@@ -12,6 +12,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Quill.Code\Quill.Code.csproj" />
+		<ProjectReference Include="..\Quill.Data.Sql\Quill.Data.Sql.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

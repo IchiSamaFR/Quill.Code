@@ -1,4 +1,4 @@
-﻿namespace Quill.Code.Sql.Schema;
+﻿namespace Quill.Data.Sql;
 
 /// <summary>Nature d'un objet de base de données.</summary>
 public enum SqlSchemaObjectKind

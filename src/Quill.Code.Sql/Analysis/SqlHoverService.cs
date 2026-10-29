@@ -3,6 +3,7 @@ using Quill.Code.Sql.Completion;
 using Quill.Code.Sql.Lexing;
 using Quill.Code.Sql.Schema;
 using System.Text;
+using Quill.Data.Sql;
 
 namespace Quill.Code.Sql.Analysis;
 

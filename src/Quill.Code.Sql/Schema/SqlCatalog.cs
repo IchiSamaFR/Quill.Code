@@ -1,4 +1,6 @@
-﻿namespace Quill.Code.Sql.Schema;
+﻿using Quill.Data.Sql;
+
+namespace Quill.Code.Sql.Schema;
 
 /// <summary>Catalogue en mémoire : schémas déjà chargés, ou construits pour des tests.</summary>
 public sealed class SqlCatalog : ISqlCatalog

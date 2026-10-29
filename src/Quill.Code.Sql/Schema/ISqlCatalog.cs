@@ -1,4 +1,6 @@
-﻿namespace Quill.Code.Sql.Schema;
+﻿using Quill.Data.Sql;
+
+namespace Quill.Code.Sql.Schema;
 
 /// <summary>
 /// Catalogue des bases, fourni par l'hôte : Quill ne se connecte à rien. Une base indisponible (connexion fermée,

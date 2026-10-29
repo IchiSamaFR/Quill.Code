@@ -1,4 +1,5 @@
 ﻿using Quill.Code.Sql.Schema;
+using Quill.Data.Sql;
 
 namespace Quill.Code.Tests.Sql;
 
@@ -11,14 +12,14 @@ internal static class SqlTestCatalog
         [
             new SqlSchemaObject("dbo", "Users", SqlSchemaObjectKind.Table,
             [
-                new SqlColumn("Id", "int", IsNullable: false, IsPrimaryKey: true),
+                new SqlColumn("Id", "int") { IsNullable = false, PrimaryKeyOrdinal = 1 },
                 new SqlColumn("Email", "nvarchar(200)"),
                 new SqlColumn("Order", "int"),
             ]),
             new SqlSchemaObject("sales", "Orders", SqlSchemaObjectKind.Table,
             [
-                new SqlColumn("Id", "int", IsNullable: false, IsPrimaryKey: true),
-                new SqlColumn("UserId", "int", IsNullable: false),
+                new SqlColumn("Id", "int") { IsNullable = false, PrimaryKeyOrdinal = 1 },
+                new SqlColumn("UserId", "int") { IsNullable = false },
             ]),
             new SqlSchemaObject("dbo", "ActiveUsers", SqlSchemaObjectKind.View, [new SqlColumn("Id", "int")]),
             new SqlSchemaObject("dbo", "PurgeUsers", SqlSchemaObjectKind.Procedure, []),

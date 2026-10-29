@@ -10,4 +10,6 @@
   <Project Path="Quill.Code/Quill.Code.csproj" />
   <Project Path="Quill.Code.CSharp/Quill.Code.CSharp.csproj" />
   <Project Path="Quill.Code.Sql/Quill.Code.Sql.csproj" />
+  <Project Path="Quill.Data.Sql/Quill.Data.Sql.csproj" />
+  <Project Path="Quill.Data.Sql.SqlServer/Quill.Data.Sql.SqlServer.csproj" />
 </Solution>

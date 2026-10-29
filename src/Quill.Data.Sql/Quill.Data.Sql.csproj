@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Data.Sql</RootNamespace>
+		<Description>Structure d'une base SQL (bases, schemas, tables, vues, procedures, colonnes) et contrat de lecture du catalogue, sans aucune dependance.</Description>
+		<IsAotCompatible>true</IsAotCompatible>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Quill.Code.Tests" />
+	</ItemGroup>
+
+</Project>

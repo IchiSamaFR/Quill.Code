@@ -1,6 +1,6 @@
-﻿namespace Quill.Code.Sql.Schema;
+﻿namespace Quill.Data.Sql;
 
-/// <summary>Schéma complet d'une base : objets et colonnes, indexés pour les recherches répétées à chaque frappe.</summary>
+/// <summary>Schéma complet d'une base : objets et colonnes, indexés pour les recherches répétées (autocomplétion, survol).</summary>
 public sealed class SqlDatabaseSchema
 {
     /// <summary>Schéma préféré pour un nom non qualifié, comme le fait SQL Server.</summary>
@@ -8,7 +8,7 @@ public sealed class SqlDatabaseSchema
 
     private readonly HashSet<string> _schemas;
 
-    // Objets par nom, dbo en tête : Find est rappelé pour chaque table de la requête, sur des milliers d'objets.
+    // Objets par nom, dbo en tête : Find est rappelé pour chaque table d'une requête, sur des milliers d'objets.
     private readonly Dictionary<string, SqlSchemaObject[]> _byName;
 
     /// <param name="name">Nom de la base.</param>

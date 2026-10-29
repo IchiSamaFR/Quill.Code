@@ -1,5 +1,6 @@
 ﻿using Quill.Code.Completion;
 using Quill.Code.Sql.Schema;
+using Quill.Data.Sql;
 
 namespace Quill.Code.Sql.Completion;
 

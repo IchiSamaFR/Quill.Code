@@ -9,6 +9,9 @@
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="5.0.0" />
 
+		<!-- Lecture du catalogue SQL Server (Quill.Data.Sql.SqlServer). Meme version que Querify. -->
+		<PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.6" />
+
 		<!-- T-SQL : diagnostics de syntaxe. Meme version que Querify. -->
 		<PackageVersion Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="180.117.0" />
 
