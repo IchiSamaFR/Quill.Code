@@ -6,7 +6,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ### Ajouté
 - Structure de la solution : `Quill.Code`, `Quill.Code.CSharp`, `Quill.Code.Sql`, `Quill.Code.Tests`.
-- `Quill.Code.Sql` : `SqlLexer`, `SqlContextAnalyzer` (`Analyze`, `AnalyzeScope` : nature de la saisie attendue, qualificatif, tables et alias du lot GO courant, base du dernier `USE`), `SqlSyntaxChecker` (diagnostics ScriptDom, lots GO compris) et `SqlLanguageService` (`ICodeLanguageProvider` : diagnostics réels ; complétion, survol et signature vides pour l'instant).
+- `Quill.Code.Sql` : `SqlLexer`, `SqlContextAnalyzer` (`Analyze`, `AnalyzeScope` : nature de la saisie attendue, qualificatif, tables et alias du lot GO courant, base du dernier `USE`), `SqlSyntaxChecker` (diagnostics ScriptDom, lots GO compris) et `SqlLanguageService` (`ICodeLanguageProvider`) qui relaie à `SqlCompletionService`, `SqlDiagnosticService`, `SqlHoverService` et `SqlSignatureService` (diagnostics réels ; les autres ne proposent rien) ; l'hôte peut substituer chaque service par le sien.
 - Versions de paquets centralisées, métadonnées NuGet, Source Link.
 - CI : build et tests, publication sur GitHub Packages à chaque tag `v*`.
 - Modèles communs : autocomplétion (`CompletionItem`, `CompletionItemKind`, `CompletionList`, `CompletionChange`, `CompletionTrigger`), analyse (`CodeDiagnostic`, `CodeDiagnosticSeverity`, `HoverInfo`, `SignatureHelpInfo`, `SignatureInfo`) et `LinePosition`.
