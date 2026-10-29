@@ -21,6 +21,10 @@ public sealed class CSharpLanguageService : ICSharpLanguageService
     public string Language => CodeLanguages.CSharp;
 
     private readonly CSharpWorkspace _workspace = new();
+    private readonly CSharpCompletionService _completion;
+    private readonly CSharpDiagnosticService _diagnostic;
+    private readonly CSharpHoverService _hover;
+    private readonly CSharpSignatureService _signature;
 
     /// <summary>Service sur un projet par défaut : bibliothèque C# référençant le framework.</summary>
     public CSharpLanguageService()
@@ -39,6 +43,10 @@ public sealed class CSharpLanguageService : ICSharpLanguageService
         ArgumentException.ThrowIfNullOrWhiteSpace(projectName);
 
         Project = _workspace.AddProject(() => (options?.Invoke() ?? DefaultOptions()) with { Name = projectName });
+        _completion = new CSharpCompletionService(Project);
+        _diagnostic = new CSharpDiagnosticService(Project);
+        _hover = new CSharpHoverService(Project);
+        _signature = new CSharpSignatureService(Project);
     }
 
     /// <inheritdoc />
@@ -50,15 +58,15 @@ public sealed class CSharpLanguageService : ICSharpLanguageService
 
     /// <inheritdoc />
     public Task<CompletionList> GetCompletionsAsync(string code, int position, CancellationToken cancellationToken = default)
-        => this.GetCompletionsAsync(Project, code, position, cancellationToken);
+        => _completion.GetCompletionsAsync(code, position, cancellationToken);
 
     /// <inheritdoc />
     public Task<CompletionChange> GetChangeAsync(string code, CompletionItem item, CancellationToken cancellationToken = default)
-        => this.GetChangeAsync(Project, code, item, cancellationToken);
+        => _completion.GetChangeAsync(code, item, cancellationToken);
 
     /// <inheritdoc />
     public Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(string code, CancellationToken cancellationToken = default)
-        => this.GetDiagnosticsAsync(Project, code, cancellationToken);
+        => _diagnostic.GetDiagnosticsAsync(code, cancellationToken);
 
     /// <inheritdoc />
     public Task<CSharpCompilationResult> CompileAsync(string code, CSharpCompileOptions? options = null, CancellationToken cancellationToken = default)
@@ -76,11 +84,11 @@ public sealed class CSharpLanguageService : ICSharpLanguageService
 
     /// <inheritdoc />
     public Task<HoverInfo?> GetHoverAsync(string code, int position, CancellationToken cancellationToken = default)
-        => this.GetHoverAsync(Project, code, position, cancellationToken);
+        => _hover.GetHoverAsync(code, position, cancellationToken);
 
     /// <inheritdoc />
     public Task<SignatureHelpInfo?> GetSignatureHelpAsync(string code, int position, CancellationToken cancellationToken = default)
-        => this.GetSignatureHelpAsync(Project, code, position, cancellationToken);
+        => _signature.GetSignatureHelpAsync(code, position, cancellationToken);
 
     /// <inheritdoc />
     public void Dispose() => _workspace.Dispose();
@@ -96,37 +104,21 @@ public sealed class CSharpLanguageService : ICSharpLanguageService
 
     /// <inheritdoc />
     public Task<CompletionList> GetCompletionsAsync(CSharpDocument document, int position, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(document);
-        return Task.Run(() => CSharpCompletionEngine.GetCompletionsAsync(document, position, cancellationToken), cancellationToken);
-    }
+        => _completion.GetCompletionsAsync(document, position, cancellationToken);
 
     /// <inheritdoc />
     public Task<CompletionChange> GetChangeAsync(CSharpDocument document, CompletionItem item, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(document);
-        ArgumentNullException.ThrowIfNull(item);
-        return Task.Run(() => CSharpCompletionEngine.GetChangeAsync(document, item, cancellationToken), cancellationToken);
-    }
+        => _completion.GetChangeAsync(document, item, cancellationToken);
 
     /// <inheritdoc />
     public Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(CSharpDocument document, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(document);
-        return Task.Run(() => CSharpDiagnosticEngine.GetDiagnosticsAsync(document, cancellationToken), cancellationToken);
-    }
+        => _diagnostic.GetDiagnosticsAsync(document, cancellationToken);
 
     /// <inheritdoc />
     public Task<HoverInfo?> GetHoverAsync(CSharpDocument document, int position, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(document);
-        return Task.Run(() => CSharpHoverEngine.GetHoverAsync(document, position, cancellationToken), cancellationToken);
-    }
+        => _hover.GetHoverAsync(document, position, cancellationToken);
 
     /// <inheritdoc />
     public Task<SignatureHelpInfo?> GetSignatureHelpAsync(CSharpDocument document, int position, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(document);
-        return Task.Run(() => CSharpSignatureHelpEngine.GetSignatureHelpAsync(document, position, cancellationToken), cancellationToken);
-    }
+        => _signature.GetSignatureHelpAsync(document, position, cancellationToken);
 }
