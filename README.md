@@ -8,7 +8,7 @@ Briques communes aux éditeurs de code .NET, indépendantes du framework d'inter
 |---|---|
 | `Quill.Code` | Modèles, contrats, lecture des définitions `.xshd`, découpage en zones colorées, algorithmes d'édition. Aucune dépendance d'interface. |
 | `Quill.Code.CSharp` | C# via Roslyn : autocomplétion, diagnostics, survol, aide à la signature, compilation et chargement. |
-| `Quill.Code.Sql` | T-SQL : lexer, analyse du contexte de saisie (ce qu'attend la grammaire au curseur, tables et alias du lot, base du `USE`) diagnostics de syntaxe par ScriptDom, autocomplétion et survol sur le catalogue fourni par l'hôte (`ISqlCatalog`) ; exécution sur SQL Server (`ISqlQueryExecutor`, `SqlServerQueryExecutor`). |
+| `Quill.Code.SqlServer` | T-SQL : lexer, analyse du contexte de saisie (ce qu'attend la grammaire au curseur, tables et alias du lot, base du `USE`) diagnostics de syntaxe par ScriptDom, autocomplétion et survol sur le catalogue fourni par l'hôte (`ISqlCatalog`) ; exécution sur SQL Server (`ISqlQueryExecutor`, `SqlServerQueryExecutor`). |
 | `Quill.Data.Sql` | Structure d'une base (bases, schémas, tables, vues, procédures, colonnes) et contrat de lecture du catalogue (`ISqlSchemaReader`). Aucune dépendance. |
 | `Quill.Data.Sql.SqlServer` | Lecture du catalogue SQL Server (`sys.*`) via Microsoft.Data.SqlClient. |
 
