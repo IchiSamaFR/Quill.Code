@@ -1,4 +1,4 @@
-﻿using Quill.Code.Languages;
+﻿using Quill.Code.Constants;
 using Quill.Code.Sql;
 
 namespace Quill.Code.Tests.Sql;

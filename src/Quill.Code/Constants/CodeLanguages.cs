@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Quill.Code.Languages;
+﻿namespace Quill.Code.Constants;
 
 /// <summary>
 /// Langues de code source connues par Quill.

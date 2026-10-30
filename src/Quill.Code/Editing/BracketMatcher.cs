@@ -1,11 +1,10 @@
-﻿namespace Quill.Code.Editing;
+﻿using Quill.Code.Constants;
+
+namespace Quill.Code.Editing;
 
 /// <summary>Crochet associé à celui qui touche le curseur ; ceux des chaînes et des commentaires sont ignorés.</summary>
 public static class BracketMatcher
 {
-    private const string Openers = "([{";
-    private const string Closers = ")]}";
-
     /// <summary>
     /// Paire dont un crochet touche le curseur : comme Visual Studio, fermant juste avant le curseur, puis ouvrant
     /// juste après. <paramref name="regions"/> vient de <see cref="SourceScanner.Classify"/> sur le même texte.
@@ -42,15 +41,15 @@ public static class BracketMatcher
             return -1;
 
         var bracket = text[index];
-        var opener = Openers.IndexOf(bracket, StringComparison.Ordinal);
-        var closer = Closers.IndexOf(bracket, StringComparison.Ordinal);
+        var opener = EditingConstants.BracketOpeners.IndexOf(bracket, StringComparison.Ordinal);
+        var closer = EditingConstants.BracketClosers.IndexOf(bracket, StringComparison.Ordinal);
         if (opener < 0 && closer < 0)
             return -1;
 
         var forward = opener >= 0;
         var kind = forward ? opener : closer;
-        var open = Openers[kind];
-        var close = Closers[kind];
+        var open = EditingConstants.BracketOpeners[kind];
+        var close = EditingConstants.BracketClosers[kind];
         var end = Math.Min(text.Length, regions.Count);
 
         var depth = 0;

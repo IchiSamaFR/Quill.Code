@@ -5,6 +5,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 ## [Non publié]
 
 ### Modifié
+- Constantes regroupées dans le dossier `Constants/` de chaque projet (namespace `<Projet>.Constants`) : `CodeLanguages` passe de `Quill.Code.Languages` à `Quill.Code.Constants` ; `CompletionFilter.DefaultMaxResults` devient `CompletionConstants.DefaultMaxResults`, `SyntaxDefinition.LineCommentProperty` `HighlightingConstants.LineCommentProperty`, `SqlDatabaseSchema.DefaultSchema` `SqlSchemaConstants.DefaultSchema` ; `QueryExecutionLimits` passe dans `Quill.Code.Sql.Constants`.
 - `Quill.Code.CSharp` simplifié : `CSharpLanguageService(Func<CSharpLanguageOptions>?)` est le seul point d'entrée (nom du projet dans les options) ; les sources à la volée y sont exposées directement (`SetSource`, `SetSourceFileAsync`, `RemoveSource`, `ClearSources`, `Sources`, `SourcesChanged`). Le service n'est plus `IDisposable` : l'hôte Roslyn est partagé et les projets sont des instantanés.
 - `CSharpProjectOptions` devient `CSharpLanguageOptions` ; `CSharpReferences` passe dans `Quill.Code.CSharp`. `SourceTransform` rend une chaîne de même longueur que le texte (plus d'enveloppe de code généré).
 - `ICodeLanguageProvider` devient `ICodeLanguageService`.

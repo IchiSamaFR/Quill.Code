@@ -1,12 +1,12 @@
-﻿namespace Quill.Code.Editing;
+﻿using Quill.Code.Constants;
+
+namespace Quill.Code.Editing;
 
 /// <summary>
 /// Découpage minimal du source en code, commentaires et chaînes (sans coloration), selon une <see cref="SourceSyntax"/>.
 /// </summary>
 public static class SourceScanner
 {
-    private const string RawDelimiter = "\"\"\"";
-
     /// <summary>Région de chaque caractère du texte (à garder en cache tant que le texte ne change pas).</summary>
     public static SourceRegion[] Classify(string text, SourceSyntax syntax)
     {
@@ -58,7 +58,7 @@ public static class SourceScanner
                         state = region = SourceRegion.BlockComment;
                         length = syntax.BlockCommentStart!.Length;
                     }
-                    else if (c == '"' && syntax.RawStrings && StartsWith(text, i, limit, RawDelimiter))
+                    else if (c == '"' && syntax.RawStrings && StartsWith(text, i, limit, EditingConstants.RawStringDelimiter))
                     {
                         state = region = SourceRegion.String;
                         rawLength = CountQuotes(text, i, limit);

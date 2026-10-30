@@ -1,4 +1,6 @@
-﻿namespace Quill.Code.Highlighting;
+﻿using Quill.Code.Constants;
+
+namespace Quill.Code.Highlighting;
 
 /// <summary>
 /// Définition de coloration d'un langage, lue depuis un fichier .xshd (<see cref="XshdReader"/>).
@@ -6,9 +8,6 @@
 /// </summary>
 public sealed class SyntaxDefinition
 {
-    /// <summary>Propriété .xshd du préfixe de commentaire de ligne.</summary>
-    public const string LineCommentProperty = "LineComment";
-
     internal SyntaxDefinition(
         string name,
         IReadOnlyList<string> extensions,
@@ -46,7 +45,7 @@ public sealed class SyntaxDefinition
     public IReadOnlyList<SyntaxKeyword> Keywords { get; }
 
     /// <summary>Préfixe de commentaire de ligne (propriété <c>LineComment</c>), ou null.</summary>
-    public string? LineComment => Properties.TryGetValue(LineCommentProperty, out var value) && value.Length > 0 ? value : null;
+    public string? LineComment => Properties.TryGetValue(HighlightingConstants.LineCommentProperty, out var value) && value.Length > 0 ? value : null;
 
     /// <summary>Règles dans l'ordre du fichier : à position égale, la première l'emporte.</summary>
     internal IReadOnlyList<SyntaxRule> Rules { get; }

@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using Quill.Code.Constants;
 
 namespace Quill.Code.Highlighting;
 
@@ -13,8 +14,6 @@ namespace Quill.Code.Highlighting;
 /// </remarks>
 public static class XshdReader
 {
-    private const string DefaultColorName = "Default";
-
     private static readonly XNamespace Xshd = "http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008";
 
     /// <summary>Lit une définition depuis un flux.</summary>
@@ -77,7 +76,7 @@ public static class XshdReader
             ((string?)root.Attribute("extensions"))?.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [],
             properties,
             colors,
-            colors.TryGetValue(DefaultColorName, out var defaultColor) ? defaultColor : null,
+            colors.TryGetValue(HighlightingConstants.DefaultColorName, out var defaultColor) ? defaultColor : null,
             keywords,
             rules);
     }

@@ -4,6 +4,7 @@ using Quill.Code.Sql.Lexing;
 using Quill.Code.Sql.Schema;
 using System.Text;
 using Quill.Data.Sql;
+using Quill.Code.Sql.Constants;
 
 namespace Quill.Code.Sql.Analysis;
 
@@ -13,9 +14,6 @@ namespace Quill.Code.Sql.Analysis;
 /// </summary>
 internal sealed class SqlHoverService : ICodeHover
 {
-    /// <summary>Colonnes listées dans l'infobulle d'une table : au-delà, elle déborderait de l'éditeur.</summary>
-    private const int MaxListedColumns = 12;
-
     /// <summary>Mots qui terminent une instruction DECLARE.</summary>
     private static readonly HashSet<string> StatementWords = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -187,11 +185,11 @@ internal sealed class SqlHoverService : ICodeHover
             return (signature, null);
 
         var description = string.Join('\n', source.Columns
-            .Take(MaxListedColumns)
+            .Take(SqlAnalysisConstants.HoverMaxListedColumns)
             .Select(c => $"{c.Name} {c.DataType}{(c.IsPrimaryKey ? " · clé" : string.Empty)}"));
 
-        if (source.Columns.Count > MaxListedColumns)
-            description += $"\n… et {source.Columns.Count - MaxListedColumns} autre(s)";
+        if (source.Columns.Count > SqlAnalysisConstants.HoverMaxListedColumns)
+            description += $"\n… et {source.Columns.Count - SqlAnalysisConstants.HoverMaxListedColumns} autre(s)";
 
         return (signature, description);
     }

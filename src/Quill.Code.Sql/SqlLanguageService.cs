@@ -1,6 +1,6 @@
 ﻿using Quill.Code.Analysis;
 using Quill.Code.Completion;
-using Quill.Code.Languages;
+using Quill.Code.Constants;
 using Quill.Code.Sql.Analysis;
 using Quill.Code.Sql.Completion;
 

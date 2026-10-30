@@ -5,6 +5,7 @@ using Quill.Code.CSharp.Compilation;
 using System.Reflection;
 using System.Text;
 using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
+using Quill.Code.CSharp.Constants;
 
 namespace Quill.Code.CSharp.Roslyn;
 
@@ -38,7 +39,7 @@ internal static class RoslynHost
             solution = AddDocument(solution, projectId, name, source).Solution;
 
         if (options.IncludeScriptRuntime)
-            solution = AddDocument(solution, projectId, CSharpScriptRuntime.FileName, CSharpScriptRuntime.Source).Solution;
+            solution = AddDocument(solution, projectId, CSharpScriptConstants.FileName, CSharpScriptRuntime.Source).Solution;
 
         var (withDocument, documentId) = AddDocument(solution, projectId, options.DocumentName, string.Empty);
         return (withDocument.GetProject(projectId)!, documentId);

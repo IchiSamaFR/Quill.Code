@@ -1,17 +1,16 @@
-﻿namespace Quill.Code.Completion;
+﻿using Quill.Code.Constants;
+
+namespace Quill.Code.Completion;
 
 /// <summary>Filtre et tri des propositions sur le mot en cours de frappe, rejoué à chaque touche sans relancer le fournisseur.</summary>
 public static class CompletionFilter
 {
-    /// <summary>Au-delà, la liste n'aide plus : mieux vaut taper une lettre de plus.</summary>
-    public const int DefaultMaxResults = 100;
-
     /// <summary>
     /// Propositions dont <see cref="CompletionItem.TextToFilter"/> contient <paramref name="prefix"/> (sans casse) :
     /// celles qui commencent par lui d'abord, puis celles où il ouvre un segment (NUM → ROW_NUMBER), puis les autres ;
     /// à égalité, par nature puis par libellé.
     /// </summary>
-    public static IReadOnlyList<CompletionItem> Filter(IReadOnlyList<CompletionItem> items, string? prefix, int maxResults = DefaultMaxResults)
+    public static IReadOnlyList<CompletionItem> Filter(IReadOnlyList<CompletionItem> items, string? prefix, int maxResults = CompletionConstants.DefaultMaxResults)
     {
         ArgumentNullException.ThrowIfNull(items);
         prefix ??= string.Empty;

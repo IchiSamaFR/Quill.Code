@@ -3,6 +3,8 @@ using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using Quill.Code.Sql.Execution;
+using Quill.Code.Sql.Constants;
+using SqlBatch = Quill.Code.Sql.Execution.SqlBatch;
 
 namespace Quill.Code.Sql;
 
@@ -13,15 +15,6 @@ namespace Quill.Code.Sql;
 /// </summary>
 public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
 {
-    private const int MaxBinaryBytesDisplayed = 64;
-    private const int ReadMaxBinaryBytesDisplayed = 32;
-    private const int ReadConnectTimeoutSeconds = 8;
-    private const int ReadCommandTimeoutSeconds = 120;
-    private const string UnnamedColumn = "(Aucun nom de colonne)";
-
-    /// <summary>« Must declare the scalar variable ».</summary>
-    private const int UndeclaredVariableError = 137;
-
     private readonly string? _applicationName;
 
     /// <summary>Executeur SQL Server ; <paramref name="applicationName"/> est vu du serveur (sys.dm_exec_sessions).</summary>
@@ -117,7 +110,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         ArgumentException.ThrowIfNullOrWhiteSpace(query);
         ArgumentNullException.ThrowIfNull(parameters);
 
-        var builder = new SqlConnectionStringBuilder(connectionString) { ConnectTimeout = ReadConnectTimeoutSeconds };
+        var builder = new SqlConnectionStringBuilder(connectionString) { ConnectTimeout = SqlServerConstants.ReadConnectTimeoutSeconds };
         if (!string.IsNullOrWhiteSpace(_applicationName))
             builder.ApplicationName = _applicationName;
         if (!string.IsNullOrWhiteSpace(database))
@@ -130,7 +123,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
 #pragma warning disable CA2100 // La requete est celle de l'utilisateur ; les valeurs passent en parametres.
         command.CommandText = query;
 #pragma warning restore CA2100
-        command.CommandTimeout = ReadCommandTimeoutSeconds;
+        command.CommandTimeout = SqlServerConstants.ReadCommandTimeoutSeconds;
         foreach (var parameter in parameters)
             command.Parameters.Add(CreateParameter(parameter));
 
@@ -139,7 +132,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         {
             reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         }
-        catch (SqlException ex) when (ex.Number == UndeclaredVariableError)
+        catch (SqlException ex) when (ex.Number == SqlServerConstants.UndeclaredVariableError)
         {
             // Variable inconnue : on liste ce qui a reellement ete envoye pour qu'un nom mal saisi se voie.
             var sent = parameters.Count == 0
@@ -188,7 +181,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         for (var i = 0; i < fieldCount; i++)
         {
             var name = reader.GetName(i);
-            columns[i] = new QueryResultColumn(string.IsNullOrEmpty(name) ? UnnamedColumn : name, reader.GetDataTypeName(i));
+            columns[i] = new QueryResultColumn(string.IsNullOrEmpty(name) ? QueryResultConstants.UnnamedColumn : name, reader.GetDataTypeName(i));
         }
 
         var rows = new List<QueryResultRow>();
@@ -239,7 +232,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         bool b => b ? "1" : "0",
         DateTime d => d.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture),
         DateTimeOffset d => d.ToString("yyyy-MM-dd HH:mm:ss.fffffff zzz", CultureInfo.InvariantCulture),
-        byte[] bytes => FormatBinary(bytes, MaxBinaryBytesDisplayed),
+        byte[] bytes => FormatBinary(bytes, QueryResultConstants.ResultsMaxBinaryBytes),
         IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
         _ => value.ToString(),
     };
@@ -251,7 +244,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
             ? d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
             : d.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
         DateTimeOffset d => d.ToString("yyyy-MM-dd HH:mm:ss zzz", CultureInfo.InvariantCulture),
-        byte[] bytes => FormatBinary(bytes, ReadMaxBinaryBytesDisplayed),
+        byte[] bytes => FormatBinary(bytes, QueryResultConstants.ReadMaxBinaryBytes),
         _ => FormatForResults(value),
     };
 

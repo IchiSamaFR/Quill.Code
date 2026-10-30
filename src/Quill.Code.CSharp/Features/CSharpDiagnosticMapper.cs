@@ -2,15 +2,13 @@
 using Quill.Code.Analysis;
 using Quill.Code.CSharp.Roslyn;
 using System.Globalization;
+using Quill.Code.CSharp.Constants;
 
 namespace Quill.Code.CSharp.Features;
 
 /// <summary>Diagnostics Roslyn ramenés au texte de l'éditeur (positions, gravité, message localisé).</summary>
 internal static class CSharpDiagnosticMapper
 {
-    // Au-delà, une erreur en amont fait cascader les suivantes : les premières suffisent.
-    private const int MaxDiagnostics = 100;
-
     /// <summary>Diagnostics d'une compilation (plusieurs documents) : seuls ceux du texte de l'éditeur sont gardés.</summary>
     public static async Task<IReadOnlyList<CodeDiagnostic>> MapAsync(CSharpDocument document, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
     {
@@ -39,7 +37,7 @@ internal static class CSharpDiagnosticMapper
                 diagnostic.GetMessage(CultureInfo.CurrentUICulture),
                 diagnostic.Id));
 
-            if (result.Count == MaxDiagnostics)
+            if (result.Count == CSharpDiagnosticConstants.MaxDiagnostics)
                 break;
         }
 

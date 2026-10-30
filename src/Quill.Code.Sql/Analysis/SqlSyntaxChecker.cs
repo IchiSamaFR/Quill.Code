@@ -2,6 +2,7 @@
 using Quill.Code.Analysis;
 using Quill.Code.Sql.Lexing;
 using System.Globalization;
+using Quill.Code.Sql.Constants;
 
 namespace Quill.Code.Sql.Analysis;
 
@@ -11,9 +12,6 @@ namespace Quill.Code.Sql.Analysis;
 /// </summary>
 public static class SqlSyntaxChecker
 {
-    /// <summary>Apres une premiere faute, le parseur se resynchronise mal : les suivantes sont souvent des echos.</summary>
-    private const int MaxDiagnostics = 20;
-
     /// <summary>Fautes de syntaxe de <paramref name="text"/> ; liste vide si le script est correct.</summary>
     public static IReadOnlyList<CodeDiagnostic> Check(string text)
     {
@@ -31,7 +29,7 @@ public static class SqlSyntaxChecker
 
         var tokens = SqlLexer.Tokenize(text);
         return errors
-            .Take(MaxDiagnostics)
+            .Take(SqlAnalysisConstants.MaxSyntaxDiagnostics)
             .Select(error => ToDiagnostic(text, tokens, error))
             .ToArray();
     }

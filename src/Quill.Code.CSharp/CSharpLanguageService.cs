@@ -3,7 +3,7 @@ using Quill.Code.Completion;
 using Quill.Code.CSharp.Compilation;
 using Quill.Code.CSharp.Features;
 using Quill.Code.CSharp.Roslyn;
-using Quill.Code.Languages;
+using Quill.Code.Constants;
 
 namespace Quill.Code.CSharp;
 

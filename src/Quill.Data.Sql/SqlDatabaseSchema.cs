@@ -1,11 +1,10 @@
-﻿namespace Quill.Data.Sql;
+﻿using Quill.Data.Sql.Constants;
+
+namespace Quill.Data.Sql;
 
 /// <summary>Schéma complet d'une base : objets et colonnes, indexés pour les recherches répétées (autocomplétion, survol).</summary>
 public sealed class SqlDatabaseSchema
 {
-    /// <summary>Schéma préféré pour un nom non qualifié, comme le fait SQL Server.</summary>
-    public const string DefaultSchema = "dbo";
-
     private readonly HashSet<string> _schemas;
 
     // Objets par nom, dbo en tête : Find est rappelé pour chaque table d'une requête, sur des milliers d'objets.
@@ -39,10 +38,10 @@ public sealed class SqlDatabaseSchema
     /// <summary>Schémas possédant au moins un objet, triés.</summary>
     public IReadOnlyList<string> Schemas { get; }
 
-    /// <summary>Vrai pour le schéma par défaut (<see cref="DefaultSchema"/>).</summary>
-    public static bool IsDefaultSchema(string schema) => string.Equals(schema, DefaultSchema, StringComparison.OrdinalIgnoreCase);
+    /// <summary>Vrai pour le schéma par défaut (<see cref="SqlSchemaConstants.DefaultSchema"/>).</summary>
+    public static bool IsDefaultSchema(string schema) => string.Equals(schema, SqlSchemaConstants.DefaultSchema, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>Objet par nom (sans casse) ; sans schéma, <see cref="DefaultSchema"/> est préféré.</summary>
+    /// <summary>Objet par nom (sans casse) ; sans schéma, <see cref="SqlSchemaConstants.DefaultSchema"/> est préféré.</summary>
     public SqlSchemaObject? Find(string? schema, string name)
     {
         ArgumentNullException.ThrowIfNull(name);

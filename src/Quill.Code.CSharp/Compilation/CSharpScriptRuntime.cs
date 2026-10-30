@@ -1,5 +1,6 @@
 ﻿using Quill.Code.Scripting;
 using System.Reflection;
+using Quill.Code.CSharp.Constants;
 
 namespace Quill.Code.CSharp.Compilation;
 
@@ -10,10 +11,6 @@ namespace Quill.Code.CSharp.Compilation;
 /// </summary>
 internal static class CSharpScriptRuntime
 {
-    public const string FileName = "QuillScriptRuntime.g.cs";
-
-    private const BindingFlags StaticMembers = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-
     // Espace de noms global : visible sans using, et prioritaire sur un type homonyme importé (pas d'ambiguïté).
     // Noms qualifiés : le source ne dépend ni des usings ni du contexte nullable du projet.
     public static string Source { get; } = $$"""
@@ -73,5 +70,5 @@ internal static class CSharpScriptRuntime
         => FindProperty(assembly, "Script", "CancellationToken")?.SetValue(null, cancellationToken);
 
     private static PropertyInfo? FindProperty(Assembly assembly, string typeName, string propertyName)
-        => assembly.GetType(typeName)?.GetProperty(propertyName, StaticMembers);
+        => assembly.GetType(typeName)?.GetProperty(propertyName, CSharpScriptConstants.StaticMembers);
 }
