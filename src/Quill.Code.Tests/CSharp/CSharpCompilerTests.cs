@@ -12,7 +12,7 @@ public sealed class CSharpCompilerTests
     public async Task Compile_LoadsTheAssembly()
     {
         var service = new CSharpLanguageService(() => CSharpTestProjects.LibraryOptions("Compiled"));
-        using var compiled = await service.CompileAsync("public static class Calc { public static int Twice(int x) => x * 2; }", new CSharpCompileOptions { EmitDebugInformation = true });
+        using var compiled = await service.CompileAsync("public static class Calc { public static int Twice(int x) => x * 2; }");
 
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
         var twice = compiled.Assembly!.GetType("Calc")!.GetMethod("Twice")!;

@@ -2,6 +2,8 @@
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
+using Quill.Code.Execution;
+using Quill.Code.Scripting;
 using Quill.Code.SqlServer.Execution;
 using Quill.Code.SqlServer.Constants;
 using SqlBatch = Quill.Code.SqlServer.Execution.SqlBatch;
@@ -24,7 +26,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
     }
 
     /// <inheritdoc/>
-    public async Task<QueryExecutionResult> ExecuteAsync(string connectionString, string script, CancellationToken cancellationToken = default)
+    public async Task<QueryExecutionResult> ExecuteAsync(string connectionString, string script, DataRunOptions? options = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(script);
 
@@ -51,7 +53,10 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
             connection.InfoMessage += (_, e) =>
             {
                 foreach (SqlError error in e.Errors)
+                {
                     messages.Add(new QueryMessage(error.Message, QueryMessageKind.Output));
+                    options?.Log?.Invoke(LogLevel.Information, error.Message);
+                }
             };
 
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -62,7 +67,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
                 {
                     try
                     {
-                        await ExecuteBatchAsync(connection, batch, resultSets, messages, cancellationToken).ConfigureAwait(false);
+                        await ExecuteBatchAsync(connection, batch, resultSets, messages, options?.Data, cancellationToken).ConfigureAwait(false);
                     }
                     catch (SqlException ex) when (!cancellationToken.IsCancellationRequested)
                     {
@@ -154,7 +159,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         return await ReadResultSetAsync(reader, 1, maxRows, FormatForRead, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task ExecuteBatchAsync(SqlConnection connection, SqlBatch batch, List<QueryResultSet> resultSets, List<QueryMessage> messages, CancellationToken cancellationToken)
+    private static async Task ExecuteBatchAsync(SqlConnection connection, SqlBatch batch, List<QueryResultSet> resultSets, List<QueryMessage> messages, Action<QueryResultSet>? data, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
 #pragma warning disable CA2100 // Le script est celui de l'utilisateur, execute tel quel comme dans SSMS.
@@ -169,7 +174,11 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         {
             // FieldCount == 0 : instruction sans jeu de resultats (INSERT, UPDATE, DDL...).
             if (reader.FieldCount > 0)
-                resultSets.Add(await ReadResultSetAsync(reader, resultSets.Count + 1, QueryExecutionLimits.MaxRowsPerResultSet, FormatForResults, cancellationToken).ConfigureAwait(false));
+            {
+                var resultSet = await ReadResultSetAsync(reader, resultSets.Count + 1, QueryExecutionLimits.MaxRowsPerResultSet, FormatForResults, cancellationToken).ConfigureAwait(false);
+                resultSets.Add(resultSet);
+                data?.Invoke(resultSet);
+            }
         }
         while (await reader.NextResultAsync(cancellationToken).ConfigureAwait(false));
     }

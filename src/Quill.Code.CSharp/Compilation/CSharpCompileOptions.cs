@@ -1,10 +1,14 @@
-﻿using Quill.Code.Scripting;
+﻿using Quill.Code.Execution;
 using System.Reflection;
 
 namespace Quill.Code.CSharp.Compilation;
 
-/// <summary>Réglages de <see cref="CSharpLanguageService.CompileAsync(string, CSharpCompileOptions?, CancellationToken)"/>.</summary>
-public sealed record CSharpCompileOptions
+/// <summary>
+/// Réglages de <see cref="CSharpLanguageService.CompileAsync(string, CSharpCompileOptions?, CancellationToken)"/> et de
+/// <see cref="CSharpLanguageService.RunAsync"/> ; <see cref="RunOptions.Log"/> reçoit les messages <c>Log</c> du code
+/// compilé, propres à cette compilation, et demande <see cref="CSharpLanguageOptions.IncludeScriptRuntime"/>.
+/// </summary>
+public sealed record CSharpCompileOptions : RunOptions
 {
     /// <summary>Nom de l'assembly émise ; par défaut le nom du projet suivi d'un identifiant unique.</summary>
     public string? AssemblyName { get; init; }
@@ -26,10 +30,4 @@ public sealed record CSharpCompileOptions
     /// types en cache) : <see cref="CSharpCompilationResult.Dispose"/> ne la décharge alors pas.
     /// </summary>
     public bool Collectible { get; init; } = true;
-
-    /// <summary>
-    /// Reçoit les messages <c>Log</c> (niveau, texte) du code compilé, propres à cette compilation ; demande
-    /// <see cref="CSharpLanguageOptions.IncludeLogRuntime"/>. Null : les messages sont ignorés.
-    /// </summary>
-    public Action<LogLevel, string>? Log { get; init; }
 }

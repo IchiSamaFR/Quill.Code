@@ -99,7 +99,7 @@ public sealed class CSharpLanguageService : ICodeLanguageService
     /// <summary>
     /// Compile <paramref name="code"/> comme <see cref="CompileAsync"/>, exécute son point d'entrée (<c>Main</c> ou
     /// instructions de niveau supérieur, async compris) puis décharge l'assembly. Rien n'est rendu : la sortie du code
-    /// passe par <see cref="CSharpCompileOptions.Log"/>, une exception du code est relevée telle quelle.
+    /// passe par <see cref="Execution.RunOptions.Log"/>, une exception du code est relevée telle quelle.
     /// </summary>
     /// <remarks>
     /// Le code ne peut pas être interrompu dans le processus : à l'annulation, la main est rendue tout de suite

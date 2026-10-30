@@ -60,7 +60,6 @@ Compilation du même projet que l'éditeur, chargée dans un contexte déchargea
 ```csharp
 using var compiled = await language.CompileAsync(code, new CSharpCompileOptions
 {
-    EmitDebugInformation = true,           // numéros de ligne dans les piles d'appels
     AssemblyFiles = packageAssemblies,     // assemblies chargeables, lues en mémoire
 });
 

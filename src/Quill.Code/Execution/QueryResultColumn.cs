@@ -1,4 +1,4 @@
-﻿namespace Quill.Code.SqlServer.Execution;
+﻿namespace Quill.Code.Execution;
 
 /// <summary>Colonne d'un jeu de resultats.</summary>
 /// <param name="Name">Nom renvoye par le serveur, ou un libelle de substitution si la colonne n'en a pas.</param>

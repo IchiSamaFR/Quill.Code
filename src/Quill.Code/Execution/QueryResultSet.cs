@@ -1,4 +1,4 @@
-﻿namespace Quill.Code.SqlServer.Execution;
+﻿namespace Quill.Code.Execution;
 
 /// <summary>Un jeu de resultats (un SELECT) renvoye par l'execution.</summary>
 public sealed class QueryResultSet

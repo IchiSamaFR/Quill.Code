@@ -1,4 +1,5 @@
-﻿using Quill.Code.SqlServer.Execution;
+﻿using Quill.Code.Execution;
+using Quill.Code.SqlServer.Execution;
 
 namespace Quill.Code.SqlServer;
 
@@ -9,7 +10,11 @@ public interface ISqlQueryExecutor
     /// Execute le script (lots GO compris) et collecte resultats et messages. Les erreurs SQL ne levent pas
     /// d'exception : elles sont rapportees dans <see cref="QueryExecutionResult.Messages"/>.
     /// </summary>
-    Task<QueryExecutionResult> ExecuteAsync(string connectionString, string script, CancellationToken cancellationToken = default);
+    /// <param name="options">
+    /// Remise au fil de l'eau : les PRINT et messages du serveur par <see cref="RunOptions.Log"/>, chaque jeu de
+    /// resultats par <see cref="DataRunOptions.Data"/> des qu'il est lu. Le resultat les contient aussi.
+    /// </param>
+    Task<QueryExecutionResult> ExecuteAsync(string connectionString, string script, DataRunOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Premier jeu de resultats d'une requete parametree (au plus <paramref name="maxRows"/> lignes) ;

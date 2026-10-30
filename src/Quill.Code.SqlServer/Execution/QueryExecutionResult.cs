@@ -1,4 +1,6 @@
-﻿namespace Quill.Code.SqlServer.Execution;
+﻿using Quill.Code.Execution;
+
+namespace Quill.Code.SqlServer.Execution;
 
 /// <summary>Bilan complet d'une execution : jeux de resultats, messages et duree.</summary>
 public sealed class QueryExecutionResult

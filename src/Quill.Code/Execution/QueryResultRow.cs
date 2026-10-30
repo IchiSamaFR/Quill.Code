@@ -1,4 +1,4 @@
-﻿namespace Quill.Code.SqlServer.Execution;
+﻿namespace Quill.Code.Execution;
 
 /// <summary>
 /// Ligne d'un jeu de resultats, deja convertie en texte affichable.
