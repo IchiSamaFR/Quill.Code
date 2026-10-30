@@ -31,8 +31,6 @@ internal static class CSharpScriptRuntime
 
             public static void Information(object? value) => Write(LogLevel.Information, value);
 
-            public static void Output(object? value) => Write(LogLevel.Output, value);
-
             public static void Warning(object? value) => Write(LogLevel.Warning, value);
 
             public static void Error(object? value) => Write(LogLevel.Error, value);
@@ -58,13 +56,13 @@ internal static class CSharpScriptRuntime
 
     /// <summary>Dirige le <c>Log</c> de l'assembly vers <paramref name="log"/>.</summary>
     /// <exception cref="InvalidOperationException">Assembly compilée sans le runtime des scripts.</exception>
-    public static void BindLog(Assembly assembly, Action<LogLevel, string> log)
+    public static void BindLog(Assembly assembly, Action<LogEntry> log)
     {
         var sink = FindProperty(assembly, "Log", "Sink")
-            ?? throw new InvalidOperationException("CSharpCompileOptions.Log demande CSharpLanguageOptions.IncludeScriptRuntime.");
+            ?? throw new InvalidOperationException("CSharpCompileOptions.Log demande CSharpLanguageOptions.IncludeLogRuntime.");
 
         // LogLevel du script : mêmes noms et valeurs que celui de Quill, dont il est généré.
-        sink.SetValue(null, new Action<int, string>((level, text) => log((LogLevel)level, text)));
+        sink.SetValue(null, new Action<int, string>((level, text) => log(new LogEntry((LogLevel)level, text, LogSource.Code))));
     }
 
     /// <summary>Fixe <c>Script.CancellationToken</c> ; sans effet sans le runtime des scripts.</summary>

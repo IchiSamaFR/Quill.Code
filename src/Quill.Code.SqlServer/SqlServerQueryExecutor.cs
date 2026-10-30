@@ -11,7 +11,7 @@ namespace Quill.Code.SqlServer;
 
 /// <summary>
 /// Execution SQL Server, calquee sur le comportement de SSMS : decoupage sur GO, un lot en echec n'empeche pas
-/// les suivants. Tout est remis au fil de l'eau : PRINT (Output), lignes affectees (Information) et erreurs (Error) par Log, jeux de resultats
+/// les suivants. Tout est remis au fil de l'eau : PRINT et erreurs SQL (provenance Code), lignes affectees (Host) par Log, jeux de resultats
 /// par Data. Une connexion est ouverte pour chaque appel.
 /// </summary>
 public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
@@ -33,7 +33,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         var batches = SqlBatchSplitter.Split(script);
         if (batches.Count == 0)
         {
-            log?.Invoke(LogLevel.Information, "Aucune instruction à exécuter.");
+            log?.Invoke(new LogEntry(LogLevel.Information, "Aucune instruction à exécuter."));
             return;
         }
 
@@ -47,7 +47,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
             connection.InfoMessage += (_, e) =>
             {
                 foreach (SqlError error in e.Errors)
-                    log?.Invoke(LogLevel.Information, error.Message);
+                    log?.Invoke(new LogEntry(LogLevel.Information, error.Message, LogSource.Code));
             };
 
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -64,7 +64,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
                     catch (SqlException ex) when (!cancellationToken.IsCancellationRequested)
                     {
                         // Comme SSMS : le lot suivant est tout de meme execute.
-                        LogErrors(log, ex, batch.StartLine);
+                        LogErrors(log, ex, batch.StartLine, LogSource.Code);
                     }
                 }
             }
@@ -77,11 +77,11 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         catch (SqlException ex)
         {
             // Hors d'un lot : connexion impossible, droits...
-            LogErrors(log, ex, batchStartLine: null);
+            LogErrors(log, ex, batchStartLine: null, LogSource.Host);
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException or InvalidOperationException)
         {
-            log?.Invoke(LogLevel.Error, $"Échec : {ex.Message}");
+            log?.Invoke(new LogEntry(LogLevel.Error, $"Échec : {ex.Message}"));
         }
     }
 
@@ -144,7 +144,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
 #pragma warning restore CA2100
         // Pas de timeout : l'utilisateur garde la main via l'annulation.
         command.CommandTimeout = 0;
-        command.StatementCompleted += (_, e) => options?.Log?.Invoke(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({e.RecordCount} ligne(s) affectée(s))"));
+        command.StatementCompleted += (_, e) => options?.Log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({e.RecordCount} ligne(s) affectée(s))")));
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         do
@@ -261,7 +261,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         return result;
     }
 
-    private static void LogErrors(Action<LogLevel, string>? log, SqlException exception, int? batchStartLine)
+    private static void LogErrors(Action<LogEntry>? log, SqlException exception, int? batchStartLine, LogSource source)
     {
         if (log is null)
             return;
@@ -273,7 +273,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
                 ? string.Create(CultureInfo.InvariantCulture, $"Msg {error.Number}, Niveau {error.Class}, État {error.State}, Ligne {start + error.LineNumber - 1}")
                 : string.Create(CultureInfo.InvariantCulture, $"Msg {error.Number}, Niveau {error.Class}, État {error.State}");
 
-            log(LogLevel.Error, $"{header}{Environment.NewLine}{error.Message}");
+            log(new LogEntry(LogLevel.Error, $"{header}{Environment.NewLine}{error.Message}", source));
         }
     }
 }

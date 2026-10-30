@@ -24,7 +24,7 @@ public sealed class CSharpScriptRuntimeTests
             Log.Write(LogLevel.Warning, 42);
             Log.Write(LogLevel.None, "ignoré");
             return 3;
-            """, new CSharpCompileOptions { Log = (level, text) => logs.Add((level, text)) });
+            """, new CSharpCompileOptions { Log = e => logs.Add((e.Level, e.Text)) });
 
         Assert.True(compiled.Success, string.Join("\n", compiled.Errors));
         Assert.Equal(3, await compiled.RunEntryPointAsync());
@@ -35,14 +35,16 @@ public sealed class CSharpScriptRuntimeTests
     public async Task Run_CompilesExecutesAndLogs()
     {
         var service = CreateService();
-        List<(LogLevel Level, string Text)> logs = [];
+        List<LogEntry> logs = [];
 
         await service.RunAsync("""
             await System.Threading.Tasks.Task.Yield();
             Log.Information("a");
-            """, new CSharpCompileOptions { Log = (level, text) => logs.Add((level, text)) });
+            Log.Warning("b");
+            """, new CSharpCompileOptions { Log = logs.Add });
 
-        Assert.Equal(new[] { (LogLevel.Information, "a") }, logs);
+        Assert.Equal(new[] { (LogLevel.Information, "a"), (LogLevel.Warning, "b") }, logs.Select(e => (e.Level, e.Text)));
+        Assert.All(logs, e => Assert.Equal(LogSource.Code, e.Source));
     }
 
     [Fact]
@@ -52,7 +54,7 @@ public sealed class CSharpScriptRuntimeTests
         List<string> logs = [];
 
         var exception = await Assert.ThrowsAsync<CSharpCompilationException>(() => service.RunAsync(
-            "Log.Information(\"a\");\nunknown();", new CSharpCompileOptions { Log = (_, text) => logs.Add(text) }));
+            "Log.Information(\"a\");\nunknown();", new CSharpCompileOptions { Log = e => logs.Add(e.Text) }));
 
         Assert.Equal("CS0103", Assert.Single(exception.Errors).Code);
         Assert.Empty(logs);
@@ -74,8 +76,8 @@ public sealed class CSharpScriptRuntimeTests
         var service = CreateService();
         List<string> first = [];
         List<string> second = [];
-        using var a = await service.CompileAsync("Log.Information(\"a\");", new CSharpCompileOptions { Log = (_, text) => first.Add(text) });
-        using var b = await service.CompileAsync("Log.Information(\"b\");", new CSharpCompileOptions { Log = (_, text) => second.Add(text) });
+        using var a = await service.CompileAsync("Log.Information(\"a\");", new CSharpCompileOptions { Log = e => first.Add(e.Text) });
+        using var b = await service.CompileAsync("Log.Information(\"b\");", new CSharpCompileOptions { Log = e => second.Add(e.Text) });
 
         await Task.WhenAll(a.RunEntryPointAsync(), b.RunEntryPointAsync());
 
@@ -92,7 +94,7 @@ public sealed class CSharpScriptRuntimeTests
             CompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
         });
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.CompileAsync("public static class Q { }", new CSharpCompileOptions { Log = (_, _) => { } }));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.CompileAsync("public static class Q { }", new CSharpCompileOptions { Log = _ => { } }));
     }
 
     [Fact]

@@ -6,7 +6,7 @@ namespace Quill.Code.CSharp.Compilation;
 /// <summary>
 /// Réglages de <see cref="CSharpLanguageService.CompileAsync(string, CSharpCompileOptions?, CancellationToken)"/> et de
 /// <see cref="CSharpLanguageService.RunAsync"/> ; <see cref="RunOptions.Log"/> reçoit les messages <c>Log</c> du code
-/// compilé, propres à cette compilation, et demande <see cref="CSharpLanguageOptions.IncludeScriptRuntime"/>.
+/// compilé (<see cref="Scripting.LogSource.Code"/>), propres à cette compilation, et demande <see cref="CSharpLanguageOptions.IncludeLogRuntime"/>.
 /// </summary>
 public sealed record CSharpCompileOptions : RunOptions
 {

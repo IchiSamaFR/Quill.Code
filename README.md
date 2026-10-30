@@ -75,7 +75,7 @@ Script (point d'entrée ou instructions de niveau supérieur) compilé et exécu
 ```csharp
 try
 {
-    await language.RunAsync(code, new CSharpCompileOptions { Log = (level, text) => Console.WriteLine($"{level} : {text}") }, token);
+    await language.RunAsync(code, new CSharpCompileOptions { Log = e => Console.WriteLine($"{e.Timestamp:HH:mm:ss} {e.Level} : {e.Text}") }, token);
 }
 catch (CSharpCompilationException ex)
 {

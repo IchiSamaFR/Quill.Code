@@ -9,8 +9,8 @@ namespace Quill.Code.Execution;
 public record RunOptions
 {
     /// <summary>
-    /// Reçoit les messages (niveau, texte) écrits pendant l'exécution : <c>Log</c> d'un script, PRINT d'une
-    /// requête SQL... Appelé depuis n'importe quel thread. Null : les messages sont ignorés.
+    /// Reçoit les messages écrits pendant l'exécution, horodatés et avec leur provenance : <c>Log</c> d'un script,
+    /// PRINT d'une requête SQL... Appelé depuis n'importe quel thread. Null : les messages sont ignorés.
     /// </summary>
-    public Action<LogLevel, string>? Log { get; init; }
+    public Action<LogEntry>? Log { get; init; }
 }
