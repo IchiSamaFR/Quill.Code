@@ -71,6 +71,20 @@ else
     Run(compiled.Assembly!);
 ```
 
+Script (point d'entrée ou instructions de niveau supérieur) compilé et exécuté en un appel, sans retour : la sortie passe par `Log`, l'assembly est déchargée à la fin.
+
+```csharp
+try
+{
+    await language.RunAsync(code, new CSharpCompileOptions { Log = (level, text) => Console.WriteLine($"{level} : {text}") }, token);
+}
+catch (CSharpCompilationException ex)
+{
+    foreach (var error in ex.Errors)
+        Console.WriteLine(error.Describe(code));
+}
+```
+
 Les positions reçues et rendues sont toujours celles du texte de l'éditeur.
 
 Sources ajoutées à la volée (ex. classe utilitaire) : visibles par la complétion et l'analyse, compilées avec le texte.

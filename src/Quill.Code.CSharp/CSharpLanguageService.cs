@@ -68,36 +68,55 @@ public sealed class CSharpLanguageService : ICodeLanguageService
 
     /// <inheritdoc />
     public Task<CompletionList> GetCompletionsAsync(string code, int position, CancellationToken cancellationToken = default)
-        => RunAsync(code, (document, token) => CSharpCompletionEngine.GetCompletionsAsync(document, position, token), cancellationToken);
+        => OnThreadPoolAsync(code, (document, token) => CSharpCompletionEngine.GetCompletionsAsync(document, position, token), cancellationToken);
 
     /// <inheritdoc />
     public Task<CompletionChange> GetChangeAsync(string code, CompletionItem item, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(item);
-        return RunAsync(code, (document, token) => CSharpCompletionEngine.GetChangeAsync(document, item, token), cancellationToken);
+        return OnThreadPoolAsync(code, (document, token) => CSharpCompletionEngine.GetChangeAsync(document, item, token), cancellationToken);
     }
 
     /// <inheritdoc />
     public Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(string code, CancellationToken cancellationToken = default)
-        => RunAsync(code, CSharpDiagnosticEngine.GetDiagnosticsAsync, cancellationToken);
+        => OnThreadPoolAsync(code, CSharpDiagnosticEngine.GetDiagnosticsAsync, cancellationToken);
 
     /// <inheritdoc />
     public Task<HoverInfo?> GetHoverAsync(string code, int position, CancellationToken cancellationToken = default)
-        => RunAsync(code, (document, token) => CSharpHoverEngine.GetHoverAsync(document, position, token), cancellationToken);
+        => OnThreadPoolAsync(code, (document, token) => CSharpHoverEngine.GetHoverAsync(document, position, token), cancellationToken);
 
     /// <inheritdoc />
     public Task<SignatureHelpInfo?> GetSignatureHelpAsync(string code, int position, CancellationToken cancellationToken = default)
-        => RunAsync(code, (document, token) => CSharpSignatureHelpEngine.GetSignatureHelpAsync(document, position, token), cancellationToken);
+        => OnThreadPoolAsync(code, (document, token) => CSharpSignatureHelpEngine.GetSignatureHelpAsync(document, position, token), cancellationToken);
 
     /// <summary>
     /// Compile <paramref name="code"/> dans le projet du service (mêmes références, options et sources que l'éditeur),
     /// puis charge l'assembly dans un contexte déchargeable. Les erreurs sont rendues, pas levées.
     /// </summary>
     public Task<CSharpCompilationResult> CompileAsync(string code, CSharpCompileOptions? options = null, CancellationToken cancellationToken = default)
-        => RunAsync(code, (document, token) => CSharpCompiler.CompileAsync(document, options ?? new(), token), cancellationToken);
+        => OnThreadPoolAsync(code, (document, token) => CSharpCompiler.CompileAsync(document, options ?? new(), token), cancellationToken);
+
+    /// <summary>
+    /// Compile <paramref name="code"/> comme <see cref="CompileAsync"/>, exécute son point d'entrée (<c>Main</c> ou
+    /// instructions de niveau supérieur, async compris) puis décharge l'assembly. Rien n'est rendu : la sortie du code
+    /// passe par <see cref="CSharpCompileOptions.Log"/>, une exception du code est relevée telle quelle.
+    /// </summary>
+    /// <remarks>
+    /// Le code ne peut pas être interrompu dans le processus : à l'annulation, la main est rendue tout de suite
+    /// (<see cref="CSharpRunAbandonedException"/>) et l'assembly n'est déchargée qu'à sa fin réelle.
+    /// </remarks>
+    /// <exception cref="CSharpCompilationException">Le code ne compile pas ; ses diagnostics sont dans l'exception.</exception>
+    public async Task RunAsync(string code, CSharpCompileOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        using var compiled = await CompileAsync(code, options, cancellationToken).ConfigureAwait(false);
+        if (!compiled.Success)
+            throw new CSharpCompilationException(compiled.Diagnostics);
+
+        await compiled.RunEntryPointAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
 
     // Document créé sur le pool lui aussi : la première demande construit le projet (MEF, références).
-    private Task<T> RunAsync<T>(string code, Func<CSharpDocument, CancellationToken, Task<T>> request, CancellationToken cancellationToken)
+    private Task<T> OnThreadPoolAsync<T>(string code, Func<CSharpDocument, CancellationToken, Task<T>> request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(code);
         return Task.Run(() => request(_project.CreateDocument(code), cancellationToken), cancellationToken);

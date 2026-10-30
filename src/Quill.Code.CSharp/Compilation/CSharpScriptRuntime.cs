@@ -5,7 +5,7 @@ using Quill.Code.CSharp.Constants;
 namespace Quill.Code.CSharp.Compilation;
 
 /// <summary>
-/// Runtime des scripts (<see cref="CSharpLanguageOptions.IncludeScriptRuntime"/>) : <c>Log</c>, <c>LogLevel</c>
+/// Runtime des scripts (<see cref="CSharpLanguageOptions.IncludeLogRuntime"/>) : <c>Log</c>, <c>LogLevel</c>
 /// et <c>Script</c>, générés dans chaque assembly puis branchés par réflexion. Propres à chaque compilation : des
 /// exécutions simultanées ne se mélangent pas, et le script ne référence aucune assembly de l'application.
 /// </summary>

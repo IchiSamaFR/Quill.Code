@@ -33,6 +33,43 @@ public sealed class CSharpScriptRuntimeTests
     }
 
     [Fact]
+    public async Task Run_CompilesExecutesAndLogs()
+    {
+        var service = CreateService();
+        List<(LogLevel Level, string Text)> logs = [];
+
+        await service.RunAsync("""
+            await System.Threading.Tasks.Task.Yield();
+            Log.Information("a");
+            """, new CSharpCompileOptions { Log = (level, text) => logs.Add((level, text)) });
+
+        Assert.Equal(new[] { (LogLevel.Information, "a") }, logs);
+    }
+
+    [Fact]
+    public async Task Run_CompilationErrorsAreThrownWithoutRunning()
+    {
+        var service = CreateService();
+        List<string> logs = [];
+
+        var exception = await Assert.ThrowsAsync<CSharpCompilationException>(() => service.RunAsync(
+            "Log.Information(\"a\");\nunknown();", new CSharpCompileOptions { Log = (_, text) => logs.Add(text) }));
+
+        Assert.Equal("CS0103", Assert.Single(exception.Errors).Code);
+        Assert.Empty(logs);
+    }
+
+    [Fact]
+    public async Task Run_ScriptExceptionIsRethrown()
+    {
+        var service = CreateService();
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.RunAsync("throw new System.InvalidOperationException(\"boum\");"));
+
+        Assert.Equal("boum", exception.Message);
+    }
+
+    [Fact]
     public async Task Log_IsSpecificToEachCompilation()
     {
         var service = CreateService();

@@ -38,7 +38,7 @@ internal static class RoslynHost
         foreach (var (name, source) in options.AdditionalDocuments)
             solution = AddDocument(solution, projectId, name, source).Solution;
 
-        if (options.IncludeScriptRuntime)
+        if (options.IncludeLogRuntime)
             solution = AddDocument(solution, projectId, CSharpScriptConstants.FileName, CSharpScriptRuntime.Source).Solution;
 
         var (withDocument, documentId) = AddDocument(solution, projectId, options.DocumentName, string.Empty);

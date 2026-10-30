@@ -19,11 +19,11 @@ internal static class CSharpCompiler
         var name = options.AssemblyName ?? $"{compilation.AssemblyName}_{Guid.NewGuid():N}";
 
         using var image = new MemoryStream();
-        using var symbols = options.EmitDebugInformation ? new MemoryStream() : null;
+        using var symbols = new MemoryStream();
         var result = compilation.WithAssemblyName(name).Emit(
             image,
             symbols,
-            options: symbols is null ? null : new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb),
+            options: new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb),
             cancellationToken: cancellationToken);
 
         var reported = result.Diagnostics.Where(d => d.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error).ToArray();
@@ -44,11 +44,10 @@ internal static class CSharpCompiler
             return new CSharpCompilationResult(diagnostics, null, null);
         }
 
-        var bytes = image.ToArray();
-        if (symbols is not null)
-            symbols.Position = 0;
 
         var context = new CompiledCodeLoadContext(name, options);
+        var bytes = image.ToArray();
+        symbols.Position = 0;
         var assembly = context.LoadFromStream(new MemoryStream(bytes), symbols);
 
         if (options.Log is { } log)

@@ -9,9 +9,6 @@ public sealed record CSharpCompileOptions
     /// <summary>Nom de l'assembly émise ; par défaut le nom du projet suivi d'un identifiant unique.</summary>
     public string? AssemblyName { get; init; }
 
-    /// <summary>Émet aussi un PDB portable : numéros de ligne dans les piles d'appels des exceptions.</summary>
-    public bool EmitDebugInformation { get; init; }
-
     /// <summary>
     /// Assemblies (fichiers) que le code peut charger, résolues par nom et lues en mémoire pour ne pas verrouiller
     /// les fichiers (ex. packages d'un script).
@@ -32,7 +29,7 @@ public sealed record CSharpCompileOptions
 
     /// <summary>
     /// Reçoit les messages <c>Log</c> (niveau, texte) du code compilé, propres à cette compilation ; demande
-    /// <see cref="CSharpLanguageOptions.IncludeScriptRuntime"/>. Null : les messages sont ignorés.
+    /// <see cref="CSharpLanguageOptions.IncludeLogRuntime"/>. Null : les messages sont ignorés.
     /// </summary>
     public Action<LogLevel, string>? Log { get; init; }
 }
