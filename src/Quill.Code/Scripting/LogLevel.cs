@@ -1,8 +1,9 @@
 ﻿namespace Quill.Code.Scripting;
 
 /// <summary>
-/// Niveau d'un message écrit par un script avec <c>Log</c>, calqué sur <c>Microsoft.Extensions.Logging.LogLevel</c>.
-/// Ses noms et son ordre forment aussi l'enum <c>LogLevel</c> généré dans les scripts.
+/// Niveau d'un message écrit pendant une exécution (<c>Log</c> d'un script, PRINT et erreurs SQL...), calqué sur
+/// <c>Microsoft.Extensions.Logging.LogLevel</c> avec en plus <see cref="Information"/> (les valeurs numériques diffèrent donc
+/// à partir de <see cref="Warning"/>). Ses noms et son ordre forment aussi l'enum <c>LogLevel</c> généré dans les scripts.
 /// </summary>
 public enum LogLevel
 {

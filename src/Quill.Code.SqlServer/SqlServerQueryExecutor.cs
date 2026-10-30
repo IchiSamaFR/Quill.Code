@@ -11,7 +11,7 @@ namespace Quill.Code.SqlServer;
 
 /// <summary>
 /// Execution SQL Server, calquee sur le comportement de SSMS : decoupage sur GO, un lot en echec n'empeche pas
-/// les suivants. Tout est remis au fil de l'eau : PRINT, lignes affectees et erreurs par Log, jeux de resultats
+/// les suivants. Tout est remis au fil de l'eau : PRINT (Output), lignes affectees (Information) et erreurs (Error) par Log, jeux de resultats
 /// par Data. Une connexion est ouverte pour chaque appel.
 /// </summary>
 public sealed class SqlServerQueryExecutor : ISqlQueryExecutor

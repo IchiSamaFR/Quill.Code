@@ -11,8 +11,7 @@ public sealed class CSharpScriptRuntimeTests
     private static CSharpLanguageService CreateService() => new(() => new CSharpLanguageOptions
     {
         References = CSharpReferences.FromTrustedPlatformAssemblies(),
-        CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullableContextOptions: NullableContextOptions.Enable),
-        IncludeScriptRuntime = true,
+        CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication, nullableContextOptions: NullableContextOptions.Enable)
     });
 
     [Fact]

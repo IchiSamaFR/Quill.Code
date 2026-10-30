@@ -12,7 +12,7 @@ public interface ISqlQueryExecutor
     /// d'exception : elle est remise par <see cref="RunOptions.Log"/> au niveau Error.
     /// </summary>
     /// <param name="options">
-    /// <see cref="RunOptions.Log"/> : PRINT et messages du serveur, lignes affectees (Information), erreurs (Error) ;
+    /// <see cref="RunOptions.Log"/> : PRINT et messages du serveur (Output), lignes affectees (Information), erreurs (Error) ;
     /// <see cref="DataRunOptions.Data"/> : chaque jeu de resultats des qu'il est lu.
     /// </param>
     /// <exception cref="OperationCanceledException">Execution annulee.</exception>

@@ -31,6 +31,8 @@ internal static class CSharpScriptRuntime
 
             public static void Information(object? value) => Write(LogLevel.Information, value);
 
+            public static void Output(object? value) => Write(LogLevel.Output, value);
+
             public static void Warning(object? value) => Write(LogLevel.Warning, value);
 
             public static void Error(object? value) => Write(LogLevel.Error, value);
