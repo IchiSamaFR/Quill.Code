@@ -7,14 +7,16 @@ namespace Quill.Code.SqlServer;
 public interface ISqlQueryExecutor
 {
     /// <summary>
-    /// Execute le script (lots GO compris) et collecte resultats et messages. Les erreurs SQL ne levent pas
-    /// d'exception : elles sont rapportees dans <see cref="QueryExecutionResult.Messages"/>.
+    /// Execute le script (lots GO compris), sans rien rendre : tout est remis au fil de l'eau par
+    /// <paramref name="options"/>. Comme SSMS, une erreur SQL n'arrete pas les lots suivants et ne leve pas
+    /// d'exception : elle est remise par <see cref="RunOptions.Log"/> au niveau Error.
     /// </summary>
     /// <param name="options">
-    /// Remise au fil de l'eau : les PRINT et messages du serveur par <see cref="RunOptions.Log"/>, chaque jeu de
-    /// resultats par <see cref="DataRunOptions.Data"/> des qu'il est lu. Le resultat les contient aussi.
+    /// <see cref="RunOptions.Log"/> : PRINT et messages du serveur, lignes affectees (Information), erreurs (Error) ;
+    /// <see cref="DataRunOptions.Data"/> : chaque jeu de resultats des qu'il est lu.
     /// </param>
-    Task<QueryExecutionResult> ExecuteAsync(string connectionString, string script, DataRunOptions? options = null, CancellationToken cancellationToken = default);
+    /// <exception cref="OperationCanceledException">Execution annulee.</exception>
+    Task RunAsync(string connectionString, string script, DataRunOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Premier jeu de resultats d'une requete parametree (au plus <paramref name="maxRows"/> lignes) ;

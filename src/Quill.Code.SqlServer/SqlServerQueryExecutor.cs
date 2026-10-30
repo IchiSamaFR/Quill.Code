@@ -1,6 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
 using System.Data;
-using System.Diagnostics;
 using System.Globalization;
 using Quill.Code.Execution;
 using Quill.Code.Scripting;
@@ -11,9 +10,9 @@ using SqlBatch = Quill.Code.SqlServer.Execution.SqlBatch;
 namespace Quill.Code.SqlServer;
 
 /// <summary>
-/// Execution SQL Server, calquee sur le comportement de SSMS : decoupage sur GO, un lot en
-/// echec n'empeche pas les suivants, messages PRINT et nombre de lignes affectees remontes.
-/// Une connexion est ouverte pour chaque appel.
+/// Execution SQL Server, calquee sur le comportement de SSMS : decoupage sur GO, un lot en echec n'empeche pas
+/// les suivants. Tout est remis au fil de l'eau : PRINT, lignes affectees et erreurs par Log, jeux de resultats
+/// par Data. Une connexion est ouverte pour chaque appel.
 /// </summary>
 public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
 {
@@ -26,21 +25,16 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
     }
 
     /// <inheritdoc/>
-    public async Task<QueryExecutionResult> ExecuteAsync(string connectionString, string script, DataRunOptions? options = null, CancellationToken cancellationToken = default)
+    public async Task RunAsync(string connectionString, string script, DataRunOptions? options = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(script);
 
-        var resultSets = new List<QueryResultSet>();
-        var messages = new List<QueryMessage>();
-        var hasErrors = false;
-        var wasCancelled = false;
-        var stopwatch = Stopwatch.StartNew();
-
+        var log = options?.Log;
         var batches = SqlBatchSplitter.Split(script);
         if (batches.Count == 0)
         {
-            messages.Add(new QueryMessage("Aucune instruction à exécuter."));
-            return new QueryExecutionResult(resultSets, messages, TimeSpan.Zero, hasErrors, wasCancelled);
+            log?.Invoke(LogLevel.Information, "Aucune instruction à exécuter.");
+            return;
         }
 
         try
@@ -53,60 +47,42 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
             connection.InfoMessage += (_, e) =>
             {
                 foreach (SqlError error in e.Errors)
-                {
-                    messages.Add(new QueryMessage(error.Message, QueryMessageKind.Output));
-                    options?.Log?.Invoke(LogLevel.Information, error.Message);
-                }
+                    log?.Invoke(LogLevel.Information, error.Message);
             };
 
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
+            var resultSetCount = 0;
             foreach (var batch in batches)
             {
                 for (var run = 0; run < batch.RepeatCount; run++)
                 {
                     try
                     {
-                        await ExecuteBatchAsync(connection, batch, resultSets, messages, options?.Data, cancellationToken).ConfigureAwait(false);
+                        resultSetCount = await ExecuteBatchAsync(connection, batch, resultSetCount, options, cancellationToken).ConfigureAwait(false);
                     }
                     catch (SqlException ex) when (!cancellationToken.IsCancellationRequested)
                     {
                         // Comme SSMS : le lot suivant est tout de meme execute.
-                        hasErrors = true;
-                        AddErrors(messages, ex, batch.StartLine);
+                        LogErrors(log, ex, batch.StartLine);
                     }
                 }
             }
         }
-        catch (OperationCanceledException)
-        {
-            wasCancelled = true;
-        }
-        catch (SqlException) when (cancellationToken.IsCancellationRequested)
+        catch (SqlException ex) when (cancellationToken.IsCancellationRequested)
         {
             // L'annulation d'une commande en cours remonte sous forme de SqlException.
-            wasCancelled = true;
+            throw new OperationCanceledException(ex.Message, ex, cancellationToken);
         }
         catch (SqlException ex)
         {
-            hasErrors = true;
-            AddErrors(messages, ex, batchStartLine: null);
+            // Hors d'un lot : connexion impossible, droits...
+            LogErrors(log, ex, batchStartLine: null);
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException or InvalidOperationException)
         {
-            hasErrors = true;
-            messages.Add(new QueryMessage($"Échec : {ex.Message}", QueryMessageKind.Error));
+            log?.Invoke(LogLevel.Error, $"Échec : {ex.Message}");
         }
-
-        stopwatch.Stop();
-
-        if (wasCancelled)
-            messages.Add(new QueryMessage("Requête annulée par l'utilisateur.", QueryMessageKind.Error));
-
-        messages.Add(new QueryMessage(string.Create(CultureInfo.InvariantCulture,
-            $"Heure de fin : {DateTime.Now:yyyy-MM-dd HH:mm:ss} (durée {stopwatch.Elapsed:hh\\:mm\\:ss\\.fff})")));
-
-        return new QueryExecutionResult(resultSets, messages, stopwatch.Elapsed, hasErrors, wasCancelled);
     }
 
     /// <inheritdoc/>
@@ -159,7 +135,8 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         return await ReadResultSetAsync(reader, 1, maxRows, FormatForRead, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task ExecuteBatchAsync(SqlConnection connection, SqlBatch batch, List<QueryResultSet> resultSets, List<QueryMessage> messages, Action<QueryResultSet>? data, CancellationToken cancellationToken)
+    /// <returns>Nombre de jeux de resultats lus depuis le debut du script.</returns>
+    private static async Task<int> ExecuteBatchAsync(SqlConnection connection, SqlBatch batch, int resultSetCount, DataRunOptions? options, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
 #pragma warning disable CA2100 // Le script est celui de l'utilisateur, execute tel quel comme dans SSMS.
@@ -167,7 +144,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
 #pragma warning restore CA2100
         // Pas de timeout : l'utilisateur garde la main via l'annulation.
         command.CommandTimeout = 0;
-        command.StatementCompleted += (_, e) => messages.Add(new QueryMessage(string.Create(CultureInfo.InvariantCulture, $"({e.RecordCount} ligne(s) affectée(s))")));
+        command.StatementCompleted += (_, e) => options?.Log?.Invoke(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({e.RecordCount} ligne(s) affectée(s))"));
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         do
@@ -175,12 +152,13 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
             // FieldCount == 0 : instruction sans jeu de resultats (INSERT, UPDATE, DDL...).
             if (reader.FieldCount > 0)
             {
-                var resultSet = await ReadResultSetAsync(reader, resultSets.Count + 1, QueryExecutionLimits.MaxRowsPerResultSet, FormatForResults, cancellationToken).ConfigureAwait(false);
-                resultSets.Add(resultSet);
-                data?.Invoke(resultSet);
+                var resultSet = await ReadResultSetAsync(reader, ++resultSetCount, QueryExecutionLimits.MaxRowsPerResultSet, FormatForResults, cancellationToken).ConfigureAwait(false);
+                options?.Data?.Invoke(resultSet);
             }
         }
         while (await reader.NextResultAsync(cancellationToken).ConfigureAwait(false));
+
+        return resultSetCount;
     }
 
     private static async Task<QueryResultSet> ReadResultSetAsync(SqlDataReader reader, int index, int maxRows, Func<object, string?> format, CancellationToken cancellationToken)
@@ -283,8 +261,11 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         return result;
     }
 
-    private static void AddErrors(List<QueryMessage> messages, SqlException exception, int? batchStartLine)
+    private static void LogErrors(Action<LogLevel, string>? log, SqlException exception, int? batchStartLine)
     {
+        if (log is null)
+            return;
+
         foreach (SqlError error in exception.Errors)
         {
             // Le serveur numerote les lignes a partir du debut du lot : on recale sur le script.
@@ -292,7 +273,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
                 ? string.Create(CultureInfo.InvariantCulture, $"Msg {error.Number}, Niveau {error.Class}, État {error.State}, Ligne {start + error.LineNumber - 1}")
                 : string.Create(CultureInfo.InvariantCulture, $"Msg {error.Number}, Niveau {error.Class}, État {error.State}");
 
-            messages.Add(new QueryMessage($"{header}{Environment.NewLine}{error.Message}", QueryMessageKind.Error));
+            log(LogLevel.Error, $"{header}{Environment.NewLine}{error.Message}");
         }
     }
 }
