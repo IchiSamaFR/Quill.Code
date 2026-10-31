@@ -1,4 +1,4 @@
-﻿namespace Quill.Code.SqlServer.Execution;
+﻿namespace Quill.Code.Execution;
 
 /// <summary>Type d'un parametre de requete, traduit par chaque moteur dans son propre type.</summary>
 public enum QueryParameterType

@@ -4,7 +4,11 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 
 ## [Non publié]
 
+### Ajouté
+- `Quill.Code.CSharp.Linq` (net10.0, EF Core SqlServer), repris de `Querify.Languages.Linq` : requêtes LINQ / EF sur un DbContext généré depuis un `SqlDatabaseSchema`. `LinqLanguageService(LinqLanguageOptions)` pour l'éditeur (structure relue à chaque demande, paramètres comme variables) ; `LinqQueryExecutor` sur le contrat de `SqlServerQueryExecutor` : `RunAsync` sans retour (Dump par `Data`, SQL généré, `Log.*` et erreurs par `Log`, annulation levée), `ReadAsync` rend le dernier Dump et lève ses erreurs. Génération, compilation et caches sont internes.
+
 ### Modifié
+- `QueryParameter` et `QueryParameterType` passent de `Quill.Code.SqlServer.Execution` à `Quill.Code.Execution`, `QueryExecutionLimits` de `Quill.Code.SqlServer.Constants` à `Quill.Code.Constants` : communs à l'exécution SQL et LINQ.
 - `Quill.Code.Sql` renommé `Quill.Code.SqlServer` (dossier, projet, namespaces) : T-SQL, ScriptDom et exécution par Microsoft.Data.SqlClient le lient à SQL Server ; le modèle neutre reste `Quill.Data.Sql`.
 - Constantes regroupées dans le dossier `Constants/` de chaque projet (namespace `<Projet>.Constants`) : `CodeLanguages` passe de `Quill.Code.Languages` à `Quill.Code.Constants` ; `CompletionFilter.DefaultMaxResults` devient `CompletionConstants.DefaultMaxResults`, `SyntaxDefinition.LineCommentProperty` `HighlightingConstants.LineCommentProperty`, `SqlDatabaseSchema.DefaultSchema` `SqlSchemaConstants.DefaultSchema` ; `QueryExecutionLimits` passe dans `Quill.Code.SqlServer.Constants`.
 - `Quill.Code.CSharp` simplifié : `CSharpLanguageService(Func<CSharpLanguageOptions>?)` est le seul point d'entrée (nom du projet dans les options) ; les sources à la volée y sont exposées directement (`SetSource`, `SetSourceFileAsync`, `RemoveSource`, `ClearSources`, `Sources`, `SourcesChanged`). Le service n'est plus `IDisposable` : l'hôte Roslyn est partagé et les projets sont des instantanés.

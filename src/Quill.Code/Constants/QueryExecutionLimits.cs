@@ -1,4 +1,4 @@
-﻿namespace Quill.Code.SqlServer.Constants;
+﻿namespace Quill.Code.Constants;
 
 /// <summary>Plafonds communs aux executeurs de requetes.</summary>
 public static class QueryExecutionLimits

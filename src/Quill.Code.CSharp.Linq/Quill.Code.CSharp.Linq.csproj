@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!-- EF Core 10 ne cible que net10.0. -->
+		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>Quill.Code.CSharp.Linq</RootNamespace>
+		<Description>Requetes LINQ / Entity Framework Core pour Quill.Code : DbContext genere depuis la structure d'une base (Quill.Data.Sql), autocompletion, diagnostics et survol C# dans ce contexte, execution sur SQL Server.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Code.CSharp\Quill.Code.CSharp.csproj" />
+		<ProjectReference Include="..\Quill.Data.Sql\Quill.Data.Sql.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Quill.Code.Tests" />
+	</ItemGroup>
+
+</Project>

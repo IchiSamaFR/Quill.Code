@@ -20,6 +20,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Quill.Code\Quill.Code.csproj" />
 		<ProjectReference Include="..\Quill.Code.CSharp\Quill.Code.CSharp.csproj" />
+		<ProjectReference Include="..\Quill.Code.CSharp.Linq\Quill.Code.CSharp.Linq.csproj" />
 		<ProjectReference Include="..\Quill.Code.SqlServer\Quill.Code.SqlServer.csproj" />
 		<ProjectReference Include="..\Quill.Data.Sql\Quill.Data.Sql.csproj" />
 	</ItemGroup>

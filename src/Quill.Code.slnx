@@ -9,6 +9,7 @@
   </Folder>
   <Project Path="Quill.Code/Quill.Code.csproj" />
   <Project Path="Quill.Code.CSharp/Quill.Code.CSharp.csproj" />
+  <Project Path="Quill.Code.CSharp.Linq/Quill.Code.CSharp.Linq.csproj" />
   <Project Path="Quill.Code.SqlServer/Quill.Code.SqlServer.csproj" />
   <Project Path="Quill.Data.Sql/Quill.Data.Sql.csproj" />
   <Project Path="Quill.Data.Sql.SqlServer/Quill.Data.Sql.SqlServer.csproj" />

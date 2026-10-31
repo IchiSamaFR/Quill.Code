@@ -9,8 +9,11 @@
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
 		<PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Features" Version="5.0.0" />
 
-		<!-- Lecture du catalogue SQL Server (Quill.Data.Sql.SqlServer). Meme version que Querify. -->
+		<!-- Lecture du catalogue SQL Server (Quill.Data.Sql.SqlServer). Meme version que Querify ; 6.1.6 minimum pour EF Core SqlServer 10.0.12 (sinon NU1605). -->
 		<PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.6" />
+
+		<!-- LINQ : DbContext genere puis compile en memoire (Quill.Code.CSharp.Linq). Meme version que Querify. -->
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
 
 		<!-- T-SQL : diagnostics de syntaxe. Meme version que Querify. -->
 		<PackageVersion Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="180.117.0" />
