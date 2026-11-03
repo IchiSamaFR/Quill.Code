@@ -8,7 +8,8 @@ Briques communes aux éditeurs de code .NET, indépendantes du framework d'inter
 |---|---|
 | `Quill.Code` | Modèles, contrats, lecture des définitions `.xshd`, découpage en zones colorées, algorithmes d'édition. Aucune dépendance d'interface. |
 | `Quill.Code.CSharp` | C# via Roslyn : autocomplétion, diagnostics, survol, aide à la signature, compilation et chargement. |
-| `Quill.Code.CSharp.Linq` | LINQ / Entity Framework Core (net10.0) : DbContext généré depuis la structure d'une base (`Quill.Data.Sql`), autocomplétion, diagnostics et survol C# dans ce contexte (`LinqLanguageService`), exécution sur SQL Server (`LinqQueryExecutor`, même contrat que `SqlServerQueryExecutor`). |
+| `Quill.Code.CSharp.Linq` | LINQ / Entity Framework Core (net10.0), sans moteur : DbContext généré depuis la structure d'une base (`Quill.Data.Sql`), autocomplétion, diagnostics et survol C# dans ce contexte (`LinqLanguageService`), exécution (`LinqQueryExecutor`, même contrat que `SqlServerQueryExecutor`) ; le moteur est un `ILinqDatabaseProvider`. |
+| `Quill.Code.CSharp.Linq.SqlServer` | `SqlServerLinqProvider` : LINQ sur SQL Server (types SQL Server, EF Core SqlServer, Microsoft.Data.SqlClient). |
 | `Quill.Code.SqlServer` | T-SQL : lexer, analyse du contexte de saisie (ce qu'attend la grammaire au curseur, tables et alias du lot, base du `USE`) diagnostics de syntaxe par ScriptDom, autocomplétion et survol sur le catalogue fourni par l'hôte (`ISqlCatalog`) ; exécution sur SQL Server (`ISqlQueryExecutor`, `SqlServerQueryExecutor`). |
 | `Quill.Data.Sql` | Structure d'une base (bases, schémas, tables, vues, procédures, colonnes) et contrat de lecture du catalogue (`ISqlSchemaReader`). Aucune dépendance. |
 | `Quill.Data.Sql.SqlServer` | Lecture du catalogue SQL Server (`sys.*`) via Microsoft.Data.SqlClient. |

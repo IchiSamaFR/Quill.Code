@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
-using Quill.Code.Analysis;
+﻿using Quill.Code.Analysis;
 using Quill.Code.Constants;
 using Quill.Code.CSharp.Compilation;
 using Quill.Code.CSharp.Linq.Compilation;
@@ -14,7 +13,7 @@ using System.Globalization;
 namespace Quill.Code.CSharp.Linq;
 
 /// <summary>
-/// Execution LINQ sur SQL Server, sur le modele de l'execution SQL de <c>Quill.Code.SqlServer</c> : <see cref="RunAsync"/>
+/// Execution LINQ sur la base d'un <see cref="ILinqDatabaseProvider"/>, sur le modele de l'execution SQL de <c>Quill.Code.SqlServer</c> : <see cref="RunAsync"/>
 /// ne rend rien et remet tout au fil de l'eau (chaque <c>Dump(valeur, titre)</c> par Data, SQL genere, <c>Log.*</c> et
 /// erreurs par Log), <see cref="ReadAsync"/> rend un jeu et leve ses erreurs. La requete est compilee contre le
 /// DbContext genere depuis la structure de la base, dans le projet meme de <see cref="LinqLanguageService"/>.
@@ -22,12 +21,13 @@ namespace Quill.Code.CSharp.Linq;
 /// </summary>
 public sealed class LinqQueryExecutor
 {
-    private readonly string? _applicationName;
+    private readonly ILinqDatabaseProvider _provider;
 
-    /// <summary>Executeur LINQ ; <paramref name="applicationName"/> est vu du serveur (sys.dm_exec_sessions).</summary>
-    public LinqQueryExecutor(string? applicationName = null)
+    /// <summary>Executeur LINQ sur le moteur de <paramref name="provider"/> (meme instance que l'editeur : meme DbContext compile).</summary>
+    public LinqQueryExecutor(ILinqDatabaseProvider provider)
     {
-        _applicationName = applicationName;
+        ArgumentNullException.ThrowIfNull(provider);
+        _provider = provider;
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ public sealed class LinqQueryExecutor
         var log = options?.Log;
         try
         {
-            connectionString = BuildConnectionString(connectionString, database: null);
+            connectionString = _provider.BuildConnectionString(connectionString, database: null);
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException)
         {
@@ -64,7 +64,7 @@ public sealed class LinqQueryExecutor
         LinqParametersAssembly globals;
         try
         {
-            var model = await LinqContexts.GetModelAsync(schema, cancellationToken).ConfigureAwait(false);
+            var model = await LinqContexts.GetModelAsync(_provider, schema, cancellationToken).ConfigureAwait(false);
             log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture,
                 $"Contexte {model.Model.ContextClassName} ({LinqQueryConstants.ContextAlias}) : {model.Model.EntityClassNames.Count} table(s) et vue(s).")));
 
@@ -157,12 +157,12 @@ public sealed class LinqQueryExecutor
         ArgumentNullException.ThrowIfNull(query);
         ArgumentNullException.ThrowIfNull(parameters);
 
-        connectionString = BuildConnectionString(connectionString, database);
+        connectionString = _provider.BuildConnectionString(connectionString, database);
         var variables = parameters.Select(LinqParameter.From).ToArray();
         List<QueryResultSet> resultSets = [];
         try
         {
-            var model = await LinqContexts.GetModelAsync(schema, cancellationToken).ConfigureAwait(false);
+            var model = await LinqContexts.GetModelAsync(_provider, schema, cancellationToken).ConfigureAwait(false);
             var globals = await LinqContexts.GetParametersAsync(model, variables, cancellationToken).ConfigureAwait(false);
             await RunScriptAsync(globals, query, connectionString, new DataRunOptions { Data = resultSets.Add }, Math.Max(1, maxRows), variables, cancellationToken).ConfigureAwait(false);
         }
@@ -207,17 +207,6 @@ public sealed class LinqQueryExecutor
             if (!isAbandoned)
                 await context.DisposeAsync().ConfigureAwait(false);
         }
-    }
-
-    private string BuildConnectionString(string connectionString, string? database)
-    {
-        var builder = new SqlConnectionStringBuilder(connectionString);
-        if (!string.IsNullOrWhiteSpace(_applicationName))
-            builder.ApplicationName = _applicationName;
-        if (!string.IsNullOrWhiteSpace(database))
-            builder.InitialCatalog = database;
-
-        return builder.ConnectionString;
     }
 
     private static void LogGeneratedErrors(Action<LogEntry>? log, LinqCompilationException exception)

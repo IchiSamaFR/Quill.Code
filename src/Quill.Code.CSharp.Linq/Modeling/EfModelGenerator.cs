@@ -19,13 +19,15 @@ internal static class EfModelGenerator
         "DateOnly", "TimeSpan", "DateTimeOffset", "Guid", "Decimal", "Object", ExtensionsClassName
     };
 
-    public static EfGeneratedModel Generate(SqlDatabaseSchema snapshot)
+    /// <param name="provider">Moteur de la base : type C# de chaque colonne.</param>
+    public static EfGeneratedModel Generate(SqlDatabaseSchema snapshot, ILinqDatabaseProvider provider)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
+        ArgumentNullException.ThrowIfNull(provider);
 
         var contextClass = ToIdentifier(snapshot.Name.TrimStart('@') + "Context");
 
-        var entities = BuildEntities(snapshot, contextClass);
+        var entities = BuildEntities(snapshot, contextClass, provider);
         var source = WriteSource(contextClass, entities);
 
         return new EfGeneratedModel(GeneratedNamespace, contextClass, source, entities.Select(e => e.ClassName).ToArray());
@@ -37,7 +39,7 @@ internal static class EfModelGenerator
 
     private sealed record PropertyModel(SqlColumn Source, string Name, string ClrType);
 
-    private static List<EntityModel> BuildEntities(SqlDatabaseSchema snapshot, string contextClass)
+    private static List<EntityModel> BuildEntities(SqlDatabaseSchema snapshot, string contextClass, ILinqDatabaseProvider provider)
     {
         var dataSources = snapshot.Objects
             .Where(o => o.Kind is SqlSchemaObjectKind.Table or SqlSchemaObjectKind.View)
@@ -61,7 +63,7 @@ internal static class EfModelGenerator
                 baseName = ToIdentifier($"{source.Schema}_{source.Name}");
 
             var className = Unique(baseName, usedNames);
-            var properties = BuildProperties(source, className);
+            var properties = BuildProperties(source, className, provider);
             if (properties.Count == 0)
             {
                 usedNames.Remove(className.TrimStart('@'));
@@ -74,7 +76,7 @@ internal static class EfModelGenerator
         return entities;
     }
 
-    private static List<PropertyModel> BuildProperties(SqlSchemaObject source, string className)
+    private static List<PropertyModel> BuildProperties(SqlSchemaObject source, string className, ILinqDatabaseProvider provider)
     {
         // Le nom de la classe est reserve : une propriete homonyme est interdite en C# (CS0542).
         var usedNames = new HashSet<string>(StringComparer.Ordinal) { className };
@@ -82,48 +84,14 @@ internal static class EfModelGenerator
 
         foreach (var column in source.Columns)
         {
-            // sql_variant, hierarchyid, geography... : pas de mapping EF sans paquet dedie, la colonne est ignoree.
-            if (ToClrType(column) is not { } clrType)
+            // Type non mappable par le moteur : la colonne est ignoree.
+            if (provider.GetClrType(column) is not { } clrType)
                 continue;
 
-            properties.Add(new PropertyModel(column, Unique(ToIdentifier(column.Name), usedNames), clrType));
+            properties.Add(new PropertyModel(column, Unique(ToIdentifier(column.Name), usedNames), column.IsNullable ? clrType + "?" : clrType));
         }
 
         return properties;
-    }
-
-    /// <summary>Type .NET du mapping EF Core SQL Server par defaut ; null si le type n'est pas mappable.</summary>
-    private static string? ToClrType(SqlColumn column)
-    {
-        var sqlType = (string.IsNullOrEmpty(column.SqlType) ? column.DataType : column.SqlType).ToLowerInvariant();
-        var parenthesis = sqlType.IndexOf('(', StringComparison.Ordinal);
-        if (parenthesis > 0)
-            sqlType = sqlType[..parenthesis];
-
-        var (type, isValueType) = sqlType switch
-        {
-            "bigint" => ("long", true),
-            "int" => ("int", true),
-            "smallint" => ("short", true),
-            "tinyint" => ("byte", true),
-            "bit" => ("bool", true),
-            "decimal" or "numeric" or "money" or "smallmoney" => ("decimal", true),
-            "float" => ("double", true),
-            "real" => ("float", true),
-            "date" => ("DateOnly", true),
-            "time" => ("TimeSpan", true),
-            "datetime" or "datetime2" or "smalldatetime" => ("DateTime", true),
-            "datetimeoffset" => ("DateTimeOffset", true),
-            "uniqueidentifier" => ("Guid", true),
-            "char" or "varchar" or "nchar" or "nvarchar" or "text" or "ntext" or "xml" or "sysname" => ("string", false),
-            "binary" or "varbinary" or "image" or "timestamp" or "rowversion" => ("byte[]", false),
-            _ => (null, false)
-        };
-
-        if (type is null)
-            return null;
-
-        return column.IsNullable ? type + "?" : type;
     }
 
     // ---------- Ecriture du source ----------

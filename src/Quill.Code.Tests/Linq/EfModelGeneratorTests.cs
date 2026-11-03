@@ -115,7 +115,7 @@ public class EfModelGeneratorTests
 
     private static (EfGeneratedModel, Type) Build()
     {
-        var model = EfModelGenerator.Generate(SampleSnapshot());
+        var model = EfModelGenerator.Generate(SampleSnapshot(), TestLinq.Provider);
 
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!)
             .Split(Path.PathSeparator)

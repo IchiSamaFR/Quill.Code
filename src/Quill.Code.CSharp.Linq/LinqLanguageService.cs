@@ -16,12 +16,14 @@ namespace Quill.Code.CSharp.Linq;
 /// </summary>
 public sealed class LinqLanguageService : ICodeLanguageService
 {
+    private readonly ILinqDatabaseProvider? _provider;
     private readonly Func<CancellationToken, Task<SqlDatabaseSchema?>>? _schema;
     private readonly IReadOnlyList<LinqParameter> _parameters;
 
     /// <summary>Service d'un editeur ; <paramref name="options"/> null : C# seul, sans parametre.</summary>
     public LinqLanguageService(LinqLanguageOptions? options = null)
     {
+        _provider = options?.Provider;
         _schema = options?.Schema;
 
         // Sans les valeurs : le service Roslyn reste le meme d'une valeur a l'autre.
@@ -73,12 +75,12 @@ public sealed class LinqLanguageService : ICodeLanguageService
     }
 
     private async Task<CSharpLanguageService> GetServiceAsync(CancellationToken cancellationToken)
-        => await LinqContexts.GetLanguageServiceAsync(await TryGetSchemaAsync(cancellationToken).ConfigureAwait(false), _parameters, cancellationToken).ConfigureAwait(false);
+        => await LinqContexts.GetLanguageServiceAsync(_provider, await TryGetSchemaAsync(cancellationToken).ConfigureAwait(false), _parameters, cancellationToken).ConfigureAwait(false);
 
     /// <summary>Structure de la base, ou null : base injoignable, connexion fermee...</summary>
     private async Task<SqlDatabaseSchema?> TryGetSchemaAsync(CancellationToken cancellationToken)
     {
-        if (_schema is null)
+        if (_provider is null || _schema is null)
             return null;
 
         try

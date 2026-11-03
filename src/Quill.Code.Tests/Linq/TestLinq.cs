@@ -1,4 +1,5 @@
 ﻿using Quill.Code.CSharp.Linq.Compilation;
+using Quill.Code.CSharp.Linq.SqlServer;
 using Quill.Code.CSharp.Linq.Execution;
 using Quill.Code.Analysis;
 using Quill.Code.Completion;
@@ -13,11 +14,14 @@ namespace Quill.Code.Tests.Linq;
 /// </summary>
 internal static class TestLinq
 {
+    /// <summary>Moteur des tests, une seule instance : les DbContext compiles sont mis en cache par fournisseur.</summary>
+    public static SqlServerLinqProvider Provider { get; } = new("Quill.Code.Tests");
+
     /// <summary>Structure de test, une seule instance : son modele compile est partage par toutes les classes (cache de LinqContexts).</summary>
     public static SqlDatabaseSchema Schema { get; } = EfModelGeneratorTests.SampleSnapshot();
 
     /// <summary>DbContext compile de <see cref="Schema"/>.</summary>
-    public static Lazy<LinqGeneratedModelAssembly> Model { get; } = new(() => LinqContexts.GetModelAsync(Schema).GetAwaiter().GetResult());
+    public static Lazy<LinqGeneratedModelAssembly> Model { get; } = new(() => LinqContexts.GetModelAsync(Provider, Schema).GetAwaiter().GetResult());
 
     /// <summary>Requete C# native dont <paramref name="expression"/> est la valeur d'une variable ; le contexte s'appelle Db.</summary>
     public static string Expression(string expression) => $"var result = {expression};\n";

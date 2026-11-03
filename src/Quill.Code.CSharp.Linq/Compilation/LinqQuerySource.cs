@@ -5,6 +5,7 @@ using Quill.Code.CSharp.Linq.Execution;
 using Quill.Code.CSharp.Linq.Modeling;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text;
 using static Quill.Code.CSharp.Linq.Constants.LinqQueryConstants;
 
@@ -33,17 +34,21 @@ internal static class LinqQuerySource
 
     /// <summary>
     /// Assemblies de la plateforme et d'EF contre lesquelles on compile, prises dans le runtime
-    /// charge (comme LINQPad) : pas de packs de reference a embarquer. Liste couteuse : calculee une fois.
+    /// charge (comme LINQPad) : pas de packs de reference a embarquer. Listes couteuses : calculees une fois,
+    /// sans fournisseur (C# seul) puis par fournisseur.
     /// </summary>
-    private static readonly Lazy<IReadOnlyList<MetadataReference>> PlatformReferencesCache = new(LoadPlatformReferences);
+    private static readonly Lazy<IReadOnlyList<MetadataReference>> NeutralReferences = new(() => LoadPlatformReferences(null));
 
-    /// <summary>References communes a la compilation et a l'autocompletion.</summary>
-    internal static IReadOnlyList<MetadataReference> PlatformReferences => PlatformReferencesCache.Value;
+    private static readonly ConditionalWeakTable<ILinqDatabaseProvider, IReadOnlyList<MetadataReference>> ProviderReferences = new();
 
     private static readonly string[] ReferencedAssemblyPrefixes =
     [
-        "System.", "mscorlib", "netstandard", "Microsoft.CSharp", "Microsoft.EntityFrameworkCore", "Microsoft.Extensions.", "Microsoft.Data.SqlClient"
+        "System.", "mscorlib", "netstandard", "Microsoft.CSharp", "Microsoft.EntityFrameworkCore", "Microsoft.Extensions."
     ];
+
+    /// <summary>References communes a la compilation et a l'autocompletion ; <paramref name="provider"/> null : sans fournisseur.</summary>
+    internal static IReadOnlyList<MetadataReference> GetPlatformReferences(ILinqDatabaseProvider? provider)
+        => provider is null ? NeutralReferences.Value : ProviderReferences.GetValue(provider, LoadPlatformReferences);
 
     /// <summary>Le modele genere n'a pas de point d'entree : une bibliotheque.</summary>
     internal static CSharpCompilationOptions ModelCompilationOptions { get; } = new(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Disable);
@@ -156,16 +161,17 @@ internal static class LinqQuerySource
         return code.ToString();
     }
 
-    private static IReadOnlyList<MetadataReference> LoadPlatformReferences()
+    private static IReadOnlyList<MetadataReference> LoadPlatformReferences(ILinqDatabaseProvider? provider)
     {
-        // Assemblies du runtime (a defaut, celles deja chargees).
-        var paths = CSharpReferences.GetTrustedPlatformAssemblyPaths();
+        // Assemblies du runtime (a defaut, celles deja chargees), filtrees.
+        var paths = CSharpReferences.GetTrustedPlatformAssemblyPaths()
+            .Where(path => ReferencedAssemblyPrefixes.Any(p => Path.GetFileName(path).StartsWith(p, StringComparison.OrdinalIgnoreCase)));
 
-        // EF n'est peut-etre pas encore charge : on force ses assemblies dans la liste.
-        string[] required = [typeof(DbContext).Assembly.Location, typeof(SqlServerDbContextOptionsExtensions).Assembly.Location, typeof(RelationalQueryableExtensions).Assembly.Location];
+        // EF et le fournisseur ne sont peut-etre pas encore charges : on force leurs assemblies dans la liste.
+        string[] required = [typeof(DbContext).Assembly.Location, typeof(RelationalQueryableExtensions).Assembly.Location, .. (provider?.Assemblies ?? []).Select(a => a.Location)];
 
         return paths.Concat(required)
-                    .Where(path => !string.IsNullOrEmpty(path) && ReferencedAssemblyPrefixes.Any(p => Path.GetFileName(path).StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+                    .Where(path => !string.IsNullOrEmpty(path))
                     .Distinct(StringComparer.OrdinalIgnoreCase)
                     .Select(path => (MetadataReference)MetadataReference.CreateFromFile(path))
                     .ToArray();

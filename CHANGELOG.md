@@ -5,7 +5,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/), versions [Sem
 ## [Non publié]
 
 ### Ajouté
-- `Quill.Code.CSharp.Linq` (net10.0, EF Core SqlServer), repris de `Querify.Languages.Linq` : requêtes LINQ / EF sur un DbContext généré depuis un `SqlDatabaseSchema`. `LinqLanguageService(LinqLanguageOptions)` pour l'éditeur (structure relue à chaque demande, paramètres comme variables) ; `LinqQueryExecutor` sur le contrat de `SqlServerQueryExecutor` : `RunAsync` sans retour (Dump par `Data`, SQL généré, `Log.*` et erreurs par `Log`, annulation levée), `ReadAsync` rend le dernier Dump et lève ses erreurs. Génération, compilation et caches sont internes.
+- `Quill.Code.CSharp.Linq` séparé du moteur : il ne dépend plus que d'EF Core Relational ; le moteur est un `ILinqDatabaseProvider` (types des colonnes, assemblies du fournisseur, chaîne de connexion, `Configure` du contexte) passé à `LinqLanguageOptions.Provider` et à `LinqQueryExecutor(provider)` (au lieu de `applicationName`). `Quill.Code.CSharp.Linq.SqlServer` : `SqlServerLinqProvider(applicationName)`.
+- `Quill.Code.CSharp.Linq` (net10.0, EF Core), repris de `Querify.Languages.Linq` : requêtes LINQ / EF sur un DbContext généré depuis un `SqlDatabaseSchema`. `LinqLanguageService(LinqLanguageOptions)` pour l'éditeur (structure relue à chaque demande, paramètres comme variables) ; `LinqQueryExecutor` sur le contrat de `SqlServerQueryExecutor` : `RunAsync` sans retour (Dump par `Data`, SQL généré, `Log.*` et erreurs par `Log`, annulation levée), `ReadAsync` rend le dernier Dump et lève ses erreurs. Génération, compilation et caches sont internes.
 
 ### Modifié
 - `QueryParameter` et `QueryParameterType` passent de `Quill.Code.SqlServer.Execution` à `Quill.Code.Execution`, `QueryExecutionLimits` de `Quill.Code.SqlServer.Constants` à `Quill.Code.Constants` : communs à l'exécution SQL et LINQ.

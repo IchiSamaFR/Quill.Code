@@ -37,15 +37,19 @@ internal static class LinqCompiler
     }
 
     /// <summary>Compile et charge le modele genere ; leve <see cref="LinqCompilationException"/> en cas d'echec.</summary>
-    public static async Task<LinqGeneratedModelAssembly> CompileModelAsync(EfGeneratedModel model, CancellationToken cancellationToken = default)
+    /// <param name="provider">Moteur du modele : references de son fournisseur EF, connexion du contexte.</param>
+    public static async Task<LinqGeneratedModelAssembly> CompileModelAsync(EfGeneratedModel model, ILinqDatabaseProvider provider, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(model);
+        ArgumentNullException.ThrowIfNull(provider);
+
+        var references = LinqQuerySource.GetPlatformReferences(provider);
 
         // Projet a part, sans editeur : le modele est compile seul, une fois par schema.
         var service = new CSharpLanguageService(() => new CSharpLanguageOptions
         {
             Name = $"EfModel_{model.ContextClassName}",
-            References = LinqQuerySource.PlatformReferences,
+            References = references,
             CompilationOptions = LinqQuerySource.ModelCompilationOptions,
         });
 
@@ -65,6 +69,8 @@ internal static class LinqCompiler
         return new LinqGeneratedModelAssembly
         {
             Model = model,
+            Provider = provider,
+            PlatformReferences = references,
             Assembly = assembly,
             ContextType = contextType,
             DumpSinkProperty = extensionsType.GetProperty(EfModelConstants.DumpSinkPropertyName, BindingFlags.NonPublic | BindingFlags.Static)!,
@@ -86,7 +92,7 @@ internal static class LinqCompiler
         var service = new CSharpLanguageService(() => new CSharpLanguageOptions
         {
             Name = $"LinqParameters_{model?.Model.ContextClassName ?? LinqQueryConstants.WithoutModelName}",
-            References = model is null ? LinqQuerySource.PlatformReferences : [.. LinqQuerySource.PlatformReferences, model.Reference],
+            References = model is null ? LinqQuerySource.GetPlatformReferences(null) : [.. model.PlatformReferences, model.Reference],
             CompilationOptions = LinqQuerySource.ModelCompilationOptions,
         });
 
@@ -197,15 +203,16 @@ internal static class LinqCompiler
         await GetLanguageService(parameters).RunAsync(query, QueryOptions(parameters, options?.Log), cancellationToken);
     }
 
-    /// <summary>Contexte EF du modele sur une chaine de connexion SQL Server.</summary>
+    /// <summary>Contexte EF du modele sur une chaine de connexion de son moteur.</summary>
     public static DbContext CreateContext(LinqGeneratedModelAssembly model, string connectionString)
     {
         ArgumentNullException.ThrowIfNull(model);
 
         var builder = (DbContextOptionsBuilder)Activator.CreateInstance(typeof(DbContextOptionsBuilder<>).MakeGenericType(model.ContextType))!;
-        builder.UseSqlServer(connectionString)
-               // Lecture seule : pas de suivi des entites, inutile pour afficher des resultats.
-               .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+        model.Provider.Configure(builder, connectionString);
+
+        // Lecture seule : pas de suivi des entites, inutile pour afficher des resultats.
+        builder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
         return (DbContext)Activator.CreateInstance(model.ContextType, builder.Options)!;
     }
@@ -230,8 +237,8 @@ internal static class LinqCompiler
         {
             Name = $"Linq_{parameters.Model?.Model.ContextClassName ?? LinqQueryConstants.WithoutModelName}",
             References = parameters.Model is null
-                ? [.. LinqQuerySource.PlatformReferences, parameters.Reference]
-                : [.. LinqQuerySource.PlatformReferences, parameters.Model.Reference, parameters.Reference],
+                ? [.. LinqQuerySource.GetPlatformReferences(null), parameters.Reference]
+                : [.. parameters.Model.PlatformReferences, parameters.Model.Reference, parameters.Reference],
             DocumentName = LinqQueryConstants.QueryDocumentName,
 
             // Usings implicites, alias QueryDbContext et import de QueryGlobals : fixes, Roslyn ne les reanalyse pas a

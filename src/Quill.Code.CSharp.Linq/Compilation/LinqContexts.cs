@@ -14,8 +14,8 @@ namespace Quill.Code.CSharp.Linq.Compilation;
 /// </summary>
 internal static class LinqContexts
 {
-    /// <summary>Un modele par structure lue : relire la base (nouvelle instance) recompile le modele.</summary>
-    private static readonly ConditionalWeakTable<SqlDatabaseSchema, Task<LinqGeneratedModelAssembly>> Models = new();
+    /// <summary>Un modele par fournisseur et par structure lue : relire la base (nouvelle instance) recompile le modele.</summary>
+    private static readonly ConditionalWeakTable<ILinqDatabaseProvider, ConditionalWeakTable<SqlDatabaseSchema, Task<LinqGeneratedModelAssembly>>> Models = new();
 
     /// <summary>Un QueryGlobals par modele (libere avec lui) et par jeu de parametres (source genere, sans valeur).</summary>
     private static readonly ConditionalWeakTable<LinqGeneratedModelAssembly, ConcurrentDictionary<string, Task<LinqParametersAssembly>>> Parameters = new();
@@ -23,17 +23,21 @@ internal static class LinqContexts
     /// <summary>QueryGlobals sans modele (C# seul), par jeu de parametres.</summary>
     private static readonly ConcurrentDictionary<string, Task<LinqParametersAssembly>> ParametersWithoutModel = new();
 
-    /// <summary>Modele de <paramref name="schema"/> ; leve <see cref="LinqCompilationException"/> s'il ne compile pas.</summary>
-    public static async Task<LinqGeneratedModelAssembly> GetModelAsync(SqlDatabaseSchema schema, CancellationToken cancellationToken = default)
+    /// <summary>Modele de <paramref name="schema"/> sur <paramref name="provider"/> ; leve <see cref="LinqCompilationException"/> s'il ne compile pas.</summary>
+    public static async Task<LinqGeneratedModelAssembly> GetModelAsync(ILinqDatabaseProvider provider, SqlDatabaseSchema schema, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(provider);
         ArgumentNullException.ThrowIfNull(schema);
 
-        var task = Models.GetValue(schema, Compile);
+        var models = Models.GetValue(provider, static _ => new());
+        ConditionalWeakTable<SqlDatabaseSchema, Task<LinqGeneratedModelAssembly>>.CreateValueCallback compile = s => Compile(s, provider);
+
+        var task = models.GetValue(schema, compile);
         if (task.IsFaulted)
         {
             // Un echec n'est pas garde : la prochaine demande retente la compilation.
-            Models.Remove(schema);
-            task = Models.GetValue(schema, Compile);
+            models.Remove(schema);
+            task = models.GetValue(schema, compile);
         }
 
         // Compilation partagee : l'annulation d'un appelant ne l'interrompt pas.
@@ -67,11 +71,12 @@ internal static class LinqContexts
     /// <summary>
     /// Service C# d'une demande de l'editeur : avec le DbContext de <paramref name="schema"/> s'il compile, sinon C# seul.
     /// </summary>
+    /// <param name="provider">Moteur de la base ; null : C# seul.</param>
     /// <param name="schema">Structure de la base ; null : C# seul (pas de connexion, base injoignable).</param>
     /// <param name="parameters">Parametres de la requete, que le script utilise comme variables ; null : aucun.</param>
-    public static async Task<CSharpLanguageService> GetLanguageServiceAsync(SqlDatabaseSchema? schema, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
+    public static async Task<CSharpLanguageService> GetLanguageServiceAsync(ILinqDatabaseProvider? provider, SqlDatabaseSchema? schema, IReadOnlyList<LinqParameter>? parameters = null, CancellationToken cancellationToken = default)
     {
-        var model = await TryGetModelAsync(schema, cancellationToken).ConfigureAwait(false);
+        var model = await TryGetModelAsync(provider, schema, cancellationToken).ConfigureAwait(false);
 
         LinqParametersAssembly globals;
         try
@@ -88,14 +93,14 @@ internal static class LinqContexts
     }
 
     /// <summary>DbContext de la base, ou null : l'analyse se rabat sur le C# seul.</summary>
-    private static async Task<LinqGeneratedModelAssembly?> TryGetModelAsync(SqlDatabaseSchema? schema, CancellationToken cancellationToken)
+    private static async Task<LinqGeneratedModelAssembly?> TryGetModelAsync(ILinqDatabaseProvider? provider, SqlDatabaseSchema? schema, CancellationToken cancellationToken)
     {
-        if (schema is null)
+        if (provider is null || schema is null)
             return null;
 
         try
         {
-            return await GetModelAsync(schema, cancellationToken).ConfigureAwait(false);
+            return await GetModelAsync(provider, schema, cancellationToken).ConfigureAwait(false);
         }
         catch (LinqCompilationException)
         {
@@ -103,8 +108,8 @@ internal static class LinqContexts
         }
     }
 
-    private static Task<LinqGeneratedModelAssembly> Compile(SqlDatabaseSchema schema)
-        => Task.Run(() => LinqCompiler.CompileModelAsync(EfModelGenerator.Generate(schema)));
+    private static Task<LinqGeneratedModelAssembly> Compile(SqlDatabaseSchema schema, ILinqDatabaseProvider provider)
+        => Task.Run(() => LinqCompiler.CompileModelAsync(EfModelGenerator.Generate(schema, provider), provider));
 
     private static Task<LinqParametersAssembly> Compile(LinqGeneratedModelAssembly? model, IReadOnlyList<LinqParameter> parameters)
         => Task.Run(() => LinqCompiler.CompileParametersAsync(model, parameters));

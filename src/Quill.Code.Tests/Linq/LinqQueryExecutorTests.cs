@@ -10,7 +10,7 @@ public class LinqQueryExecutorTests
 {
     private const string ConnectionString = "Server=localhost;Database=RaveOnDb;Trusted_Connection=True;TrustServerCertificate=True";
 
-    private static readonly LinqQueryExecutor Executor = new("Quill.Code.Tests");
+    private static readonly LinqQueryExecutor Executor = new(TestLinq.Provider);
 
     [Fact]
     public async Task Run_DumpsAreRemittedByData()
@@ -82,6 +82,7 @@ public class LinqQueryExecutorTests
     {
         var service = new LinqLanguageService(new LinqLanguageOptions
         {
+            Provider = TestLinq.Provider,
             Schema = _ => Task.FromResult<SqlDatabaseSchema?>(TestLinq.Schema),
             Parameters = [new QueryParameter("MaxFailures", QueryParameterType.Integer, 3L)],
         });
@@ -94,7 +95,7 @@ public class LinqQueryExecutorTests
     [Fact]
     public async Task LanguageService_UnreadableSchemaFallsBackToCSharp()
     {
-        var service = new LinqLanguageService(new LinqLanguageOptions { Schema = _ => throw new InvalidOperationException("Base injoignable.") });
+        var service = new LinqLanguageService(new LinqLanguageOptions { Provider = TestLinq.Provider, Schema = _ => throw new InvalidOperationException("Base injoignable.") });
 
         const string query = "var now = DateTime.";
         Assert.Contains((await service.GetCompletionsAsync(query, query.Length)).Items, i => i.InsertText == "Now");

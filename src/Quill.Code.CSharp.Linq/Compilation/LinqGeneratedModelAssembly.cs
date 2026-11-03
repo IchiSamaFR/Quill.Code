@@ -9,6 +9,12 @@ internal sealed class LinqGeneratedModelAssembly
 {
     public required EfGeneratedModel Model { get; init; }
 
+    /// <summary>Moteur du modele : connexion du contexte EF.</summary>
+    public required ILinqDatabaseProvider Provider { get; init; }
+
+    /// <summary>References de la plateforme, d'EF et du fournisseur, communes au modele et a ses requetes.</summary>
+    public required IReadOnlyList<MetadataReference> PlatformReferences { get; init; }
+
     public required Assembly Assembly { get; init; }
 
     public required Type ContextType { get; init; }
