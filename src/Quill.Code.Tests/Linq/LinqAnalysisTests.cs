@@ -36,7 +36,8 @@ public class LinqAnalysisTests
         var hover = await HoverAsync(TestLinq.Statements("var us|ers = Db.AspNetUsers.Where(u => u.EmailConfirmed);\nusers.Dump();"));
 
         Assert.NotNull(hover);
-        Assert.Contains("IQueryable<AspNetUsers> users", hover.Signature, StringComparison.Ordinal);
+        // Contexte nullable actif : un var est annote (IQueryable<AspNetUsers>?).
+        Assert.Matches(@"IQueryable<AspNetUsers>\?? users", hover.Signature);
     }
 
     [Fact]

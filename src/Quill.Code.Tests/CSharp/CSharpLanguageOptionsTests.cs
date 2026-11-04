@@ -69,7 +69,8 @@ public sealed class CSharpLanguageOptionsTests
         var without = service.Project.CreateDocument(string.Empty).Document.Project;
 
         Assert.Contains(reference, first.MetadataReferences);
-        Assert.Same(first, second);
+        // Chaque document a son propre projet (WithText) : seules les references sont partagees.
+        Assert.Same(first.MetadataReferences, second.MetadataReferences);
         Assert.DoesNotContain(reference, without.MetadataReferences);
     }
 

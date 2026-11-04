@@ -92,6 +92,7 @@ public sealed class CSharpScriptRuntimeTests
         {
             References = CSharpReferences.FromTrustedPlatformAssemblies(),
             CompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            IncludeLogRuntime = false,
         });
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.CompileAsync("public static class Q { }", new CSharpCompileOptions { Log = _ => { } }));

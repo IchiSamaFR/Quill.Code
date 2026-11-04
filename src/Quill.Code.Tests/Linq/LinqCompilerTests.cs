@@ -163,7 +163,12 @@ public class LinqCompilerTests
     {
         LinqParameter[] parameters = [new LinqParameter("Email", typeof(string), "a@b.fr")];
         var globals = TestLinq.Globals(Model.Value, parameters);
-        var sql = Assert.IsAssignableFrom<IQueryable>(Assert.Single(await DumpsAsync("Db.AspNetUsers.Where(u => u.Email == Email).Dump();", globals, parameters))).ToQueryString();
+        List<string> queries = [];
+
+        // Traduite pendant l'execution : les parametres sont en AsyncLocal, nuls une fois RunAsync rendu.
+        await LinqCompiler.RunAsync(globals, "Db.AspNetUsers.Where(u => u.Email == Email).Dump();", LinqCompiler.CreateContext(Model.Value, ConnectionString),
+            (value, _) => queries.Add(Assert.IsAssignableFrom<IQueryable>(value).ToQueryString()), parameters);
+        var sql = Assert.Single(queries);
 
         // ToQueryString declare la valeur en tete, mais le WHERE compare bien a un parametre.
         Assert.Contains("= @", sql, StringComparison.Ordinal);
