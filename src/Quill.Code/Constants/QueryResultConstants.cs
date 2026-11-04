@@ -1,4 +1,4 @@
-﻿namespace Quill.Code.SqlServer.Constants;
+﻿namespace Quill.Code.Constants;
 
 /// <summary>Constantes de mise en texte des jeux de résultats.</summary>
 internal static class QueryResultConstants

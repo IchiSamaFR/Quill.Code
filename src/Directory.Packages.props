@@ -12,9 +12,21 @@
 		<!-- Lecture du catalogue SQL Server (Quill.Data.Sql.SqlServer). Meme version que Querify ; 6.1.6 minimum pour EF Core SqlServer 10.0.12 (sinon NU1605). -->
 		<PackageVersion Include="Microsoft.Data.SqlClient" Version="6.1.6" />
 
+		<!-- Pilotes des autres moteurs (Quill.Data.Sql.[Moteur], Quill.Code.[Moteur]) : memes versions que leurs fournisseurs EF Core. -->
+		<PackageVersion Include="MySqlConnector" Version="2.6.2" />
+		<PackageVersion Include="Npgsql" Version="10.0.3" />
+		<PackageVersion Include="Oracle.ManagedDataAccess.Core" Version="23.26.400" />
+		<PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.14" />
+
 		<!-- LINQ : DbContext genere puis compile en memoire (Quill.Code.CSharp.Linq). Meme version que Querify. -->
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
-		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.12" />
+		<!-- 10.0.14 minimum : exige par Microting.EntityFrameworkCore.MySql 10.0.14. -->
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.14" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.14" />
+		<PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
+		<!-- MySQL : Pomelo n'a pas de version EF Core 10 ; Microting en est le fork maintenu, sur MySqlConnector. -->
+		<PackageVersion Include="Microting.EntityFrameworkCore.MySql" Version="10.0.14" />
+		<PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+		<PackageVersion Include="Oracle.EntityFrameworkCore" Version="10.23.26400" />
 
 		<!-- T-SQL : diagnostics de syntaxe. Meme version que Querify. -->
 		<PackageVersion Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="180.117.0" />

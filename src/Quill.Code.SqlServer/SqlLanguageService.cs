@@ -14,7 +14,7 @@ namespace Quill.Code.SqlServer;
 public sealed class SqlLanguageService : ICodeLanguageService
 {
     private readonly SqlCompletionService _completion;
-    private readonly SqlDiagnosticService _diagnostic = new();
+    private readonly SqlDiagnosticService _diagnostic;
     private readonly SqlHoverService _hover;
     private readonly SqlSignatureService _signature = new();
 
@@ -23,6 +23,7 @@ public sealed class SqlLanguageService : ICodeLanguageService
     {
         options ??= new SqlLanguageOptions();
         _completion = new SqlCompletionService(options);
+        _diagnostic = new SqlDiagnosticService(options);
         _hover = new SqlHoverService(options);
     }
 

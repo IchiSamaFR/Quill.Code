@@ -1,17 +1,15 @@
-﻿using Quill.Code.Execution;
-
-namespace Quill.Code.SqlServer;
+﻿namespace Quill.Code.Execution;
 
 /// <summary>Execution de SQL sur un moteur, a partir d'une chaine de connexion. Une implementation par moteur.</summary>
 public interface ISqlQueryExecutor
 {
     /// <summary>
-    /// Execute le script (lots GO compris), sans rien rendre : tout est remis au fil de l'eau par
-    /// <paramref name="options"/>. Comme SSMS, une erreur SQL n'arrete pas les lots suivants et ne leve pas
-    /// d'exception : elle est remise par <see cref="RunOptions.Log"/> au niveau Error.
+    /// Execute le script, sans rien rendre : tout est remis au fil de l'eau par <paramref name="options"/>.
+    /// Un lot en echec (lot GO sous SQL Server, instruction sous Oracle) n'arrete pas les suivants et ne leve pas
+    /// d'exception : l'erreur est remise par <see cref="RunOptions.Log"/> au niveau Error.
     /// </summary>
     /// <param name="options">
-    /// <see cref="RunOptions.Log"/> : PRINT et messages du serveur (Information, Code), lignes affectees (Information, Host), erreurs (Error, Code d'un lot, Host sinon) ;
+    /// <see cref="RunOptions.Log"/> : messages du serveur (Information, Code), lignes affectees (Information, Host), erreurs (Error, Code d'un lot, Host sinon) ;
     /// <see cref="DataRunOptions.Data"/> : chaque jeu de resultats des qu'il est lu.
     /// </param>
     /// <exception cref="OperationCanceledException">Execution annulee.</exception>

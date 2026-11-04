@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<!-- EF Core 10 ne cible que net10.0. -->
+		<TargetFramework>net10.0</TargetFramework>
+		<RootNamespace>Quill.Code.CSharp.Linq.Sqlite</RootNamespace>
+		<Description>Requetes LINQ / Entity Framework Core sur SQLite pour Quill.Code.CSharp.Linq (Microsoft.EntityFrameworkCore.Sqlite).</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Code.CSharp.Linq\Quill.Code.CSharp.Linq.csproj" />
+	</ItemGroup>
+
+</Project>

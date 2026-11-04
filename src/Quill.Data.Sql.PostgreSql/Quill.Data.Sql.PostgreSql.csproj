@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Data.Sql.PostgreSql</RootNamespace>
+		<Description>Lecture du catalogue PostgreSQL (pg_catalog) pour Quill.Data.Sql.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Npgsql" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Data.Sql\Quill.Data.Sql.csproj" />
+	</ItemGroup>
+
+</Project>

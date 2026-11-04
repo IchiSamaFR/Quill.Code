@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Data.Sql.MySql</RootNamespace>
+		<Description>Lecture du catalogue MySQL / MariaDB (information_schema) pour Quill.Data.Sql.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MySqlConnector" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Data.Sql\Quill.Data.Sql.csproj" />
+	</ItemGroup>
+
+</Project>

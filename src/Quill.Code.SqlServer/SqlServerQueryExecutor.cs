@@ -92,7 +92,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         ArgumentException.ThrowIfNullOrWhiteSpace(query);
         ArgumentNullException.ThrowIfNull(parameters);
 
-        var builder = new SqlConnectionStringBuilder(connectionString) { ConnectTimeout = SqlServerConstants.ReadConnectTimeoutSeconds };
+        var builder = new SqlConnectionStringBuilder(connectionString) { ConnectTimeout = QueryExecutionLimits.ReadConnectTimeoutSeconds };
         if (!string.IsNullOrWhiteSpace(_applicationName))
             builder.ApplicationName = _applicationName;
         if (!string.IsNullOrWhiteSpace(database))
@@ -105,7 +105,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
 #pragma warning disable CA2100 // La requete est celle de l'utilisateur ; les valeurs passent en parametres.
         command.CommandText = query;
 #pragma warning restore CA2100
-        command.CommandTimeout = SqlServerConstants.ReadCommandTimeoutSeconds;
+        command.CommandTimeout = QueryExecutionLimits.ReadCommandTimeoutSeconds;
         foreach (var parameter in parameters)
             command.Parameters.Add(CreateParameter(parameter));
 
@@ -133,7 +133,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         if (reader.FieldCount == 0)
             return new QueryResultSet(1, [], [], isTruncated: false);
 
-        return await ReadResultSetAsync(reader, 1, maxRows, FormatForRead, cancellationToken).ConfigureAwait(false);
+        return await DbResultSetReader.ReadAsync(reader, 1, maxRows, DbResultSetReader.FormatForRead, cancellationToken).ConfigureAwait(false);
     }
 
     /// <returns>Nombre de jeux de resultats lus depuis le debut du script.</returns>
@@ -153,93 +153,13 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
             // FieldCount == 0 : instruction sans jeu de resultats (INSERT, UPDATE, DDL...).
             if (reader.FieldCount > 0)
             {
-                var resultSet = await ReadResultSetAsync(reader, ++resultSetCount, QueryExecutionLimits.MaxRowsPerResultSet, FormatForResults, cancellationToken).ConfigureAwait(false);
+                var resultSet = await DbResultSetReader.ReadAsync(reader, ++resultSetCount, QueryExecutionLimits.MaxRowsPerResultSet, DbResultSetReader.FormatForResults, cancellationToken).ConfigureAwait(false);
                 options?.Data?.Invoke(resultSet);
             }
         }
         while (await reader.NextResultAsync(cancellationToken).ConfigureAwait(false));
 
         return resultSetCount;
-    }
-
-    private static async Task<QueryResultSet> ReadResultSetAsync(SqlDataReader reader, int index, int maxRows, Func<object, string?> format, CancellationToken cancellationToken)
-    {
-        var fieldCount = reader.FieldCount;
-        var columns = new QueryResultColumn[fieldCount];
-        for (var i = 0; i < fieldCount; i++)
-        {
-            var name = reader.GetName(i);
-            columns[i] = new QueryResultColumn(string.IsNullOrEmpty(name) ? QueryResultConstants.UnnamedColumn : name, reader.GetDataTypeName(i));
-        }
-
-        var rows = new List<QueryResultRow>();
-        var unsupportedColumns = new bool[fieldCount];
-        var isTruncated = false;
-
-        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-        {
-            if (rows.Count == maxRows)
-            {
-                isTruncated = true;
-                break;
-            }
-
-            var cells = new string?[fieldCount];
-            for (var i = 0; i < fieldCount; i++)
-                cells[i] = ReadCell(reader, i, unsupportedColumns, format);
-
-            rows.Add(new QueryResultRow(rows.Count + 1, cells));
-        }
-
-        return new QueryResultSet(index, columns, rows, isTruncated);
-    }
-
-    private static string? ReadCell(SqlDataReader reader, int ordinal, bool[] unsupportedColumns, Func<object, string?> format)
-    {
-        if (!unsupportedColumns[ordinal])
-        {
-            try
-            {
-                var value = reader.GetValue(ordinal);
-                return value is DBNull ? null : format(value);
-            }
-            catch (Exception ex) when (ex is InvalidCastException or FileNotFoundException or NotSupportedException)
-            {
-                // Types CLR (geography, hierarchyid...) dont l'assembly n'est pas disponible.
-                unsupportedColumns[ordinal] = true;
-            }
-        }
-
-        return $"<{reader.GetDataTypeName(ordinal)}>";
-    }
-
-    /// <summary>Grille de resultats : valeurs completes, comme SSMS.</summary>
-    private static string? FormatForResults(object value) => value switch
-    {
-        string s => s,
-        bool b => b ? "1" : "0",
-        DateTime d => d.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture),
-        DateTimeOffset d => d.ToString("yyyy-MM-dd HH:mm:ss.fffffff zzz", CultureInfo.InvariantCulture),
-        byte[] bytes => FormatBinary(bytes, QueryResultConstants.ResultsMaxBinaryBytes),
-        IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
-        _ => value.ToString(),
-    };
-
-    /// <summary>Requete parametree (cartes, graphiques) : dates courtes, binaires tronques plus tot.</summary>
-    private static string? FormatForRead(object value) => value switch
-    {
-        DateTime d => d.TimeOfDay == TimeSpan.Zero
-            ? d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
-            : d.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture),
-        DateTimeOffset d => d.ToString("yyyy-MM-dd HH:mm:ss zzz", CultureInfo.InvariantCulture),
-        byte[] bytes => FormatBinary(bytes, QueryResultConstants.ReadMaxBinaryBytes),
-        _ => FormatForResults(value),
-    };
-
-    private static string FormatBinary(byte[] bytes, int maxBytes)
-    {
-        var shown = Convert.ToHexString(bytes, 0, Math.Min(bytes.Length, maxBytes));
-        return bytes.Length > maxBytes ? $"0x{shown}…" : $"0x{shown}";
     }
 
     private static SqlParameter CreateParameter(QueryParameter parameter)

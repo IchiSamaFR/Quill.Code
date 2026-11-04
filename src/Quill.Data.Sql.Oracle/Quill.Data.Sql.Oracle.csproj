@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Data.Sql.Oracle</RootNamespace>
+		<Description>Lecture du catalogue Oracle (vues ALL_*) pour Quill.Data.Sql.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Data.Sql\Quill.Data.Sql.csproj" />
+	</ItemGroup>
+
+</Project>

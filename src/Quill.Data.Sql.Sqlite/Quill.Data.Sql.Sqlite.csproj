@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Data.Sql.Sqlite</RootNamespace>
+		<Description>Lecture du catalogue SQLite (sqlite_master, pragmas) pour Quill.Data.Sql.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.Sqlite" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Data.Sql\Quill.Data.Sql.csproj" />
+	</ItemGroup>
+
+</Project>

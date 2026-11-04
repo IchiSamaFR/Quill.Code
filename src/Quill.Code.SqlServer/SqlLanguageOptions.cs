@@ -13,4 +13,7 @@ public sealed record SqlLanguageOptions
 
     /// <summary>Variables connues avant d'être déclarées (ex. paramètres fournis à l'exécution).</summary>
     public IReadOnlyList<SqlVariable> Variables { get; init; } = [];
+
+    /// <summary>Faux : pas de fautes de syntaxe T-SQL (texte d'un autre dialecte, ex. MySQL ou PostgreSQL) ; l'autocomplétion et le survol restent.</summary>
+    public bool CheckSyntax { get; init; } = true;
 }

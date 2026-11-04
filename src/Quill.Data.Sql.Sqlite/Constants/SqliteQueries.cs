@@ -1,0 +1,34 @@
+﻿namespace Quill.Data.Sql.Sqlite.Constants;
+
+/// <summary>
+/// Requêtes de lecture du catalogue SQLite (sqlite_master et pragmas en fonctions de table, SQLite 3.16 et suivants).
+/// {0} : nom de base entre guillemets, un identifiant ne pouvant pas être passé en paramètre.
+/// </summary>
+internal static class SqliteQueries
+{
+    internal const string Databases = """
+        SELECT name FROM pragma_database_list ORDER BY seq;
+        """;
+
+    internal const string Objects = """
+        SELECT name FROM {0}.sqlite_master
+        WHERE type = @type AND name NOT LIKE 'sqlite\_%' ESCAPE '\'
+        ORDER BY name;
+        """;
+
+    internal const string Columns = """
+        SELECT x.name, x.type, NOT x."notnull", x.pk, x.hidden,
+               EXISTS (SELECT 1 FROM pragma_foreign_key_list(@name, @schema) f WHERE f."from" = x.name)
+        FROM pragma_table_xinfo(@name, @schema) x
+        ORDER BY x.cid;
+        """;
+
+    // Une ligne par colonne, rattachee a sa table ou sa vue ; une ligne sans colonne pour un objet qui n'en rend pas.
+    internal const string Snapshot = """
+        SELECT m.name, m.type, x.name, x.type, NOT x."notnull", x.pk, x.hidden
+        FROM {0}.sqlite_master m
+        LEFT JOIN pragma_table_xinfo(m.name, @schema) x
+        WHERE m.type IN ('table', 'view') AND m.name NOT LIKE 'sqlite\_%' ESCAPE '\'
+        ORDER BY m.name, x.cid;
+        """;
+}

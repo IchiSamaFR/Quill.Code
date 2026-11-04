@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Code.MySql</RootNamespace>
+		<Description>Execution SQL sur MySQL / MariaDB pour Quill.Code (MySqlConnector), sur le contrat ISqlQueryExecutor.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MySqlConnector" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Code\Quill.Code.csproj" />
+	</ItemGroup>
+
+</Project>
