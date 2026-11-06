@@ -129,7 +129,7 @@ dotnet build src/Quill.Code.slnx
 dotnet test src/Quill.Code.slnx
 ```
 
-Publier une version : `git tag v0.1.0 && git push origin v0.1.0`.
+Chaque push sur `master` publie des pré-versions `<VersionPrefix>-ci.<n>` (ex. `0.1.0-ci.12`). Publier une version : `git tag v0.1.0 && git push origin v0.1.0`, puis monter `VersionPrefix` dans `src/Directory.Build.props`.
 
 ## Licence
 
