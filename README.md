@@ -6,7 +6,7 @@ Briques communes aux éditeurs de code .NET, indépendantes du framework d'inter
 
 | Paquet | Contenu |
 |---|---|
-| `Quill.Code` | Modèles, contrats, lecture des définitions `.xshd`, découpage en zones colorées, algorithmes d'édition ; contrat d'exécution SQL (`ISqlQueryExecutor`) et sa base ADO.NET (`DbQueryExecutor`, `DbResultSetReader`). Aucune dépendance d'interface. |
+| `Quill.Code` | Modèles, contrats, lecture des définitions `.xshd`, découpage en zones colorées, algorithmes d'édition . Aucune dépendance d'interface. |
 | `Quill.Code.CSharp` | C# via Roslyn : autocomplétion, diagnostics, survol, aide à la signature, compilation et chargement. |
 | `Quill.Code.CSharp.Linq` | LINQ / Entity Framework Core (net10.0), sans moteur : DbContext généré depuis la structure d'une base (`Quill.Data.Sql`), autocomplétion, diagnostics et survol C# dans ce contexte (`LinqLanguageService`), exécution (`LinqQueryExecutor`, même contrat que `SqlServerQueryExecutor`) ; le moteur est un `ILinqDatabaseProvider`. |
 | `Quill.Code.CSharp.Linq.SqlServer` | `SqlServerLinqProvider` : LINQ sur SQL Server (types SQL Server, EF Core SqlServer, Microsoft.Data.SqlClient). |
@@ -14,8 +14,9 @@ Briques communes aux éditeurs de code .NET, indépendantes du framework d'inter
 | `Quill.Code.CSharp.Linq.PostgreSql` | `PostgreSqlLinqProvider` : LINQ sur PostgreSQL (Npgsql.EntityFrameworkCore.PostgreSQL). |
 | `Quill.Code.CSharp.Linq.Oracle` | `OracleLinqProvider` : LINQ sur Oracle (Oracle.EntityFrameworkCore, SQL compatible 19c). |
 | `Quill.Code.CSharp.Linq.Sqlite` | `SqliteLinqProvider` : LINQ sur SQLite (Microsoft.EntityFrameworkCore.Sqlite). |
-| `Quill.Code.SqlServer` | T-SQL : lexer, analyse du contexte de saisie (ce qu'attend la grammaire au curseur, tables et alias du lot, base du `USE`) diagnostics de syntaxe par ScriptDom, autocomplétion et survol sur le catalogue fourni par l'hôte (`ISqlCatalog`) ; exécution sur SQL Server (`SqlServerQueryExecutor`). |
-| `Quill.Code.MySql` / `.PostgreSql` / `.Oracle` / `.Sqlite` | Exécution SQL sur chaque moteur (`MySqlQueryExecutor`, `PostgreSqlQueryExecutor`, `OracleQueryExecutor` — script découpé comme sous SQL*Plus —, `SqliteQueryExecutor`), sur `DbQueryExecutor`. |
+| `Quill.Code.Sql` | Socle de l'exécution SQL : contrat `ISqlQueryExecutor` et base ADO.NET (`DbQueryExecutor`, `DbResultSetReader`). Aucune dépendance. |
+| `Quill.Code.Sql.SqlServer` | T-SQL : lexer, analyse du contexte de saisie (ce qu'attend la grammaire au curseur, tables et alias du lot, base du `USE`) diagnostics de syntaxe par ScriptDom, autocomplétion et survol sur le catalogue fourni par l'hôte (`ISqlCatalog`) ; exécution sur SQL Server (`SqlServerQueryExecutor`). |
+| `Quill.Code.Sql.MySql` / `.PostgreSql` / `.Oracle` / `.Sqlite` | Exécution SQL sur chaque moteur (`MySqlQueryExecutor`, `PostgreSqlQueryExecutor`, `OracleQueryExecutor` — script découpé comme sous SQL*Plus —, `SqliteQueryExecutor`), sur `DbQueryExecutor`. |
 | `Quill.Data.Sql` | Structure d'une base (bases, schémas, tables, vues, procédures, colonnes) et contrat de lecture du catalogue (`ISqlSchemaReader`). Aucune dépendance. |
 | `Quill.Data.Sql.SqlServer` | Lecture du catalogue SQL Server (`sys.*`) via Microsoft.Data.SqlClient. |
 | `Quill.Data.Sql.MySql` / `.PostgreSql` / `.Oracle` / `.Sqlite` | Lecture du catalogue : `information_schema` (MySqlConnector), `pg_catalog` (Npgsql), vues `ALL_*` (ODP.NET Core), `sqlite_master` et pragmas (Microsoft.Data.Sqlite). |

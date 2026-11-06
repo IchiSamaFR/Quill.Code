@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Code.Sql.Oracle</RootNamespace>
+		<Description>Execution SQL sur Oracle pour Quill.Code (ODP.NET Core) : script decoupe en instructions et blocs PL/SQL, sur le contrat ISqlQueryExecutor.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Code.Sql\Quill.Code.Sql.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="Quill.Code.Tests" />
+	</ItemGroup>
+
+</Project>

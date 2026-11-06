@@ -1,5 +1,5 @@
 ﻿using Quill.Code.Execution;
-using Quill.Code.Oracle.Execution;
+using Quill.Code.Sql.Oracle.Execution;
 using Xunit;
 
 namespace Quill.Code.Tests.Oracle;

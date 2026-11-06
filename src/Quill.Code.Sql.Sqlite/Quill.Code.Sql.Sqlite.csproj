@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Code.Sql.Sqlite</RootNamespace>
+		<Description>Execution SQL sur SQLite pour Quill.Code (Microsoft.Data.Sqlite), sur le contrat ISqlQueryExecutor.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.Sqlite" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Code.Sql\Quill.Code.Sql.csproj" />
+	</ItemGroup>
+
+</Project>

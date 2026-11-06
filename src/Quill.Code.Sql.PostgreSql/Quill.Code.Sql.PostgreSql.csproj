@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Code.Sql.PostgreSql</RootNamespace>
+		<Description>Execution SQL sur PostgreSQL pour Quill.Code (Npgsql), sur le contrat ISqlQueryExecutor.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Npgsql" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Code.Sql\Quill.Code.Sql.csproj" />
+	</ItemGroup>
+
+</Project>

@@ -1,4 +1,4 @@
-﻿using Quill.Code.SqlServer.Analysis;
+﻿using Quill.Code.Sql.SqlServer.Analysis;
 
 namespace Quill.Code.Tests.SqlServer;
 

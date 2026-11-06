@@ -13,7 +13,7 @@ using System.Globalization;
 namespace Quill.Code.CSharp.Linq;
 
 /// <summary>
-/// Execution LINQ sur la base d'un <see cref="ILinqDatabaseProvider"/>, sur le modele de l'execution SQL de <c>Quill.Code.SqlServer</c> : <see cref="RunAsync"/>
+/// Execution LINQ sur la base d'un <see cref="ILinqDatabaseProvider"/>, sur le modele de l'execution SQL de <c>Quill.Code.Sql.SqlServer</c> : <see cref="RunAsync"/>
 /// ne rend rien et remet tout au fil de l'eau (chaque <c>Dump(valeur, titre)</c> par Data, SQL genere, <c>Log.*</c> et
 /// erreurs par Log), <see cref="ReadAsync"/> rend un jeu et leve ses erreurs. La requete est compilee contre le
 /// DbContext genere depuis la structure de la base, dans le projet meme de <see cref="LinqLanguageService"/>.

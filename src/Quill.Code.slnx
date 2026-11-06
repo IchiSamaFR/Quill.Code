@@ -1,4 +1,31 @@
-﻿<Solution>
+<Solution>
+  <Folder Name="/Code/" />
+  <Folder Name="/Code/Csharp/">
+    <Project Path="Quill.Code.CSharp.Linq.MySql/Quill.Code.CSharp.Linq.MySql.csproj" />
+    <Project Path="Quill.Code.CSharp.Linq.Oracle/Quill.Code.CSharp.Linq.Oracle.csproj" />
+    <Project Path="Quill.Code.CSharp.Linq.PostgreSql/Quill.Code.CSharp.Linq.PostgreSql.csproj" />
+    <Project Path="Quill.Code.CSharp.Linq.Sqlite/Quill.Code.CSharp.Linq.Sqlite.csproj" />
+    <Project Path="Quill.Code.CSharp.Linq.SqlServer/Quill.Code.CSharp.Linq.SqlServer.csproj" />
+    <Project Path="Quill.Code.CSharp.Linq/Quill.Code.CSharp.Linq.csproj" />
+    <Project Path="Quill.Code.CSharp/Quill.Code.CSharp.csproj" />
+  </Folder>
+  <Folder Name="/Code/Sql/">
+    <Project Path="Quill.Code.Sql.MySql/Quill.Code.Sql.MySql.csproj" />
+    <Project Path="Quill.Code.Sql.Oracle/Quill.Code.Sql.Oracle.csproj" />
+    <Project Path="Quill.Code.Sql.PostgreSql/Quill.Code.Sql.PostgreSql.csproj" />
+    <Project Path="Quill.Code.Sql.Sqlite/Quill.Code.Sql.Sqlite.csproj" />
+    <Project Path="Quill.Code.Sql.SqlServer/Quill.Code.Sql.SqlServer.csproj" />
+    <Project Path="Quill.Code.Sql/Quill.Code.Sql.csproj" />
+  </Folder>
+  <Folder Name="/Data/" />
+  <Folder Name="/Data/Sql/">
+    <Project Path="Quill.Data.Sql.MySql/Quill.Data.Sql.MySql.csproj" />
+    <Project Path="Quill.Data.Sql.Oracle/Quill.Data.Sql.Oracle.csproj" />
+    <Project Path="Quill.Data.Sql.PostgreSql/Quill.Data.Sql.PostgreSql.csproj" />
+    <Project Path="Quill.Data.Sql.Sqlite/Quill.Data.Sql.Sqlite.csproj" />
+    <Project Path="Quill.Data.Sql.SqlServer/Quill.Data.Sql.SqlServer.csproj" />
+    <Project Path="Quill.Data.Sql/Quill.Data.Sql.csproj" />
+  </Folder>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
@@ -8,22 +35,4 @@
     <Project Path="Quill.Code.Tests/Quill.Code.Tests.csproj" />
   </Folder>
   <Project Path="Quill.Code/Quill.Code.csproj" />
-  <Project Path="Quill.Code.CSharp/Quill.Code.CSharp.csproj" />
-  <Project Path="Quill.Code.CSharp.Linq/Quill.Code.CSharp.Linq.csproj" />
-  <Project Path="Quill.Code.CSharp.Linq.MySql/Quill.Code.CSharp.Linq.MySql.csproj" />
-  <Project Path="Quill.Code.CSharp.Linq.Oracle/Quill.Code.CSharp.Linq.Oracle.csproj" />
-  <Project Path="Quill.Code.CSharp.Linq.PostgreSql/Quill.Code.CSharp.Linq.PostgreSql.csproj" />
-  <Project Path="Quill.Code.CSharp.Linq.Sqlite/Quill.Code.CSharp.Linq.Sqlite.csproj" />
-  <Project Path="Quill.Code.CSharp.Linq.SqlServer/Quill.Code.CSharp.Linq.SqlServer.csproj" />
-  <Project Path="Quill.Code.MySql/Quill.Code.MySql.csproj" />
-  <Project Path="Quill.Code.Oracle/Quill.Code.Oracle.csproj" />
-  <Project Path="Quill.Code.PostgreSql/Quill.Code.PostgreSql.csproj" />
-  <Project Path="Quill.Code.Sqlite/Quill.Code.Sqlite.csproj" />
-  <Project Path="Quill.Code.SqlServer/Quill.Code.SqlServer.csproj" />
-  <Project Path="Quill.Data.Sql/Quill.Data.Sql.csproj" />
-  <Project Path="Quill.Data.Sql.MySql/Quill.Data.Sql.MySql.csproj" />
-  <Project Path="Quill.Data.Sql.Oracle/Quill.Data.Sql.Oracle.csproj" />
-  <Project Path="Quill.Data.Sql.PostgreSql/Quill.Data.Sql.PostgreSql.csproj" />
-  <Project Path="Quill.Data.Sql.Sqlite/Quill.Data.Sql.Sqlite.csproj" />
-  <Project Path="Quill.Data.Sql.SqlServer/Quill.Data.Sql.SqlServer.csproj" />
 </Solution>

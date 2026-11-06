@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>Quill.Code.Sql</RootNamespace>
+		<Description>Socle de l'execution SQL pour Quill.Code : contrat ISqlQueryExecutor, base ADO.NET DbQueryExecutor et lecture des jeux de resultats ; un paquet Quill.Code.Sql.[Moteur] par moteur.</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Code\Quill.Code.csproj" />
+	</ItemGroup>
+
+</Project>

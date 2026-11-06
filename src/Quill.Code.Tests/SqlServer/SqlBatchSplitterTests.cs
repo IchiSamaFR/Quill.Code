@@ -1,4 +1,4 @@
-﻿using Quill.Code.SqlServer.Execution;
+﻿using Quill.Code.Sql.SqlServer.Execution;
 using Xunit;
 
 namespace Quill.Code.Tests.SqlServer;
