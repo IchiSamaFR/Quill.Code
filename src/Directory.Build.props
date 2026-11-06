@@ -25,6 +25,10 @@
 	<!-- Paquets NuGet : metadonnees, documentation XML et Source Link (PDB embarque dans la DLL : pas de .snupkg a publier). -->
 	<PropertyGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">
 		<IsPackable>true</IsPackable>
+		<!-- Prefixe Quill. reserve par un autre compte sur nuget.org : les paquets s'appellent QuillCode.* (Quill.Code.CSharp -> QuillCode.CSharp,
+		     Quill.Data.Sql -> QuillCode.Data.Sql) ; assemblies et namespaces restent Quill.*. -->
+		<PackageId Condition="$(MSBuildProjectName.StartsWith('Quill.Code'))">QuillCode$(MSBuildProjectName.Substring(10))</PackageId>
+		<PackageId Condition="$(MSBuildProjectName.StartsWith('Quill.Data'))">QuillCode.$(MSBuildProjectName.Substring(6))</PackageId>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>README.md</PackageReadmeFile>

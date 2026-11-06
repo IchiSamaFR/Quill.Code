@@ -28,8 +28,10 @@ L'affichage reste à la charge de l'application : chaque app traduit les zones c
 Les paquets sont publiés sur [nuget.org](https://www.nuget.org/profiles/IchiSamaFR) :
 
 ```
-dotnet add package Quill.Code.CSharp
+dotnet add package QuillCode.CSharp
 ```
+
+Le préfixe `Quill.` étant réservé sur nuget.org, chaque projet `Quill.Code.X` est publié sous l'ID `QuillCode.X` et `Quill.Data.Sql.X` sous `QuillCode.Data.Sql.X` ; assemblies et namespaces gardent leur nom.
 
 ## Utilisation
 
