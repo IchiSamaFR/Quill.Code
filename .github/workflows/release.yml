@@ -1,5 +1,6 @@
-# Publication d'une version : pousser un tag vX.Y.Z (ex. git tag v0.1.0 && git push origin v0.1.0).
-# Les paquets sont publies sur GitHub Packages et joints a une release GitHub.
+﻿# Publication d'une version : pousser un tag vX.Y.Z (ex. git tag v0.1.0 && git push origin v0.1.0).
+# Les paquets sont publies sur nuget.org (public) et sur GitHub Packages, et joints a une release GitHub.
+# Les pre-versions de master (build.yml) restent sur GitHub Packages uniquement.
 name: Release
 
 on:
@@ -9,6 +10,8 @@ on:
 permissions:
   contents: write
   packages: write
+  # Trusted publishing nuget.org : jeton OIDC echange contre une cle d'API temporaire (1 h, usage unique).
+  id-token: write
 
 jobs:
   publish:
@@ -31,6 +34,16 @@ jobs:
 
       - name: Pack
         run: dotnet pack src/Quill.Code.slnx -c Release -p:Version=${{ steps.version.outputs.value }} -o artifacts
+
+      # Juste avant le push : la cle temporaire expire au bout d'une heure. user = nom du profil nuget.org (pas l'e-mail), public.
+      - name: Connexion nuget.org (trusted publishing)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: IchiSamaFR
+
+      - name: Publication nuget.org
+        run: dotnet nuget push "artifacts/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --skip-duplicate
 
       - name: Publication GitHub Packages
         run: dotnet nuget push "artifacts/*.nupkg" --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
