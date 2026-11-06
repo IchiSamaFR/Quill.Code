@@ -1,6 +1,5 @@
 ﻿# Publication d'une version : pousser un tag vX.Y.Z (ex. git tag v0.1.0 && git push origin v0.1.0).
-# Les paquets sont publies sur nuget.org (public) et sur GitHub Packages, et joints a une release GitHub.
-# Les pre-versions de master (build.yml) restent sur GitHub Packages uniquement.
+# Les paquets sont publies sur nuget.org ; une release GitHub en garde les notes. Tag vX.Y.Z-beta.N = pre-version.
 name: Release
 
 on:
@@ -9,7 +8,6 @@ on:
 
 permissions:
   contents: write
-  packages: write
   # Trusted publishing nuget.org : jeton OIDC echange contre une cle d'API temporaire (1 h, usage unique).
   id-token: write
 
@@ -45,10 +43,7 @@ jobs:
       - name: Publication nuget.org
         run: dotnet nuget push "artifacts/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}" --skip-duplicate
 
-      - name: Publication GitHub Packages
-        run: dotnet nuget push "artifacts/*.nupkg" --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate
-
       - name: Release GitHub
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg --title "$GITHUB_REF_NAME" --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes $([[ "$GITHUB_REF_NAME" == *-* ]] && echo --prerelease)

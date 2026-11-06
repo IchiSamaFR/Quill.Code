@@ -1,7 +1,7 @@
 ﻿<Project>
 	<!-- Reglages communs a tous les projets : chaque csproj ne garde que ce qui lui est propre. -->
 	<PropertyGroup>
-		<!-- Prochaine version publiee : a monter apres chaque tag. Pre-versions de master en <prefixe>-ci.N (VersionSuffix), version figee par -p:Version=<tag>. -->
+		<!-- Prochaine version publiee : a monter apres chaque tag. Version publiee figee par -p:Version=<tag>. -->
 		<VersionPrefix>0.1.0</VersionPrefix>
 		<Authors>IchiSamaFR</Authors>
 		<Company>IchiSamaFR</Company>
@@ -22,7 +22,7 @@
 		<AnalysisLevel>latest-all</AnalysisLevel>
 	</PropertyGroup>
 
-	<!-- Paquets NuGet : metadonnees, documentation XML et Source Link (PDB embarque, GitHub Packages ne prend pas les .snupkg). -->
+	<!-- Paquets NuGet : metadonnees, documentation XML et Source Link (PDB embarque dans la DLL : pas de .snupkg a publier). -->
 	<PropertyGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">
 		<IsPackable>true</IsPackable>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>

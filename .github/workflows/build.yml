@@ -1,5 +1,4 @@
-﻿# Build et tests a chaque push / PR sur master ; un push sur master publie aussi des paquets de pre-version
-# (<VersionPrefix>-ci.<numero du run>) sur GitHub Packages, consommables sans attendre un tag.
+﻿# Build et tests a chaque push / PR sur master (publication : release.yml, sur tag).
 name: Build
 
 on:
@@ -19,10 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
-    env:
-      # Lue par MSBuild comme propriete : build, tests et paquets portent la meme version.
-      VersionSuffix: ${{ github.event_name == 'push' && format('ci.{0}', github.run_number) || '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,11 +33,3 @@ jobs:
 
       - name: Tests
         run: dotnet test src/Quill.Code.slnx -c Release --no-build
-
-      - name: Pack
-        if: github.event_name == 'push'
-        run: dotnet pack src/Quill.Code.slnx -c Release --no-build -o artifacts
-
-      - name: Publication GitHub Packages
-        if: github.event_name == 'push'
-        run: dotnet nuget push "artifacts/*.nupkg" --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --api-key "${{ secrets.GITHUB_TOKEN }}" --skip-duplicate

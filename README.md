@@ -25,20 +25,10 @@ L'affichage reste à la charge de l'application : chaque app traduit les zones c
 
 ## Installation
 
-Les paquets sont publiés sur GitHub Packages. Ajouter la source dans le `nuget.config` de la solution consommatrice :
-
-```xml
-<configuration>
-  <packageSources>
-    <add key="github-ichisamafr" value="https://nuget.pkg.github.com/IchiSamaFR/index.json" />
-  </packageSources>
-</configuration>
-```
-
-Puis s'authentifier avec un jeton GitHub (scope `read:packages`) :
+Les paquets sont publiés sur [nuget.org](https://www.nuget.org/profiles/IchiSamaFR) :
 
 ```
-dotnet nuget update source github-ichisamafr --username IchiSamaFR --password <jeton> --store-password-in-clear-text
+dotnet add package Quill.Code.CSharp
 ```
 
 ## Utilisation
@@ -130,7 +120,7 @@ dotnet build src/Quill.Code.slnx
 dotnet test src/Quill.Code.slnx
 ```
 
-Chaque push sur `master` publie des pré-versions `<VersionPrefix>-ci.<n>` (ex. `0.1.0-ci.12`). Publier une version : `git tag v0.1.0 && git push origin v0.1.0`, puis monter `VersionPrefix` dans `src/Directory.Build.props`.
+Publier une version sur nuget.org : `git tag v0.1.0 && git push origin v0.1.0` (pré-version : `v0.2.0-beta.1`), puis monter `VersionPrefix` dans `src/Directory.Build.props`.
 
 ## Licence
 
