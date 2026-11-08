@@ -65,7 +65,7 @@ public sealed class CSharpScriptRuntimeTests
     {
         var service = CreateService();
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.RunAsync("throw new System.InvalidOperationException(\"boum\");"));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.RunAsync("throw new System.InvalidOperationException(\"boom\");"));
 
         Assert.Equal("boom", exception.Message);
     }
@@ -112,7 +112,7 @@ public sealed class CSharpScriptRuntimeTests
     public async Task Run_RethrowsTheScriptException()
     {
         var service = CreateService();
-        using var compiled = await service.CompileAsync("throw new System.InvalidOperationException(\"boum\");");
+        using var compiled = await service.CompileAsync("throw new System.InvalidOperationException(\"boom\");");
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => compiled.RunEntryPointAsync());
         Assert.Equal("boom", exception.Message);
