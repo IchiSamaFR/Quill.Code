@@ -27,7 +27,7 @@ internal sealed class CompiledCodeLoadContext : AssemblyLoadContext
         if (_resolve?.Invoke(assemblyName) is { } resolved)
             return resolved;
 
-        // Lue en mémoire : un fichier chargé depuis le disque resterait verrouillé.
+        // Read into memory: a file loaded from disk would stay locked.
         return assemblyName.Name is { } name && _files.TryGetValue(name, out var path)
             ? LoadFromStream(new MemoryStream(File.ReadAllBytes(path)))
             : null;

@@ -21,7 +21,7 @@ public sealed class SqliteLinqProvider : ILinqDatabaseProvider
 
         var sqlType = (string.IsNullOrEmpty(column.SqlType) ? column.DataType : column.SqlType).ToUpperInvariant();
 
-        // Noms courants d'abord (BOOLEAN, DATETIME, GUID...), puis affinite SQLite : un type declare est libre.
+        // Common names first (BOOLEAN, DATETIME, GUID...), then SQLite affinity: a declared type is free-form.
         if (sqlType.Contains("BOOL", StringComparison.Ordinal))
             return "bool";
         if (sqlType.Contains("DATETIME", StringComparison.Ordinal) || sqlType.Contains("TIMESTAMP", StringComparison.Ordinal))
@@ -43,7 +43,7 @@ public sealed class SqliteLinqProvider : ILinqDatabaseProvider
         if (sqlType.Contains("REAL", StringComparison.Ordinal) || sqlType.Contains("FLOA", StringComparison.Ordinal) || sqlType.Contains("DOUB", StringComparison.Ordinal))
             return "double";
 
-        // Colonne sans type (ANY) : valeurs de toute nature, lues en texte.
+        // Column without a type (ANY): values of any kind, read as text.
         return "string";
     }
 

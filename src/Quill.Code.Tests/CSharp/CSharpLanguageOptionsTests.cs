@@ -6,7 +6,7 @@ namespace Quill.Code.Tests.CSharp;
 
 public sealed class CSharpLanguageOptionsTests
 {
-    // Lignes « #! » neutralisées à longueur égale, comme les directives de packages de PocketForge.
+    // "#!" lines neutralized at equal length, like PocketForge's package directives.
     private static readonly CSharpLanguageService Transformed = new(() => CSharpTestProjects.ScriptOptions("Transformed") with
     {
         SourceTransform = code => code.Replace("#!", "//", StringComparison.Ordinal),
@@ -69,7 +69,7 @@ public sealed class CSharpLanguageOptionsTests
         var without = service.Project.CreateDocument(string.Empty).Document.Project;
 
         Assert.Contains(reference, first.MetadataReferences);
-        // Chaque document a son propre projet (WithText) : seules les references sont partagees.
+        // Each document has its own project (WithText): only the references are shared.
         Assert.Same(first.MetadataReferences, second.MetadataReferences);
         Assert.DoesNotContain(reference, without.MetadataReferences);
     }

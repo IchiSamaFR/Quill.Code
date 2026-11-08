@@ -1,7 +1,7 @@
 ﻿<Project>
-	<!-- Reglages communs a tous les projets : chaque csproj ne garde que ce qui lui est propre. -->
+	<!-- Settings shared by all projects: each csproj only keeps what is specific to it. -->
 	<PropertyGroup>
-		<!-- Prochaine version publiee : a monter apres chaque tag. Version publiee figee par -p:Version=<tag>. -->
+		<!-- Next published version: bump after each tag. Published version pinned by -p:Version=<tag>. -->
 		<VersionPrefix>0.1.0</VersionPrefix>
 		<Authors>IchiSamaFR</Authors>
 		<Company>IchiSamaFR</Company>
@@ -16,17 +16,17 @@
 		<NoWarn>$(NoWarn);CA2007</NoWarn>
 	</PropertyGroup>
 
-	<!-- Analyse complete du code des librairies ; les tests en sont dispenses. -->
+	<!-- Full code analysis of the libraries; tests are exempt. -->
 	<PropertyGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<AnalysisLevel>latest-all</AnalysisLevel>
 	</PropertyGroup>
 
-	<!-- Paquets NuGet : metadonnees, documentation XML et Source Link (PDB embarque dans la DLL : pas de .snupkg a publier). -->
+	<!-- NuGet packages: metadata, XML documentation and Source Link (PDB embedded in the DLL: no .snupkg to publish). -->
 	<PropertyGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">
 		<IsPackable>true</IsPackable>
-		<!-- Prefixe Quill. reserve par un autre compte sur nuget.org : les paquets s'appellent QuillCode.* (Quill.Code.CSharp -> QuillCode.CSharp,
-		     Quill.Data.Sql -> QuillCode.Data.Sql) ; assemblies et namespaces restent Quill.*. -->
+		<!-- Quill. prefix reserved by another account on nuget.org: packages are named QuillCode.* (Quill.Code.CSharp -> QuillCode.CSharp,
+		     Quill.Data.Sql -> QuillCode.Data.Sql); assemblies and namespaces stay Quill.*. -->
 		<PackageId Condition="$(MSBuildProjectName.StartsWith('Quill.Code'))">QuillCode$(MSBuildProjectName.Substring(10))</PackageId>
 		<PackageId Condition="$(MSBuildProjectName.StartsWith('Quill.Data'))">QuillCode.$(MSBuildProjectName.Substring(6))</PackageId>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>

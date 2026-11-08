@@ -116,7 +116,7 @@ public sealed class CSharpCompilationResult : IDisposable
         }
         catch (OperationCanceledException) when (!run.IsCompleted)
         {
-            // Exception éventuelle observée ici : le résultat n'intéresse plus personne.
+            // Possible exception observed here: nobody cares about the result anymore.
             _ = run.ContinueWith(static t => _ = t.Exception, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             throw new CSharpRunAbandonedException(cancellationToken);
         }

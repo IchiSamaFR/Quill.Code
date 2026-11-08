@@ -1,5 +1,5 @@
-﻿# Publication d'une version : pousser un tag vX.Y.Z (ex. git tag v0.1.0 && git push origin v0.1.0).
-# Les paquets sont publies sur nuget.org ; une release GitHub en garde les notes. Tag vX.Y.Z-beta.N = pre-version.
+﻿# Publishing a version: push a vX.Y.Z tag (e.g. git tag v0.1.0 && git push origin v0.1.0).
+# Packages are published on nuget.org; a GitHub release keeps the notes. Tag vX.Y.Z-beta.N = pre-release.
 name: Release
 
 on:
@@ -8,7 +8,7 @@ on:
 
 permissions:
   contents: write
-  # Trusted publishing nuget.org : jeton OIDC echange contre une cle d'API temporaire (1 h, usage unique).
+  # nuget.org trusted publishing: OIDC token exchanged for a temporary API key (1 h, single use).
   id-token: write
 
 jobs:
@@ -33,15 +33,15 @@ jobs:
       - name: Pack
         run: dotnet pack src/Quill.Code.slnx -c Release -p:Version=${{ steps.version.outputs.value }} -o artifacts
 
-      # Juste avant le push : la cle temporaire expire au bout d'une heure. user = nom du profil nuget.org (pas l'e-mail), public.
-      - name: Connexion nuget.org (trusted publishing)
+      # Right before the push: the temporary key expires after one hour. user = nuget.org profile name (not the e-mail), public.
+      - name: nuget.org login (trusted publishing)
         id: nuget-login
         uses: NuGet/login@v1
         with:
           user: IchiSamaFR
 
-      # Sans --skip-duplicate : nuget.org repond aussi 409 pour un prefixe reserve, l'erreur doit faire echouer le job.
-      - name: Publication nuget.org
+      # Without --skip-duplicate: nuget.org also answers 409 for a reserved prefix, the error must fail the job.
+      - name: Publish to nuget.org
         run: dotnet nuget push "artifacts/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
 
       - name: Release GitHub

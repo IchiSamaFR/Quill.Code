@@ -17,7 +17,7 @@ internal static class CSharpCompletionEngine
         if (list.ItemsList.Count == 0)
             return CompletionList.Empty;
 
-        // Toutes les propositions : le filtre de saisie de l'éditeur les réduit à la frappe.
+        // All suggestions: the editor's input filter narrows them down while typing.
         List<CompletionItem> items = new(list.ItemsList.Count);
         foreach (var item in list.ItemsList)
         {
@@ -63,7 +63,7 @@ internal static class CSharpCompletionEngine
         if (changes.Any(c => c.Span.End > document.Text.Length))
             return null;
 
-        // Positions croissantes et sans chevauchement : rejouées telles quelles sur le texte réel.
+        // Increasing, non-overlapping positions: replayed as is on the real text.
         var spanStart = changes.Min(c => c.Span.Start);
         var spanEnd = changes.Max(c => c.Span.End);
         var applied = SourceText.From(document.Text).WithChanges(changes).ToString();

@@ -47,7 +47,7 @@ public static class XshdReader
         var colors = ReadColors(root);
         var properties = ReadProperties(root);
 
-        // Le RuleSet principal est celui sans nom.
+        // The main RuleSet is the one without a name.
         var ruleSet = root.Elements(Xshd + "RuleSet").FirstOrDefault(e => e.Attribute("name") is null)
             ?? throw new FormatException("Définition de coloration sans RuleSet principal.");
 
@@ -111,8 +111,8 @@ public static class XshdReader
     private static SyntaxColor ReadColor(XElement element, string? name)
         => new(name, (string?)element.Attribute("foreground"), (string?)element.Attribute("fontWeight"), (string?)element.Attribute("fontStyle"));
 
-    // Couleur nommée (color="Comment") ou déclarée directement sur l'élément (foreground="#…") ; sans couleur, le texte
-    // est reconnu mais garde la couleur par défaut.
+    // Named color (color="Comment") or declared directly on the element (foreground="#…"); without a color, the text
+    // is recognized but keeps the default color.
     private static SyntaxColor? ResolveColor(XElement element, Dictionary<string, SyntaxColor> colors)
     {
         if ((string?)element.Attribute("color") is { Length: > 0 } name)
@@ -149,7 +149,7 @@ public static class XshdReader
         return pattern.Length == 0 ? null : new SyntaxRule(new Regex(pattern, options), null, false, false, ResolveColor(element, colors));
     }
 
-    // Une seule expression par liste ; les mots les plus longs d'abord pour que « double » ne s'arrête pas à « do ».
+    // A single expression per list; longest words first so that "double" does not stop at "do".
     private static SyntaxRule? ReadKeywords(XElement element, Dictionary<string, SyntaxColor> colors, RegexOptions options, List<SyntaxKeyword> keywords)
     {
         var words = element.Elements(Xshd + "Word")
@@ -163,7 +163,7 @@ public static class XshdReader
         var category = (string?)element.Attribute("color") ?? string.Empty;
         keywords.AddRange(words.Select(word => new SyntaxKeyword(word, category)));
 
-        // Les \b évitent de colorer un mot-clé noyé dans un identifiant (SELECTED).
+        // The \b avoid coloring a keyword buried in an identifier (SELECTED).
         var alternatives = words.Distinct(StringComparer.Ordinal).OrderByDescending(w => w.Length).Select(Regex.Escape);
         return new SyntaxRule(new Regex($@"\b(?>{string.Join('|', alternatives)})\b", options), null, false, false, ResolveColor(element, colors));
     }

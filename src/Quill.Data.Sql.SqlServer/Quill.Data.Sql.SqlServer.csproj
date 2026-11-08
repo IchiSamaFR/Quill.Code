@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Data.Sql.SqlServer</RootNamespace>
-		<Description>Lecture du catalogue SQL Server (sys.*) pour Quill.Data.Sql.</Description>
+		<Description>SQL Server catalog reading (sys.*) for Quill.Data.Sql.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

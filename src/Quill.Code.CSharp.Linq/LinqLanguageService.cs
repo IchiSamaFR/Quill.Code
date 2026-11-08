@@ -26,7 +26,7 @@ public sealed class LinqLanguageService : ICodeLanguageService
         _provider = options?.Provider;
         _schema = options?.Schema;
 
-        // Sans les valeurs : le service Roslyn reste le meme d'une valeur a l'autre.
+        // Without the values: the Roslyn service stays the same from one value to another.
         _parameters = [.. (options?.Parameters ?? []).Select(p => LinqParameter.From(p) with { Value = null })];
     }
 
@@ -67,7 +67,7 @@ public sealed class LinqLanguageService : ICodeLanguageService
             var service = await GetServiceAsync(cancellationToken).ConfigureAwait(false);
             await service.WarmUpAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         }
-#pragma warning disable CA1031 // Prechargement opportuniste : la vraie demande retentera et gerera l'erreur.
+#pragma warning disable CA1031 // Opportunistic preload: the real request will retry and handle the error.
         catch (Exception)
 #pragma warning restore CA1031
         {
@@ -87,7 +87,7 @@ public sealed class LinqLanguageService : ICodeLanguageService
         {
             return await _schema(cancellationToken).ConfigureAwait(false);
         }
-#pragma warning disable CA1031 // Comme ISqlCatalog : une exception de l'hote vaut absence de structure.
+#pragma warning disable CA1031 // Like ISqlCatalog: an exception from the host counts as a missing structure.
         catch (Exception ex) when (ex is not OperationCanceledException)
 #pragma warning restore CA1031
         {

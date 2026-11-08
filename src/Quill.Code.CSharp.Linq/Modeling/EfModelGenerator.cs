@@ -33,7 +33,7 @@ internal static class EfModelGenerator
         return new EfGeneratedModel(GeneratedNamespace, contextClass, source, entities.Select(e => e.ClassName).ToArray());
     }
 
-    // ---------- Modele intermediaire ----------
+    // ---------- Intermediate model ----------
 
     private sealed record EntityModel(SqlSchemaObject Source, string ClassName, IReadOnlyList<PropertyModel> Properties);
 
@@ -47,7 +47,7 @@ internal static class EfModelGenerator
             .ThenBy(o => o.Name, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        // Meme nom dans deux schemas : le schema prefixe le nom des deux (Sales_Orders, dbo_Orders).
+        // Same name in two schemas: the schema prefixes the name of both (Sales_Orders, dbo_Orders).
         var ambiguous = dataSources.GroupBy(o => ToIdentifier(o.Name), StringComparer.Ordinal)
                                    .Where(g => g.Count() > 1)
                                    .Select(g => g.Key)
@@ -78,13 +78,13 @@ internal static class EfModelGenerator
 
     private static List<PropertyModel> BuildProperties(SqlSchemaObject source, string className, ILinqDatabaseProvider provider)
     {
-        // Le nom de la classe est reserve : une propriete homonyme est interdite en C# (CS0542).
+        // The class name is reserved: a property with the same name is forbidden in C# (CS0542).
         var usedNames = new HashSet<string>(StringComparer.Ordinal) { className };
         List<PropertyModel> properties = [];
 
         foreach (var column in source.Columns)
         {
-            // Type non mappable par le moteur : la colonne est ignoree.
+            // Type not mappable by the engine: the column is ignored.
             if (provider.GetClrType(column) is not { } clrType)
                 continue;
 
@@ -94,7 +94,7 @@ internal static class EfModelGenerator
         return properties;
     }
 
-    // ---------- Ecriture du source ----------
+    // ---------- Source writing ----------
 
     private static string WriteSource(string contextClass, List<EntityModel> entities)
     {
@@ -116,7 +116,7 @@ internal static class EfModelGenerator
         code.AppendLine();
 
         foreach (var entity in entities)
-            // base. : une table nommee Set, Model ou Database masquerait le membre herite.
+            // base.: a table named Set, Model or Database would hide the inherited member.
             code.AppendLine(CultureInfo.InvariantCulture, $"    public DbSet<{entity.ClassName}> {entity.ClassName} => base.Set<{entity.ClassName}>();");
 
         code.AppendLine();
@@ -153,7 +153,7 @@ internal static class EfModelGenerator
 
     private static void WriteEntity(StringBuilder code, EntityModel entity)
     {
-        // [Description] : lu par l'infobulle de l'editeur LINQ (la doc XML ne survit pas a la compilation en memoire).
+        // [Description]: read by the LINQ editor tooltip (XML docs do not survive in-memory compilation).
         code.AppendLine(CultureInfo.InvariantCulture, $"[global::System.ComponentModel.Description({Literal(DescribeSource(entity.Source))})]");
         code.AppendLine(CultureInfo.InvariantCulture, $"public sealed class {entity.ClassName}");
         code.AppendLine("{");
@@ -161,7 +161,7 @@ internal static class EfModelGenerator
         foreach (var property in entity.Properties)
         {
             code.AppendLine(CultureInfo.InvariantCulture, $"    [global::System.ComponentModel.Description({Literal(DescribeColumn(entity.Source, property.Source))})]");
-            // Une chaine non nulle part a null! : EF la renseigne a la lecture.
+            // A non-null string starts at null!: EF fills it in on read.
             var initializer = property.ClrType is "string" or "byte[]" ? " = null!;" : string.Empty;
             code.AppendLine(CultureInfo.InvariantCulture, $"    public {property.ClrType} {property.Name} {{ get; set; }}{initializer}");
         }
@@ -183,13 +183,13 @@ internal static class EfModelGenerator
 
         var keys = entity.Properties.Where(p => p.Source.IsPrimaryKey).OrderBy(p => p.Source.PrimaryKeyOrdinal).ToArray();
 
-        // Une colonne de cle ignoree (type non mappable) rendrait la cle fausse : on la traite comme absente.
+        // An ignored key column (non-mappable type) would make the key wrong: it is treated as missing.
         if (keys.Length != source.Columns.Count(c => c.IsPrimaryKey))
             keys = [];
 
         code.AppendLine(keys.Length switch
         {
-            // Vue ou table sans cle : lecture seule, sans suivi.
+            // View or table without a key: read-only, no tracking.
             0 => "            e.HasNoKey();",
             1 => $"            e.HasKey(x => x.{keys[0].Name});",
             _ => $"            e.HasKey(x => new {{ {string.Join(", ", keys.Select(k => "x." + k.Name))} }});"
@@ -203,7 +203,7 @@ internal static class EfModelGenerator
             if (property.Name.TrimStart('@') != column.Name)
                 configuration.Append(CultureInfo.InvariantCulture, $".HasColumnName({Literal(column.Name)})");
 
-            // Sans precision explicite, EF tronque les decimales a (18,2) et le signale a chaque requete.
+            // Without an explicit precision, EF truncates decimals to (18,2) and warns on every query.
             if (property.ClrType.StartsWith("decimal", StringComparison.Ordinal) && column.Precision > 0)
                 configuration.Append(CultureInfo.InvariantCulture, $".HasPrecision({column.Precision}, {column.Scale})");
 
@@ -215,7 +215,7 @@ internal static class EfModelGenerator
         code.AppendLine();
     }
 
-    // ---------- Identifiants ----------
+    // ---------- Identifiers ----------
 
     /// <summary>Valid C# identifier: forbidden characters -> _, leading digit prefixed, keyword escaped with @.</summary>
     public static string ToIdentifier(string name)

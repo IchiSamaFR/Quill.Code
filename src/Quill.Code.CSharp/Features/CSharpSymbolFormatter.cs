@@ -56,7 +56,7 @@ internal static class CSharpSymbolFormatter
         return container is null ? null : $"Déclarée par {container.ToDisplayString(Format)}";
     }
 
-    // [Description] posé par un générateur de code (ex. DbContext de Querify) sur les types et leurs membres.
+    // [Description] set by a code generator (e.g. Querify's DbContext) on types and their members.
     private static string? DescriptionOf(ISymbol symbol)
         => symbol.GetAttributes()
             .FirstOrDefault(a => a.AttributeClass is { Name: "DescriptionAttribute" } && a.ConstructorArguments.Length == 1)

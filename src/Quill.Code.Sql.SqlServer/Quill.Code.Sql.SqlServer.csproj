@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Code.Sql.SqlServer</RootNamespace>
-		<Description>Langage T-SQL pour Quill.Code : diagnostics de syntaxe (ScriptDom), autocompletion et survol sur un catalogue fourni par l'hote ; execution sur SQL Server (Microsoft.Data.SqlClient).</Description>
+		<Description>T-SQL language for Quill.Code: syntax diagnostics (ScriptDom), completion and hover on a catalog provided by the host; execution on SQL Server (Microsoft.Data.SqlClient).</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

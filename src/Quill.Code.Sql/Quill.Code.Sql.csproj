@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Code.Sql</RootNamespace>
-		<Description>Socle de l'execution SQL pour Quill.Code : contrat ISqlQueryExecutor, base ADO.NET DbQueryExecutor et lecture des jeux de resultats ; un paquet Quill.Code.Sql.[Moteur] par moteur.</Description>
+		<Description>Foundation of SQL execution for Quill.Code: ISqlQueryExecutor contract, ADO.NET DbQueryExecutor base and result set reading; one Quill.Code.Sql.[Engine] package per engine.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

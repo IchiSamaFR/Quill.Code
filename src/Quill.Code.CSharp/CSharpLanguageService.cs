@@ -115,7 +115,7 @@ public sealed class CSharpLanguageService : ICodeLanguageService
         await compiled.RunEntryPointAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    // Document créé sur le pool lui aussi : la première demande construit le projet (MEF, références).
+    // Document also created on the pool: the first request builds the project (MEF, references).
     private Task<T> OnThreadPoolAsync<T>(string code, Func<CSharpDocument, CancellationToken, Task<T>> request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(code);

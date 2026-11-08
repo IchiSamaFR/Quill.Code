@@ -113,7 +113,7 @@ public sealed class LinqQueryExecutor
         }
         catch (DbException ex) when (cancellationToken.IsCancellationRequested)
         {
-            // Comme SQL Server : l'annulation d'une commande en cours remonte sous forme d'erreur du pilote.
+            // Like SQL Server: canceling a running command surfaces as a driver error.
             throw new OperationCanceledException(ex.Message, ex, cancellationToken);
         }
         catch (DbException ex)
@@ -121,7 +121,7 @@ public sealed class LinqQueryExecutor
             log?.Invoke(new LogEntry(LogLevel.Error, ex.Message, LogSource.Code));
             return;
         }
-#pragma warning disable CA1031 // Le script est du code de l'utilisateur : toute exception (traduction EF, null, division...) est un resultat.
+#pragma warning disable CA1031 // The script is user code: any exception (EF translation, null, division...) is a result.
         catch (Exception ex) when (ex is not OperationCanceledException)
 #pragma warning restore CA1031
         {
@@ -135,7 +135,7 @@ public sealed class LinqQueryExecutor
 
         foreach (var resultSet in dumped)
         {
-            // Plusieurs jeux : chaque message dit a quel onglet il se rapporte.
+            // Several sets: each message says which tab it relates to.
             var prefix = dumped.Length > 1 ? $"{resultSet.Title} : " : string.Empty;
             log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"{prefix}({resultSet.Rows.Count} ligne(s))")));
         }
@@ -175,7 +175,7 @@ public sealed class LinqQueryExecutor
             throw new InvalidOperationException(ex.Message, ex);
         }
 
-        // Une lecture n'affiche qu'un jeu : le dernier Dump().
+        // A read only displays one set: the last Dump().
         return resultSets.Count > 0
             ? resultSets[^1]
             : throw new InvalidOperationException("Aucun résultat : le script doit afficher les données avec .Dump().");
@@ -198,7 +198,7 @@ public sealed class LinqQueryExecutor
         }
         catch (CSharpRunAbandonedException)
         {
-            // Le script tourne encore sur ce contexte : il le garde (et sa connexion) jusqu'a sa fin.
+            // The script is still running on this context: it keeps it (and its connection) until it ends.
             isAbandoned = true;
             throw;
         }
@@ -244,7 +244,7 @@ public sealed class LinqQueryExecutor
                 if (_isTruncated)
                     return;
 
-                // Le saut de ligne compte : une boucle de messages vides reste bornee.
+                // The line break counts: a loop of empty messages stays bounded.
                 var room = LinqExecutionConstants.MaxLogLength - _length - 1;
                 if (text.Length > room)
                 {
@@ -255,7 +255,7 @@ public sealed class LinqQueryExecutor
                 _length += text.Length + 1;
             }
 
-            // Hors verrou : le destinataire ne doit pas bloquer les autres ecritures du script.
+            // Outside the lock: the receiver must not block the script's other writes.
             _log(entry with { Text = text.ReplaceLineEndings() });
             if (truncatesNow)
                 _log(new LogEntry(LogLevel.Error, string.Format(CultureInfo.CurrentCulture, "Sortie Log tronquée à {0:N0} caractères.", LinqExecutionConstants.MaxLogLength)));

@@ -7,7 +7,7 @@ namespace Quill.Code.CSharp;
 /// <summary>Builds the metadata references of a project.</summary>
 public static class CSharpReferences
 {
-    // Une référence par fichier, réutilisée : Roslyn ne recompile pas si les références sont les mêmes instances.
+    // One reference per file, reused: Roslyn does not recompile if the references are the same instances.
     private static readonly ConcurrentDictionary<string, MetadataReference> FileReferences = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>True for a .NET framework assembly (excludes the application's own, which would pollute completion).</summary>

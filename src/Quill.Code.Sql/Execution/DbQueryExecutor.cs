@@ -44,19 +44,19 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
                 }
                 catch (DbException ex) when (!cancellationToken.IsCancellationRequested)
                 {
-                    // Le lot suivant est tout de meme execute ; la ligne n'a de sens que si le script a ete decoupe.
+                    // The next batch still runs; the line only makes sense if the script was split.
                     LogError(log, ex, batches.Count > 1 ? batch.StartLine : null, LogSource.Code);
                 }
             }
         }
         catch (DbException ex) when (cancellationToken.IsCancellationRequested)
         {
-            // L'annulation d'une commande en cours remonte souvent sous forme d'exception du pilote.
+            // Canceling a running command often surfaces as a driver exception.
             throw new OperationCanceledException(ex.Message, ex, cancellationToken);
         }
         catch (DbException ex)
         {
-            // Hors d'un lot : connexion impossible, droits...
+            // Outside a batch: connection impossible, permissions...
             LogError(log, ex, batchStartLine: null, LogSource.Host);
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException or InvalidOperationException)
@@ -75,7 +75,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
         await using var command = connection.CreateCommand();
-#pragma warning disable CA2100 // La requete est celle de l'utilisateur ; les valeurs passent en parametres.
+#pragma warning disable CA2100 // The query is the user's; values are passed as parameters.
         command.CommandText = query;
 #pragma warning restore CA2100
         command.CommandTimeout = QueryExecutionLimits.ReadCommandTimeoutSeconds;
@@ -85,7 +85,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
 
-        // Premier jeu qui a des colonnes : une instruction sans resultat peut preceder le SELECT.
+        // First set that has columns: a statement without a result may precede the SELECT.
         while (reader.FieldCount == 0 && await reader.NextResultAsync(cancellationToken).ConfigureAwait(false))
         {
         }
@@ -150,17 +150,17 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
     private async Task<int> ExecuteBatchAsync(DbConnection connection, QueryBatch batch, int resultSetCount, DataRunOptions? options, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-#pragma warning disable CA2100 // Le script est celui de l'utilisateur, execute tel quel.
+#pragma warning disable CA2100 // The script is the user's, run as is.
         command.CommandText = batch.Text;
 #pragma warning restore CA2100
-        // Pas de timeout : l'utilisateur garde la main via l'annulation.
+        // No timeout: the user keeps control through cancellation.
         command.CommandTimeout = 0;
         PrepareCommand(command);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         do
         {
-            // FieldCount == 0 : instruction sans jeu de resultats (INSERT, UPDATE, DDL...).
+            // FieldCount == 0: statement without a result set (INSERT, UPDATE, DDL...).
             if (reader.FieldCount > 0)
             {
                 var resultSet = await DbResultSetReader.ReadAsync(reader, ++resultSetCount, QueryExecutionLimits.MaxRowsPerResultSet, DbResultSetReader.FormatForResults, cancellationToken).ConfigureAwait(false);
@@ -169,7 +169,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
         }
         while (await reader.NextResultAsync(cancellationToken).ConfigureAwait(false));
 
-        // Cumul du lot, connu une fois tous les jeux parcourus ; -1 pour un SELECT seul.
+        // Batch total, known once all sets have been read; -1 for a lone SELECT.
         if (reader.RecordsAffected >= 0)
             options?.Log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({reader.RecordsAffected} ligne(s) affectée(s))")));
 
@@ -180,7 +180,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
     {
         var result = command.CreateParameter();
 
-        // Un nom saisi a la main peut garder son prefixe (@, :) ou des espaces.
+        // A name entered by hand may keep its prefix (@, :) or spaces.
         result.ParameterName = GetParameterName(parameter.Name.Trim().TrimStart('@', ':'));
         result.DbType = GetDbType(parameter.Type);
         result.Value = GetParameterValue(parameter);

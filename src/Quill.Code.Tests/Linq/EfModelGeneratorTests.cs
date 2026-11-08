@@ -95,7 +95,7 @@ public class EfModelGeneratorTests
         Assert.Contains("[AspNetUsers]", users.ToQueryString(), StringComparison.Ordinal);
     }
 
-    // ---------- Construction ----------
+    // ---------- Building ----------
 
     private static IEntityType Entity(string className)
     {

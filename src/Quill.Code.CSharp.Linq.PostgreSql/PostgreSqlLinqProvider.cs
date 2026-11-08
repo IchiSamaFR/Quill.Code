@@ -27,10 +27,10 @@ public sealed class PostgreSqlLinqProvider : ILinqDatabaseProvider
     {
         ArgumentNullException.ThrowIfNull(column);
 
-        // SqlType est le nom interne (pg_type.typname) : int4, varchar, timestamptz...
+        // SqlType is the internal name (pg_type.typname): int4, varchar, timestamptz...
         var sqlType = (string.IsNullOrEmpty(column.SqlType) ? column.DataType : column.SqlType).ToLowerInvariant();
 
-        // Tableaux (_int4), intervalles, reseau, geometrie : pas de mapping retenu.
+        // Arrays (_int4), ranges, network, geometry: no mapping kept.
         return sqlType switch
         {
             "int2" or "smallint" => "short",

@@ -27,7 +27,7 @@ public sealed class MySqlQueryExecutor : DbQueryExecutor
     {
         var builder = new MySqlConnectionStringBuilder(connectionString)
         {
-            // Variables de session (@total) des scripts : refusees par defaut comme parametres non fournis.
+            // Session variables (@total) of scripts: rejected by default as missing parameters.
             AllowUserVariables = true,
         };
         if (!string.IsNullOrWhiteSpace(_applicationName))

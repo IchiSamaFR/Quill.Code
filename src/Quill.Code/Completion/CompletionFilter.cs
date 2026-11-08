@@ -15,7 +15,7 @@ public static class CompletionFilter
         ArgumentNullException.ThrowIfNull(items);
         prefix ??= string.Empty;
 
-        // Une passe, un tri en place, sans LINQ : appelé sur le thread de l'interface à chaque frappe.
+        // One pass, in-place sort, no LINQ: called on the UI thread on every keystroke.
         var matches = new List<(CompletionItem Item, int Score)>(Math.Min(items.Count, 512));
         for (var i = 0; i < items.Count; i++)
         {

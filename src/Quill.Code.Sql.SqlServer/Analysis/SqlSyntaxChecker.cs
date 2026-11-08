@@ -52,7 +52,7 @@ public static class SqlSyntaxChecker
         if (offset < text.Length && !char.IsWhiteSpace(text[offset]))
             return (offset, 1);
 
-        // Fin de texte inattendue : le dernier caractere visible.
+        // Unexpected end of text: the last visible character.
         var previous = Math.Min(offset, text.Length) - 1;
         while (previous > 0 && char.IsWhiteSpace(text[previous]))
             previous--;

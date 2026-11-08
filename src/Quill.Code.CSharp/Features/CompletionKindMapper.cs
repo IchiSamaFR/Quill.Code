@@ -7,7 +7,7 @@ namespace Quill.Code.CSharp.Features;
 /// <summary>Kind of a Roslyn suggestion based on its tags.</summary>
 internal static class CompletionKindMapper
 {
-    // Du plus précis au plus général : une méthode d'extension porte aussi l'étiquette « Method ».
+    // From most specific to most general: an extension method also carries the "Method" tag.
     private static readonly (string Tag, CompletionItemKind Kind)[] Kinds =
     [
         (WellKnownTags.ExtensionMethod, CompletionItemKind.ExtensionMethod),

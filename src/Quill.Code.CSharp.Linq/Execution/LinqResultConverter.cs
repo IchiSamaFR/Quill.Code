@@ -32,7 +32,7 @@ internal static class LinqResultConverter
         {
             sql = TryGetSql(queryable);
 
-            // Plafond applique cote serveur (TOP), une ligne de plus pour savoir s'il a ete atteint.
+            // Limit applied on the server side (TOP), one extra row to know whether it was reached.
             value = QueryableTake.MakeGenericMethod(queryable.ElementType).Invoke(null, [queryable, maxRows + 1]);
         }
 
@@ -47,16 +47,16 @@ internal static class LinqResultConverter
         }
         catch (Exception ex) when (ex is InvalidOperationException or NotSupportedException)
         {
-            // Requete evaluee cote client (LINQ to Objects) : pas de SQL a montrer.
+            // Query evaluated on the client (LINQ to Objects): no SQL to show.
             return null;
         }
     }
 
-    // ---------- Conversion en grille ----------
+    // ---------- Conversion to grid ----------
 
     private static QueryResultSet ToResultSet(object? value, int index, string? title, int maxRows, CancellationToken cancellationToken)
     {
-        // Une valeur seule (Count(), First()...) s'affiche comme une ligne d'une colonne.
+        // A single value (Count(), First()...) is displayed as a one-column row.
         if (value is null or string || value is not IEnumerable items || IsScalar(value.GetType()))
             return Build(ElementTypeOf(value?.GetType()), [value], isTruncated: false, index, title);
 
@@ -105,7 +105,7 @@ internal static class LinqResultConverter
         return new QueryResultSet(index, columns, rows, isTruncated, title);
     }
 
-    // Colonnes dynamiques : union ordonnee des cles de toutes les lignes (une cle absente = cellule vide).
+    // Dynamic columns: ordered union of the keys of all rows (a missing key = empty cell).
     private static QueryResultSet BuildFromDictionaries(IReadOnlyList<object?> items, bool isTruncated, int index, string? title)
     {
         var data = items.Select(i => (i is null ? Enumerable.Empty<KeyValuePair<string, object?>>() : AsPairs(i)!).ToList()).ToList();
@@ -157,7 +157,7 @@ internal static class LinqResultConverter
 
         if (type.IsGenericType)
         {
-            // Un type imbrique dans un generique (Dictionary<,>.KeyCollection) n'a pas de backtick.
+            // A type nested in a generic (Dictionary<,>.KeyCollection) has no backtick.
             var tick = type.Name.IndexOf('`', StringComparison.Ordinal);
             var name = tick >= 0 ? type.Name[..tick] : type.Name;
             return $"{name}<{string.Join(", ", type.GetGenericArguments().Select(FriendlyName))}>";
@@ -191,7 +191,7 @@ internal static class LinqResultConverter
         DateOnly d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
         byte[] bytes => "0x" + Convert.ToHexString(bytes, 0, Math.Min(bytes.Length, LinqExecutionConstants.MaxBinaryBytes)) + (bytes.Length > LinqExecutionConstants.MaxBinaryBytes ? "…" : string.Empty),
         IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
-        // Collection imbriquee (Select(u => u.Roles)...) : on en donne la taille plutot que le nom du type.
+        // Nested collection (Select(u => u.Roles)...): its size is given rather than the type name.
         IEnumerable e => $"({e.Cast<object?>().Count()} élément(s))",
         _ => value.ToString(),
     };

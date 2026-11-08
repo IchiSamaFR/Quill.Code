@@ -70,14 +70,14 @@ public static partial class SqlContextAnalyzer
         var (batchStart, batchEnd) = FindBatch(text, all, caret);
         var tokens = all.Where(t => !t.IsComment && t.Start >= batchStart && t.End <= batchEnd).ToArray();
 
-        // Jetons strictement avant le mot en cours de frappe.
+        // Tokens strictly before the word being typed.
         var index = tokens.Count(t => t.End <= wordStart);
 
         var (kind, qualifier) = DetermineKind(text, tokens, index, wordStart);
         if (kind == SqlContextKind.None)
             return SqlContext.None;
 
-        // Le premier mot du qualificatif est analyse comme s'il etait en cours de frappe.
+        // The qualifier's first word is analyzed as if it were being typed.
         var parentKind = SqlContextKind.General;
         if (kind == SqlContextKind.MemberAccess)
         {
@@ -91,7 +91,7 @@ public static partial class SqlContextAnalyzer
             Qualifier = qualifier,
             MemberParentKind = parentKind,
             Tables = ParseTables(text, tokens).OrderBy(t => Math.Abs(t.Offset - caret)).ToArray(),
-            // Un USE du texte l'emporte sur la base imposee par l'appelant (dashboard).
+            // A USE in the text wins over the database imposed by the caller (dashboard).
             Database = FindDatabase(text, all, caret) ?? (string.IsNullOrWhiteSpace(database) ? null : database)
         };
     }
@@ -128,7 +128,7 @@ public static partial class SqlContextAnalyzer
 
     private static bool IsIdentifierChar(char c) => char.IsLetterOrDigit(c) || c is '_' or '@' or '#' or '$';
 
-    // ---------- Position du curseur ----------
+    // ---------- Caret position ----------
 
     private static bool IsCaretInside(SqlToken token, int caret)
     {
@@ -168,7 +168,7 @@ public static partial class SqlContextAnalyzer
         return GoLineTailRegex().IsMatch(text[token.End..(lineEnd < 0 ? text.Length : lineEnd)]);
     }
 
-    // ---------- Nature attendue ----------
+    // ---------- Expected kind ----------
 
     private static (SqlContextKind Kind, IReadOnlyList<string> Qualifier) DetermineKind(string text, SqlToken[] tokens, int index, int wordStart)
     {
@@ -203,7 +203,7 @@ public static partial class SqlContextAnalyzer
                 return (AfterAs(text, tokens, index - 1), []);
         }
 
-        // CONVERT(type, valeur) : le type vient en premier.
+        // CONVERT(type, value): the type comes first.
         if (previous.Kind == SqlTokenKind.OpenParen && index >= 2 && IsWordIn(text, tokens[index - 2], ConvertFunctions))
             return (SqlContextKind.DataType, []);
 
@@ -263,14 +263,14 @@ public static partial class SqlContextAnalyzer
     {
         var previous = tokens[index - 1];
 
-        // INSERT INTO t (|  : liste de colonnes.
+        // INSERT INTO t (|  : column list.
         if (isInsideParen && clause.Equals("INTO", StringComparison.OrdinalIgnoreCase))
             return SqlContextKind.Column;
 
         if (previous.Kind == SqlTokenKind.Comma)
             return isInsideParen ? SqlContextKind.Column : SqlContextKind.TableSource;
 
-        // UPDATE t | et INTO t | n'acceptent pas d'alias : on y attend SET, VALUES...
+        // UPDATE t | and INTO t | do not accept an alias: SET, VALUES... are expected there.
         var isNameEnd = IsName(previous) || previous.Kind == SqlTokenKind.CloseParen;
         if (isNameEnd && AliasedSources.Contains(clause)
             && IsTableNamePosition(text, tokens, index - 1) && !ContainsNewLine(text, previous.End, wordStart))
@@ -359,7 +359,7 @@ public static partial class SqlContextAnalyzer
         return null;
     }
 
-    // ---------- Tables et base ----------
+    // ---------- Tables and database ----------
 
     /// <summary>Tables after FROM, JOIN, UPDATE, INTO, MERGE, USING, APPLY, and after the commas of a FROM.</summary>
     private static List<SqlTableReference> ParseTables(string text, SqlToken[] tokens)
@@ -379,7 +379,7 @@ public static partial class SqlContextAnalyzer
                 if (table is not null)
                     tables.Add(table);
 
-                // FROM a, b, c : chaque virgule de premier niveau ajoute une table.
+                // FROM a, b, c: each top-level comma adds a table.
                 if (!isFrom || next >= tokens.Length || tokens[next].Kind != SqlTokenKind.Comma)
                     break;
 
@@ -425,7 +425,7 @@ public static partial class SqlContextAnalyzer
             if (parts.Count == 0)
                 return false;
 
-            // Fonction table : dbo.fn(@x) alias.
+            // Table function: dbo.fn(@x) alias.
             if (next < tokens.Length && tokens[next].Kind == SqlTokenKind.OpenParen)
                 next = SkipParens(tokens, next);
         }
@@ -471,7 +471,7 @@ public static partial class SqlContextAnalyzer
         return database;
     }
 
-    // ---------- Utilitaires ----------
+    // ---------- Utilities ----------
 
     private static int SkipParens(SqlToken[] tokens, int openIndex)
     {

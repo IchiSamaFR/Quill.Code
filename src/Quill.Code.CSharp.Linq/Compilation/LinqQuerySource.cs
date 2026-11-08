@@ -60,7 +60,7 @@ internal static class LinqQuerySource
     /// </summary>
     internal static string BuildGlobals(EfGeneratedModel? model, IReadOnlyList<LinqParameter> parameters)
     {
-        // Type complet : ce projet n'a pas l'alias QueryDbContext, propre a celui des requetes.
+        // Full type: this project does not have the QueryDbContext alias, specific to the queries' project.
         var contextType = model is null
             ? "global::Microsoft.EntityFrameworkCore.DbContext"
             : $"global::{model.Namespace}.{model.ContextClassName}";
@@ -147,7 +147,7 @@ internal static class LinqQuerySource
         code.AppendLine("global using Microsoft.EntityFrameworkCore;");
         code.AppendLine($"global using static {GlobalsClass};");
 
-        // Sans connexion, l'alias designe DbContext : la requete reste analysable.
+        // Without a connection, the alias designates DbContext: the query stays analyzable.
         if (model is null)
         {
             code.AppendLine($"global using {ContextAlias} = global::Microsoft.EntityFrameworkCore.DbContext;");
@@ -163,11 +163,11 @@ internal static class LinqQuerySource
 
     private static IReadOnlyList<MetadataReference> LoadPlatformReferences(ILinqDatabaseProvider? provider)
     {
-        // Assemblies du runtime (a defaut, celles deja chargees), filtrees.
+        // Runtime assemblies (otherwise, those already loaded), filtered.
         var paths = CSharpReferences.GetTrustedPlatformAssemblyPaths()
             .Where(path => ReferencedAssemblyPrefixes.Any(p => Path.GetFileName(path).StartsWith(p, StringComparison.OrdinalIgnoreCase)));
 
-        // EF et le fournisseur ne sont peut-etre pas encore charges : on force leurs assemblies dans la liste.
+        // EF and the provider may not be loaded yet: their assemblies are forced into the list.
         string[] required = [typeof(DbContext).Assembly.Location, typeof(RelationalQueryableExtensions).Assembly.Location, .. (provider?.Assemblies ?? []).Select(a => a.Location)];
 
         return paths.Concat(required)

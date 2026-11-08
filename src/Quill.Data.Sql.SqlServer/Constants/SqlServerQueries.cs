@@ -10,7 +10,7 @@ internal static class SqlServerQueries
         ORDER BY name;
         """;
 
-    // sys.objects.type est un char(2) : 'U' correspond a 'U ' (espaces de fin ignores).
+    // sys.objects.type is a char(2): 'U' matches 'U ' (trailing spaces ignored).
     internal const string Objects = """
         SELECT s.name, o.name,
                CONVERT(nvarchar(max), (SELECT ep.value FROM sys.extended_properties ep
@@ -21,7 +21,7 @@ internal static class SqlServerQueries
         ORDER BY s.name, o.name;
         """;
 
-    // user_type_id : un type alias (CREATE TYPE) s'affiche sous son nom, comme dans SSMS.
+    // user_type_id: an alias type (CREATE TYPE) is displayed under its name, like in SSMS.
     internal const string Columns = """
         SELECT c.name, t.name, c.max_length, c.precision, c.scale,
                c.is_nullable, c.is_identity, c.is_computed,
@@ -41,7 +41,7 @@ internal static class SqlServerQueries
         ORDER BY c.column_id;
         """;
 
-    // Trois jeux de resultats : base courante, objets, colonnes (rattachees par object_id).
+    // Three result sets: current database, objects, columns (linked by object_id).
     internal const string Snapshot = """
         SELECT DB_NAME();
 

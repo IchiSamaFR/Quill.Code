@@ -140,19 +140,19 @@ public class LinqCompilerTests
     [Fact]
     public async Task Parameters_ExposedByNameAndType()
     {
-        // Nom sans @, type du dashboard (int?) : l'arithmetique reste celle du type.
+        // Name without @, dashboard type (int?): arithmetic stays that of the type.
         LinqParameter[] parameters = [new LinqParameter("@UserId", typeof(int?), 16)];
         var globals = TestLinq.Globals(Model.Value, parameters);
         Assert.Equal([32], await DumpsAsync("(UserId * 2).Dump();", globals, parameters));
 
-        // Meme QueryGlobals, autre valeur : posee a l'execution.
+        // Same QueryGlobals, different value: set at execution.
         Assert.Equal([8], await DumpsAsync("(UserId * 2).Dump();", globals, [new LinqParameter("@UserId", typeof(int?), 4)]));
     }
 
     [Fact]
     public void Parameters_SameNamesAndTypesShareTheirAssembly()
     {
-        // Les valeurs ne font pas partie du source : un seul QueryGlobals par jeu de noms et de types.
+        // Values are not part of the source: a single QueryGlobals per set of names and types.
         Assert.Equal(
             LinqQuerySource.BuildGlobals(Model.Value.Model, [new LinqParameter("UserId", typeof(int?), 16)]),
             LinqQuerySource.BuildGlobals(Model.Value.Model, [new LinqParameter("UserId", typeof(int?), 4)]));
@@ -165,12 +165,12 @@ public class LinqCompilerTests
         var globals = TestLinq.Globals(Model.Value, parameters);
         List<string> queries = [];
 
-        // Traduite pendant l'execution : les parametres sont en AsyncLocal, nuls une fois RunAsync rendu.
+        // Translated during execution: parameters are AsyncLocal, null once RunAsync returns.
         await LinqCompiler.RunAsync(globals, "Db.AspNetUsers.Where(u => u.Email == Email).Dump();", LinqCompiler.CreateContext(Model.Value, ConnectionString),
             (value, _) => queries.Add(Assert.IsAssignableFrom<IQueryable>(value).ToQueryString()), parameters);
         var sql = Assert.Single(queries);
 
-        // ToQueryString declare la valeur en tete, mais le WHERE compare bien a un parametre.
+        // ToQueryString declares the value at the top, but the WHERE does compare with a parameter.
         Assert.Contains("= @", sql, StringComparison.Ordinal);
     }
 

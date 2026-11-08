@@ -112,7 +112,7 @@ internal sealed partial class SqlCompletionService : ICodeCompletion
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Select(name => new CompletionItem { Label = name, Kind = CompletionItemKind.Variable, Detail = types.GetValueOrDefault(name) });
 
-        // Les paramètres de l'hôte (dashboard) passent en premier : un DECLARE du même nom ne les double pas.
+        // Host parameters (dashboard) come first: a DECLARE with the same name does not duplicate them.
         return host.Concat(declared)
             .GroupBy(i => i.Label, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
@@ -124,7 +124,7 @@ internal sealed partial class SqlCompletionService : ICodeCompletion
 
     private static CompletionItem[] Merge(IReadOnlyList<CompletionItem>[] batches)
     {
-        // MAX est à la fois type et fonction, Users peut exister dans deux schémas : seuls les vrais doublons partent.
+        // MAX is both a type and a function, Users may exist in two schemas: only true duplicates go.
         var seen = new HashSet<(string, CompletionItemKind, string?)>();
         var items = new List<CompletionItem>(batches.Sum(batch => batch.Count));
         foreach (var item in batches.SelectMany(batch => batch))
@@ -133,7 +133,7 @@ internal sealed partial class SqlCompletionService : ICodeCompletion
                 items.Add(item);
         }
 
-        // Un mot du document déjà connu du schéma ou des mots-clés ferait doublon, sans type ni icône.
+        // A document word already known from the schema or the keywords would be a duplicate, without type or icon.
         var known = items.Where(item => item.Kind != CompletionItemKind.Text)
             .Select(item => item.Label)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);

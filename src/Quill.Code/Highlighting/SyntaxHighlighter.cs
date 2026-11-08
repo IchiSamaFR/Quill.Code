@@ -26,7 +26,7 @@ public static class SyntaxHighlighter
         endState = SyntaxLineState.Initial;
         var position = 0;
 
-        // Suite d'un span ouvert sur une ligne précédente.
+        // Continuation of a span opened on a previous line.
         if (state.OpenSpan >= 0 && state.OpenSpan < rules.Count)
         {
             var openSpan = rules[state.OpenSpan];
@@ -42,7 +42,7 @@ public static class SyntaxHighlighter
             position = spanEnd;
         }
 
-        // Prochaine correspondance de chaque règle : recalculée seulement quand on l'a dépassée.
+        // Next match of each rule: recomputed only once it has been passed.
         var nextMatches = new Match?[rules.Count];
 
         while (position < line.Length)
@@ -59,7 +59,7 @@ public static class SyntaxHighlighter
                     nextMatches[i] = match;
                 }
 
-                // Strictement plus tôt : à égalité, la règle déclarée en premier l'emporte.
+                // Strictly earlier: on a tie, the rule declared first wins.
                 if (match.Success && (best is null || match.Index < best.Index))
                 {
                     best = match;
@@ -78,7 +78,7 @@ public static class SyntaxHighlighter
                 var spanEnd = FindSpanEnd(rule, line, end);
                 if (spanEnd < 0)
                 {
-                    // Span sans fin sur cette ligne : jusqu'au bout, et au-delà s'il est multiligne.
+                    // Span without an end on this line: to the end, and beyond if it is multi-line.
                     Add(tokens, best.Index, line.Length - best.Index, rule.Color);
                     if (rule.IsMultiline && rule.End is not null)
                         endState = new SyntaxLineState(bestRule);
@@ -143,7 +143,7 @@ public static class SyntaxHighlighter
         return match.Success ? match.Index + match.Length : -1;
     }
 
-    // Une correspondance vide ne colore rien et bloquerait l'avancée : on cherche plus loin.
+    // An empty match colors nothing and would block progress: search further.
     private static Match FindNonEmptyMatch(Regex regex, string line, int start)
     {
         var match = regex.Match(line, start);

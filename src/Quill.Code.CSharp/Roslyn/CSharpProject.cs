@@ -18,7 +18,7 @@ internal sealed class CSharpProject
     private Project? _project;
     private bool _sourcesChanged;
 
-    // Dernières références propres au texte : Roslyn réutilise sa compilation tant qu'elles ne changent pas.
+    // Last references specific to the text: Roslyn reuses its compilation as long as they do not change.
     private (Project Base, MetadataReference[] References, Project Project)? _textProject;
 
     public CSharpProject(Func<CSharpLanguageOptions> options)
@@ -104,7 +104,7 @@ internal sealed class CSharpProject
         var document = WithTextReferences(project, options, text).GetDocument(documentId)
             ?? throw new InvalidOperationException("Le document de l'éditeur est introuvable dans le projet.");
 
-        // Encodage requis pour émettre les informations de débogage (PDB).
+        // Encoding required to emit debug information (PDB).
         return new CSharpDocument(document.WithText(SourceText.From(source, Encoding.UTF8)), text, options);
     }
 

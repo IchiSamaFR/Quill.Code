@@ -23,7 +23,7 @@ internal static class SqliteQueries
         ORDER BY x.cid;
         """;
 
-    // Une ligne par colonne, rattachee a sa table ou sa vue ; une ligne sans colonne pour un objet qui n'en rend pas.
+    // One row per column, linked to its table or view; a row without a column for an object that returns none.
     internal const string Snapshot = """
         SELECT m.name, m.type, x.name, x.type, NOT x."notnull", x.pk, x.hidden
         FROM {0}.sqlite_master m

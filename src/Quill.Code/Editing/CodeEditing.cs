@@ -75,7 +75,7 @@ public static class CodeEditing
         var closing = ClosingOf(typed);
         var region = SourceScanner.RegionAt(text, start, options.Syntax);
 
-        // Sélection entourée par la paire : elle reste sur le texte entouré.
+        // Selection wrapped by the pair: it stays on the wrapped text.
         if (!selection.IsEmpty)
         {
             return region == SourceRegion.Code && closing is char wrap
@@ -87,7 +87,7 @@ public static class CodeEditing
         var previous = start > 0 ? text[start - 1] : '\0';
         var isQuote = typed is '"' or '\'';
 
-        // Fermant déjà là (inséré par la paire) : on passe simplement par-dessus.
+        // Closing character already there (inserted by the pair): simply step over it.
         if (next == typed && (isQuote ? region == SourceRegion.String : region == SourceRegion.Code && typed is ')' or ']' or '}'))
             return EditResult.Move(TextSelection.Caret(start + 1));
 
@@ -105,7 +105,7 @@ public static class CodeEditing
         if (typed == '{' && options.PlaceOpenBraceOnNewLine && PlaceBraceOnNewLine(text, start, lineStart, options) is { } allman)
             return allman;
 
-        // Pas de paire collée à un mot (it's, l'apostrophe) ni avant du texte.
+        // No pair stuck to a word (it's, l'apostrophe) nor before text.
         if (isQuote && IsIdentifierPart(previous))
             return null;
 
@@ -289,7 +289,7 @@ public static class CodeEditing
         if (last < text.Length)
             return EditResult.Replace(first, NextLineStart(text, last) - first, string.Empty, TextSelection.Caret(first));
 
-        // Dernière ligne : c'est le saut de ligne qui la précède qui part, pour ne pas laisser de ligne vide.
+        // Last line: the line break before it is what goes, so as not to leave an empty line.
         if (first > 0)
         {
             var previousEnd = PreviousLineEnd(text, first);
@@ -383,7 +383,7 @@ public static class CodeEditing
         if (text.AsSpan(lineStart, start - lineStart).IsWhiteSpace() || !text.AsSpan(start, lineEnd - start).IsWhiteSpace())
             return null;
 
-        // Les blancs en fin de ligne de code partent avec le passage à la ligne.
+        // Trailing whitespace on a code line goes away with the line break.
         var codeEnd = lineStart + text.AsSpan(lineStart, start - lineStart).TrimEnd().Length;
         var indent = text.Substring(lineStart, LeadingWhitespaceLength(text, lineStart, start));
         var inserted = options.NewLine + indent + "{}";

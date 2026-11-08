@@ -15,7 +15,7 @@ namespace Quill.Code.CSharp.Roslyn;
 /// </summary>
 internal static class RoslynHost
 {
-    // Services de complétion, survol et signatures : dans les assemblies Features, absentes des valeurs par défaut selon l'hôte.
+    // Completion, hover and signature services: in the Features assemblies, missing from the defaults depending on the host.
     private static readonly Lazy<AdhocWorkspace> Workspace = new(() => new AdhocWorkspace(MefHostServices.Create(
         MefHostServices.DefaultAssemblies
             .Concat([typeof(RoslynCompletion.CompletionService).Assembly, Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features")])
@@ -45,7 +45,7 @@ internal static class RoslynHost
         return (withDocument.GetProject(projectId)!, documentId);
     }
 
-    // Encodage requis pour émettre les informations de débogage (PDB).
+    // Encoding required to emit debug information (PDB).
     private static (Solution Solution, DocumentId Id) AddDocument(Solution solution, ProjectId projectId, string name, string source)
     {
         var id = DocumentId.CreateNewId(projectId, name);

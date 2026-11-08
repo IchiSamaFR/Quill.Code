@@ -24,7 +24,7 @@ public sealed class CSharpCompilerTests
     {
         var library = new CSharpLanguageService(() => CSharpTestProjects.LibraryOptions("Library"));
         var model = await library.CompileAsync("public static class Model { public static int Answer => 42; }", new CSharpCompileOptions { Collectible = false });
-        model.Dispose(); // sans effet : assembly non déchargeable
+        model.Dispose(); // no effect: assembly not collectible
 
         var service = new CSharpLanguageService(() => CSharpTestProjects.LibraryOptions("Client") with
         {
@@ -56,7 +56,7 @@ public sealed class CSharpCompilerTests
     [Fact]
     public async Task Compile_ErrorWithoutPositionIsStillReported()
     {
-        // Pas de point d'entrée (CS5001) : aucune position, mais jamais silencieux.
+        // No entry point (CS5001): no position, but never silent.
         var service = new CSharpLanguageService(() => CSharpTestProjects.LibraryOptions("NoEntryPoint") with
         {
             CompilationOptions = new CSharpCompilationOptions(OutputKind.ConsoleApplication),

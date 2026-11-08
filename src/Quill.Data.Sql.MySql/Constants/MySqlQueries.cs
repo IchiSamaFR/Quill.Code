@@ -7,7 +7,7 @@ internal static class MySqlQueries
         SELECT SCHEMA_NAME FROM information_schema.SCHEMATA ORDER BY SCHEMA_NAME;
         """;
 
-    // TABLE_COMMENT vaut « VIEW » pour une vue : ce n'est pas un commentaire.
+    // TABLE_COMMENT is "VIEW" for a view: it is not a comment.
     internal const string Tables = """
         SELECT TABLE_SCHEMA, TABLE_NAME,
                CASE WHEN TABLE_TYPE = 'VIEW' THEN NULL ELSE NULLIF(TABLE_COMMENT, '') END
@@ -23,7 +23,7 @@ internal static class MySqlQueries
         ORDER BY ROUTINE_NAME;
         """;
 
-    // COLUMN_TYPE est le type affiche (int unsigned, varchar(50)) ; DATA_TYPE le type de base.
+    // COLUMN_TYPE is the displayed type (int unsigned, varchar(50)); DATA_TYPE the base type.
     internal const string Columns = """
         SELECT c.COLUMN_NAME, c.COLUMN_TYPE, c.DATA_TYPE,
                COALESCE(c.NUMERIC_PRECISION, 0), COALESCE(c.NUMERIC_SCALE, c.DATETIME_PRECISION, 0),
@@ -40,7 +40,7 @@ internal static class MySqlQueries
         ORDER BY c.ORDINAL_POSITION;
         """;
 
-    // Quatre jeux : base courante, tables et vues, procedures, colonnes (rattachees par nom de table).
+    // Four sets: current database, tables and views, procedures, columns (linked by table name).
     internal const string Snapshot = """
         SELECT DATABASE();
 

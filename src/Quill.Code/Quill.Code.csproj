@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Code</RootNamespace>
-		<Description>Socle commun des editeurs de code : modeles, contrats, coloration syntaxique (.xshd) et algorithmes d'edition, sans aucune dependance.</Description>
+		<Description>Shared foundation of code editors: models, contracts, syntax highlighting (.xshd) and editing algorithms, with no dependency.</Description>
 		<IsAotCompatible>true</IsAotCompatible>
 	</PropertyGroup>
 

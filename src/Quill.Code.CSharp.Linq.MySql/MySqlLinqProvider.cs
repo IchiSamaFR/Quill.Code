@@ -31,7 +31,7 @@ public sealed class MySqlLinqProvider : ILinqDatabaseProvider
     {
         ArgumentNullException.ThrowIfNull(column);
 
-        // DataType est le COLUMN_TYPE complet : signe et largeur d'affichage (tinyint(1) = booleen, comme le fournisseur).
+        // DataType is the full COLUMN_TYPE: sign and display width (tinyint(1) = boolean, like the provider).
         var columnType = column.DataType.ToLowerInvariant();
         var unsigned = columnType.Contains("unsigned", StringComparison.Ordinal);
         var sqlType = (string.IsNullOrEmpty(column.SqlType) ? columnType : column.SqlType).ToLowerInvariant();
@@ -39,7 +39,7 @@ public sealed class MySqlLinqProvider : ILinqDatabaseProvider
         if (parenthesis > 0)
             sqlType = sqlType[..parenthesis];
 
-        // geometry, point... : pas de mapping sans paquet dedie.
+        // geometry, point...: no mapping without a dedicated package.
         return sqlType switch
         {
             "tinyint" when columnType.StartsWith("tinyint(1)", StringComparison.Ordinal) => "bool",
@@ -80,7 +80,7 @@ public sealed class MySqlLinqProvider : ILinqDatabaseProvider
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        // Le schema du modele est le nom de la base, deja choisie par la connexion : MySQL n'a pas de schema distinct.
+        // The model's schema is the database name, already chosen by the connection: MySQL has no separate schema.
         builder.UseMySql(connectionString, GetServerVersion(connectionString), mySql => mySql.SchemaBehavior(MySqlSchemaBehavior.Ignore));
     }
 

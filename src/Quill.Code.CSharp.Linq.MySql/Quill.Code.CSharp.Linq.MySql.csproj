@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!-- EF Core 10 ne cible que net10.0. -->
+		<!-- EF Core 10 only targets net10.0. -->
 		<TargetFramework>net10.0</TargetFramework>
 		<RootNamespace>Quill.Code.CSharp.Linq.MySql</RootNamespace>
-		<Description>Requetes LINQ / Entity Framework Core sur MySQL / MariaDB pour Quill.Code.CSharp.Linq (Microting.EntityFrameworkCore.MySql, fork EF Core 10 de Pomelo, sur MySqlConnector).</Description>
+		<Description>LINQ / Entity Framework Core queries on MySQL / MariaDB for Quill.Code.CSharp.Linq (Microting.EntityFrameworkCore.MySql, EF Core 10 fork of Pomelo, on MySqlConnector).</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

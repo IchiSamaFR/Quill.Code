@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Code.Sql.Sqlite</RootNamespace>
-		<Description>Execution SQL sur SQLite pour Quill.Code (Microsoft.Data.Sqlite), sur le contrat ISqlQueryExecutor.</Description>
+		<Description>SQL execution on SQLite for Quill.Code (Microsoft.Data.Sqlite), on the ISqlQueryExecutor contract.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Code.Sql.Oracle</RootNamespace>
-		<Description>Execution SQL sur Oracle pour Quill.Code (ODP.NET Core) : script decoupe en instructions et blocs PL/SQL, sur le contrat ISqlQueryExecutor.</Description>
+		<Description>SQL execution on Oracle for Quill.Code (ODP.NET Core): script split into statements and PL/SQL blocks, on the ISqlQueryExecutor contract.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

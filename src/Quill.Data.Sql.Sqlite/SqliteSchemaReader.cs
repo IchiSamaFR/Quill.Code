@@ -91,7 +91,7 @@ public sealed class SqliteSchemaReader : ISqlSchemaReader
             if (objects.Count == 0 || objects[^1].Name != name)
                 objects.Add((name, reader.GetString(1) == SqliteConstants.ViewType ? SqlSchemaObjectKind.View : SqlSchemaObjectKind.Table, []));
 
-            // Ligne sans colonne : objet dont pragma_table_xinfo ne rend rien.
+            // Row without a column: object for which pragma_table_xinfo returns nothing.
             if (reader.IsDBNull(2) || reader.GetInt32Value(6) == SqliteConstants.HiddenColumn)
                 continue;
 

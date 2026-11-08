@@ -81,7 +81,7 @@ public static class DbResultSetReader
             }
             catch (Exception ex) when (ex is InvalidCastException or FileNotFoundException or NotSupportedException or OverflowException)
             {
-                // Types sans equivalent .NET charge (geography SQL Server, NUMBER Oracle au-dela de decimal...).
+                // Types without a loaded .NET equivalent (SQL Server geography, Oracle NUMBER beyond decimal...).
                 unsupportedColumns[ordinal] = true;
             }
         }

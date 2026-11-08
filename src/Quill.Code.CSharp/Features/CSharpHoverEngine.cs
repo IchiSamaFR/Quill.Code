@@ -13,13 +13,13 @@ internal static class CSharpHoverEngine
         if (position < 0 || position > document.Text.Length || QuickInfoService.GetService(document.Document) is not { } service)
             return null;
 
-        // Infobulle de Visual Studio : libellés localisés, surcharges ; le nom touché par la souris compte aussi.
+        // Visual Studio tooltip: localized labels, overloads; the name touched by the mouse counts too.
         var info = await service.GetQuickInfoAsync(document.Document, position, cancellationToken);
         var signature = info?.Sections.FirstOrDefault(section => section.Kind == QuickInfoSectionKinds.Description);
         if (info is null || signature is null)
             return null;
 
-        // Un [Description] (table, colonne d'un modèle généré) prime sur la documentation XML.
+        // A [Description] (table, column of a generated model) takes precedence over the XML documentation.
         var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document.Document, info.Span.Start, cancellationToken);
         var details = (symbol is null ? null : CSharpSymbolFormatter.Details(symbol))
             ?? info.Sections.FirstOrDefault(section => section.Kind == QuickInfoSectionKinds.DocumentationComments)?.Text;

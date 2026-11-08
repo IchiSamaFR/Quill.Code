@@ -35,10 +35,10 @@ internal sealed class SqlHoverService : ICodeHover
     {
         ArgumentNullException.ThrowIfNull(code);
 
-        // Commentaires écartés : rien à expliquer dedans, et ils casseraient le qualificatif (a./*x*/b).
+        // Comments skipped: nothing to explain inside, and they would break the qualifier (a./*x*/b).
         var tokens = SqlLexer.Tokenize(code).Where(t => !t.IsComment).ToArray();
 
-        // Le caractère survolé, ou celui qui le précède (souris posée juste après la fin du nom).
+        // The hovered character, or the one before it (mouse placed right after the end of the name).
         var index = Array.FindIndex(tokens, t => t.Start <= position && position < t.End);
         if (index < 0)
             index = Array.FindIndex(tokens, t => t.Start < position && position == t.End);
@@ -69,7 +69,7 @@ internal sealed class SqlHoverService : ICodeHover
         return parts;
     }
 
-    // ---------- Noms du catalogue ----------
+    // ---------- Catalog names ----------
 
     private async Task<(string Signature, string? Description)?> DescribeNameAsync(SqlContext scope, List<string> qualifier, string name, CancellationToken cancellationToken)
     {
@@ -77,7 +77,7 @@ internal sealed class SqlHoverService : ICodeHover
         {
             case 0:
                 {
-                    // Alias ou table du FROM, puis colonne d'une table du lot, puis objet, schéma ou base.
+                    // Alias or table of the FROM, then column of a table of the batch, then object, schema or database.
                     if (scope.FindTable(name) is { } reference && await _catalog.FindAsync(scope, reference, cancellationToken).ConfigureAwait(false) is { } referenced)
                         return DescribeObject(referenced, reference.Alias);
 
@@ -153,7 +153,7 @@ internal sealed class SqlHoverService : ICodeHover
     private static (string, string?)? ColumnOf(SqlSchemaObject table, string name)
         => FindColumn(table, name) is { } column ? DescribeColumn(table, column, []) : null;
 
-    // ---------- Textes ----------
+    // ---------- Texts ----------
 
     /// <summary>E.g. "(column) Name nvarchar(50) NOT NULL", then the table (and the other tables of the batch that also have it).</summary>
     private static (string, string?) DescribeColumn(SqlSchemaObject table, SqlColumn column, IReadOnlyList<string> alsoIn)
@@ -244,7 +244,7 @@ internal sealed class SqlHoverService : ICodeHover
                 if (string.Equals(variable, name, StringComparison.OrdinalIgnoreCase))
                     return isTable ? "TABLE" : string.Join(' ', text[typeStart..typeEnd].Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
-                // Valeur initiale éventuelle, jusqu'à la virgule qui annonce la variable suivante.
+                // Optional initial value, up to the comma announcing the next variable.
                 j = SkipToNextVariable(text, tokens, j);
             }
         }

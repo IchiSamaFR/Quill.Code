@@ -37,7 +37,7 @@ internal sealed class SqlSchemaCompletion
         };
     }
 
-    // ---------- Par contexte ----------
+    // ---------- By context ----------
 
     private async Task<IReadOnlyList<CompletionItem>> GetDatabaseItemsAsync(CancellationToken cancellationToken)
         => (await _catalog.GetDatabasesAsync(cancellationToken).ConfigureAwait(false))
@@ -93,7 +93,7 @@ internal sealed class SqlSchemaCompletion
                     if (current is not null && current.HasSchema(name))
                         return ObjectItems(current, name, kinds, withSchemas: false);
 
-                    // Table absente du lot : SELECT Users.| reste valide si Users est dans le FROM d'une autre instruction.
+                    // Table missing from the batch: SELECT Users.| stays valid if Users is in the FROM of another statement.
                     if (current?.Find(null, name) is { Columns.Count: > 0 } direct)
                         return ColumnItems(direct, null);
 
@@ -126,7 +126,7 @@ internal sealed class SqlSchemaCompletion
         }
     }
 
-    // ---------- Construction des propositions ----------
+    // ---------- Building suggestions ----------
 
     /// <summary>Objects of a database, of a schema if specified; the schemas themselves to continue with "schema.".</summary>
     private static IReadOnlyList<CompletionItem> ObjectItems(SqlDatabaseSchema database, string? schema, SqlSchemaObjectKind[] kinds, bool withSchemas)
@@ -138,7 +138,7 @@ internal sealed class SqlSchemaCompletion
             {
                 Label = o.Name,
                 Kind = ToItemKind(o.Kind),
-                // Hors schéma par défaut, le schéma est inséré : « Users » seul viserait dbo.Users.
+                // Outside the default schema, the schema is inserted: "Users" alone would target dbo.Users.
                 InsertText = schema is not null || SqlDatabaseSchema.IsDefaultSchema(o.Schema)
                     ? SqlKeywords.Quote(o.Name)
                     : $"{SqlKeywords.Quote(o.Schema)}.{SqlKeywords.Quote(o.Name)}",
@@ -154,7 +154,7 @@ internal sealed class SqlSchemaCompletion
             Label = c.Name,
             Kind = CompletionItemKind.Column,
             InsertText = SqlKeywords.Quote(c.Name),
-            // Plusieurs tables dans le lot : on précise d'où vient la colonne.
+            // Several tables in the batch: specify where the column comes from.
             Detail = owner is null ? c.DataType : $"{c.DataType} · {owner}",
         }).ToArray();
 

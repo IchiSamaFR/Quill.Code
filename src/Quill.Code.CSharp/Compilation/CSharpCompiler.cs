@@ -15,7 +15,7 @@ internal static class CSharpCompiler
         var compilation = await document.Document.Project.GetCompilationAsync(cancellationToken)
             ?? throw new InvalidOperationException("Roslyn n'a pas produit de compilation pour le projet.");
 
-        // Nom unique : chaque compilation est chargée dans son propre contexte.
+        // Unique name: each compilation is loaded into its own context.
         var name = options.AssemblyName ?? $"{compilation.AssemblyName}_{Guid.NewGuid():N}";
 
         using var image = new MemoryStream();
@@ -29,7 +29,7 @@ internal static class CSharpCompiler
         var reported = result.Diagnostics.Where(d => d.Severity is DiagnosticSeverity.Warning or DiagnosticSeverity.Error).ToArray();
         var diagnostics = (await CSharpDiagnosticMapper.MapAsync(document, reported, cancellationToken)).ToList();
 
-        // Erreurs des sources ajoutées au projet (ex. classe utilitaire) : sans position dans l'éditeur, le fichier est cité.
+        // Errors of the sources added to the project (e.g. helper class): with no position in the editor, the file is named.
         var tree = await document.Document.GetSyntaxTreeAsync(cancellationToken);
         diagnostics.InsertRange(0, reported
             .Where(d => d.Severity == DiagnosticSeverity.Error && d.Location.SourceTree is { FilePath.Length: > 0 } source && source != tree)
@@ -37,7 +37,7 @@ internal static class CSharpCompiler
 
         if (!result.Success)
         {
-            // Erreur dans le code qui entoure le texte : sans position utile, mais jamais silencieuse.
+            // Error in the code surrounding the text: no useful position, but never silent.
             if (!diagnostics.Any(d => d.IsError) && reported.FirstOrDefault(d => d.Severity == DiagnosticSeverity.Error) is { } error)
                 diagnostics.Insert(0, new CodeDiagnostic(0, 0, CodeDiagnosticSeverity.Error, error.GetMessage(CultureInfo.CurrentUICulture), error.Id));
 

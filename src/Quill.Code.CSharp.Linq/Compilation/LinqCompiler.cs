@@ -23,8 +23,8 @@ namespace Quill.Code.CSharp.Linq.Compilation;
 [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Compilation en memoire, sans AOT : compilation et reflexion assumees.")]
 internal static class LinqCompiler
 {
-    // Un service par QueryGlobals compile (libere avec lui) : references, contexte et parametres ne changent pas d'une
-    // frappe a l'autre ni d'une execution a l'autre (les valeurs sont posees a l'execution), Roslyn reutilise sa compilation.
+    // One service per compiled QueryGlobals (released with it): references, context and parameters do not change from one
+    // keystroke to the next nor from one execution to the next (values are set at execution), Roslyn reuses its compilation.
     private static readonly ConditionalWeakTable<LinqParametersAssembly, CSharpLanguageService> Services = new();
 
     /// <summary>C# service (Quill) shared by the editor and the execution: the query is native C#.</summary>
@@ -45,7 +45,7 @@ internal static class LinqCompiler
 
         var references = LinqQuerySource.GetPlatformReferences(provider);
 
-        // Projet a part, sans editeur : le modele est compile seul, une fois par schema.
+        // Separate project, without an editor: the model is compiled alone, once per schema.
         var service = new CSharpLanguageService(() => new CSharpLanguageOptions
         {
             Name = $"EfModel_{model.ContextClassName}",
@@ -53,7 +53,7 @@ internal static class LinqCompiler
             CompilationOptions = LinqQuerySource.ModelCompilationOptions,
         });
 
-        // Non collectable : le modele vit tant que l'application, et EF garde ses types en cache.
+        // Not collectible: the model lives as long as the application, and EF caches its types.
         var compiled = await service.CompileAsync(model.Source, new CSharpCompileOptions
         {
             AssemblyName = $"EfModel_{Guid.NewGuid():N}",
@@ -96,7 +96,7 @@ internal static class LinqCompiler
             CompilationOptions = LinqQuerySource.ModelCompilationOptions,
         });
 
-        // Non collectable, comme le modele : les requetes (collectables) la referencent.
+        // Not collectible, like the model: the (collectible) queries reference it.
         var compiled = await service.CompileAsync(source, new CSharpCompileOptions
         {
             AssemblyName = $"LinqParameters_{Guid.NewGuid():N}",
@@ -130,7 +130,7 @@ internal static class LinqCompiler
         ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(query);
 
-        // Projet meme de l'editeur (references, contexte genere, parametres) : ce qui est souligne est ce qui echoue.
+        // The editor's very project (references, generated context, parameters): what is underlined is what fails.
         return GetLanguageService(parameters).CompileAsync(query, QueryOptions(parameters, log), cancellationToken);
     }
 
@@ -179,7 +179,7 @@ internal static class LinqCompiler
         var model = parameters.Model
             ?? throw new InvalidOperationException("Une requete ne s'execute que sur le modele d'une connexion.");
 
-        // Toutes les valeurs sont converties avant d'en poser une : une erreur n'en laisse aucune a moitie posee.
+        // All values are converted before setting any: an error leaves none half set.
         Dictionary<PropertyInfo, object?> converted = [];
         try
         {
@@ -194,7 +194,7 @@ internal static class LinqCompiler
             throw new LinqCompilationException(ex.Message, []);
         }
 
-        // Proprietes en AsyncLocal, posees dans ce flux avant le depart du script : Dump, Db puis les parametres.
+        // AsyncLocal properties, set in this flow before the script starts: Dump, Db then the parameters.
         model.DumpSinkProperty.SetValue(null, dump);
         parameters.ContextProperty.SetValue(null, context);
         foreach (var (property, value) in converted)
@@ -211,7 +211,7 @@ internal static class LinqCompiler
         var builder = (DbContextOptionsBuilder)Activator.CreateInstance(typeof(DbContextOptionsBuilder<>).MakeGenericType(model.ContextType))!;
         model.Provider.Configure(builder, connectionString);
 
-        // Lecture seule : pas de suivi des entites, inutile pour afficher des resultats.
+        // Read-only: no entity tracking, useless for displaying results.
         builder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
         return (DbContext)Activator.CreateInstance(model.ContextType, builder.Options)!;
@@ -241,14 +241,14 @@ internal static class LinqCompiler
                 : [.. parameters.Model.PlatformReferences, parameters.Model.Reference, parameters.Reference],
             DocumentName = LinqQueryConstants.QueryDocumentName,
 
-            // Usings implicites, alias QueryDbContext et import de QueryGlobals : fixes, Roslyn ne les reanalyse pas a
-            // chaque frappe. Dump vient du modele, Db et les parametres de QueryGlobals, Log et Script du runtime de Quill.
+            // Implicit usings, QueryDbContext alias and QueryGlobals import: fixed, Roslyn does not reanalyze them on
+            // every keystroke. Dump comes from the model, Db and the parameters from QueryGlobals, Log and Script from the Quill runtime.
             AdditionalDocuments = new Dictionary<string, string>
             {
                 [LinqQueryConstants.GlobalUsings] = LinqQuerySource.BuildGlobalUsings(parameters.Model?.Model),
             },
 
-            // Sans DbContext, les tables n'existent pas : seules les fautes de syntaxe ont un sens.
+            // Without a DbContext, tables do not exist: only syntax errors make sense.
             IncludeSemanticDiagnostics = parameters.Model is not null,
         });
     }

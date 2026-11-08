@@ -34,7 +34,7 @@ internal static partial class SqlKeywords
         "STRING_AGG", "NEWID", "SCOPE_IDENTITY",
     ];
 
-    // Seuls les mots-clés réservés imposent des crochets : une colonne Year ou Date s'écrit telle quelle.
+    // Only reserved keywords require brackets: a Year or Date column is written as is.
     private static readonly HashSet<string> Reserved = new(Keywords, StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Language words as suggestions (MAX is both a type and a function).</summary>

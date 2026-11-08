@@ -11,7 +11,7 @@ internal static class CSharpDiagnosticEngine
         if (string.IsNullOrWhiteSpace(document.Text))
             return [];
 
-        // Le modèle sémantique rend aussi les fautes de syntaxe.
+        // The semantic model also returns syntax errors.
         if (document.Options.IncludeSemanticDiagnostics && await document.Document.GetSemanticModelAsync(cancellationToken) is { } semantic)
             return CSharpDiagnosticMapper.Map(semantic.GetDiagnostics(cancellationToken: cancellationToken), document.Text);
 

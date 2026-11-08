@@ -41,7 +41,7 @@ public static class SourceScanner
             var c = text[i];
             var next = i + 1 < limit ? text[i + 1] : '\0';
 
-            // Région des caractères consommés : un délimiteur fermant appartient encore à sa région.
+            // Region of the consumed characters: a closing delimiter still belongs to its region.
             var region = state;
             var length = 1;
 
@@ -108,7 +108,7 @@ public static class SourceScanner
                     }
                     else if (c == '\n' && syntax.StringsEndAtLineEnd && !isVerbatim)
                     {
-                        // Chaîne non terminée : elle s'arrête à la ligne.
+                        // Unterminated string: it stops at the line.
                         state = region = SourceRegion.Code;
                     }
                     break;
@@ -134,7 +134,7 @@ public static class SourceScanner
         return end - index;
     }
 
-    // @"...", $@"..." ou @$"...".
+    // @"...", $@"..." or @$"...".
     private static bool IsVerbatimPrefix(string text, int quoteIndex)
         => quoteIndex > 0 && (text[quoteIndex - 1] == '@'
             || (quoteIndex > 1 && text[quoteIndex - 1] == '$' && text[quoteIndex - 2] == '@'));

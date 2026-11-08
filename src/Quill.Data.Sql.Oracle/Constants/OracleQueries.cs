@@ -7,7 +7,7 @@ internal static class OracleQueries
         SELECT SYS_CONTEXT('USERENV', 'DB_NAME') FROM DUAL
         """;
 
-    // Schemas des utilisateurs, hors comptes fournis par Oracle (SYS, SYSTEM, XDB...).
+    // User schemas, excluding accounts supplied by Oracle (SYS, SYSTEM, XDB...).
     private const string UserOwners = """
         (SELECT USERNAME FROM ALL_USERS WHERE ORACLE_MAINTAINED = 'N')
         """;
@@ -28,7 +28,7 @@ internal static class OracleQueries
         ORDER BY v.OWNER, v.VIEW_NAME
         """;
 
-    // Procedures et fonctions autonomes ; celles des packages restent dans leur package.
+    // Standalone procedures and functions; those in packages stay in their package.
     internal const string Procedures = $"""
         SELECT OWNER, OBJECT_NAME, NULL
         FROM ALL_OBJECTS
@@ -43,7 +43,7 @@ internal static class OracleQueries
         WHERE k.CONSTRAINT_TYPE = 'P'
         """;
 
-    // DATA_TYPE porte deja la precision des types temporels (TIMESTAMP(6)) ; longueur et precision mises en forme par le lecteur.
+    // DATA_TYPE already carries the precision of temporal types (TIMESTAMP(6)); length and precision formatted by the reader.
     internal const string Columns = $"""
         SELECT c.COLUMN_NAME, c.DATA_TYPE, c.DATA_LENGTH, c.CHAR_LENGTH, c.DATA_PRECISION, c.DATA_SCALE,
                CASE WHEN c.NULLABLE = 'Y' THEN 1 ELSE 0 END,

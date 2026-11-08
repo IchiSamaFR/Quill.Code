@@ -65,7 +65,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
                     }
                     catch (SqlException ex) when (!cancellationToken.IsCancellationRequested)
                     {
-                        // Comme SSMS : le lot suivant est tout de meme execute.
+                        // Like SSMS: the next batch still runs.
                         LogErrors(log, ex, batch.StartLine, LogSource.Code);
                     }
                 }
@@ -73,12 +73,12 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         }
         catch (SqlException ex) when (cancellationToken.IsCancellationRequested)
         {
-            // L'annulation d'une commande en cours remonte sous forme de SqlException.
+            // Canceling a running command surfaces as a SqlException.
             throw new OperationCanceledException(ex.Message, ex, cancellationToken);
         }
         catch (SqlException ex)
         {
-            // Hors d'un lot : connexion impossible, droits...
+            // Outside a batch: connection impossible, permissions...
             LogErrors(log, ex, batchStartLine: null, LogSource.Host);
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException or InvalidOperationException)
@@ -103,7 +103,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
         await using var command = connection.CreateCommand();
-#pragma warning disable CA2100 // La requete est celle de l'utilisateur ; les valeurs passent en parametres.
+#pragma warning disable CA2100 // The query is the user's; values are passed as parameters.
         command.CommandText = query;
 #pragma warning restore CA2100
         command.CommandTimeout = QueryExecutionLimits.ReadCommandTimeoutSeconds;
@@ -117,7 +117,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         }
         catch (SqlException ex) when (ex.Number == SqlServerConstants.UndeclaredVariableError)
         {
-            // Variable inconnue : on liste ce qui a reellement ete envoye pour qu'un nom mal saisi se voie.
+            // Unknown variable: list what was actually sent so that a mistyped name shows.
             var sent = parameters.Count == 0
                 ? "aucun"
                 : string.Join(", ", command.Parameters.Cast<SqlParameter>().Select(p => p.ParameterName));
@@ -126,7 +126,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
 
         await using var _ = reader;
 
-        // Premier jeu qui a des colonnes : un DECLARE ou un SET avant le SELECT n'en produit pas.
+        // First set that has columns: a DECLARE or SET before the SELECT produces none.
         while (reader.FieldCount == 0 && await reader.NextResultAsync(cancellationToken).ConfigureAwait(false))
         {
         }
@@ -141,17 +141,17 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
     private static async Task<int> ExecuteBatchAsync(SqlConnection connection, SqlBatch batch, int resultSetCount, DataRunOptions? options, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-#pragma warning disable CA2100 // Le script est celui de l'utilisateur, execute tel quel comme dans SSMS.
+#pragma warning disable CA2100 // The script is the user's, run as is like in SSMS.
         command.CommandText = batch.Text;
 #pragma warning restore CA2100
-        // Pas de timeout : l'utilisateur garde la main via l'annulation.
+        // No timeout: the user keeps control through cancellation.
         command.CommandTimeout = 0;
         command.StatementCompleted += (_, e) => options?.Log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({e.RecordCount} ligne(s) affectée(s))")));
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         do
         {
-            // FieldCount == 0 : instruction sans jeu de resultats (INSERT, UPDATE, DDL...).
+            // FieldCount == 0: statement without a result set (INSERT, UPDATE, DDL...).
             if (reader.FieldCount > 0)
             {
                 var resultSet = await DbResultSetReader.ReadAsync(reader, ++resultSetCount, QueryExecutionLimits.MaxRowsPerResultSet, DbResultSetReader.FormatForResults, cancellationToken).ConfigureAwait(false);
@@ -176,7 +176,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
             _ => (SqlDbType.NVarChar, -1),
         };
 
-        // Un nom saisi a la main peut garder son @ ou des espaces.
+        // A name entered by hand may keep its @ or spaces.
         var result = new SqlParameter($"@{parameter.Name.Trim().TrimStart('@')}", type) { Value = parameter.Value ?? DBNull.Value };
         if (size != 0)
             result.Size = size;
@@ -190,7 +190,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
 
         foreach (SqlError error in exception.Errors)
         {
-            // Le serveur numerote les lignes a partir du debut du lot : on recale sur le script.
+            // The server numbers lines from the start of the batch: realign on the script.
             var header = batchStartLine is { } start && error.LineNumber > 0
                 ? string.Create(CultureInfo.InvariantCulture, $"Msg {error.Number}, Niveau {error.Class}, État {error.State}, Ligne {start + error.LineNumber - 1}")
                 : string.Create(CultureInfo.InvariantCulture, $"Msg {error.Number}, Niveau {error.Class}, État {error.State}");

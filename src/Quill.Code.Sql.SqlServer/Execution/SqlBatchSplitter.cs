@@ -96,7 +96,7 @@ internal static partial class SqlBatchSplitter
                 {
                     if (c == _closingQuote)
                     {
-                        // Quote doublee = caractere echappe, on reste dans le litteral.
+                        // Doubled quote = escaped character, we stay in the literal.
                         if (next == _closingQuote)
                             i++;
                         else

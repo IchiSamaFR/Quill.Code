@@ -32,7 +32,7 @@ public sealed class SqlServerLinqProvider : ILinqDatabaseProvider
         if (parenthesis > 0)
             sqlType = sqlType[..parenthesis];
 
-        // sql_variant, hierarchyid, geography... : pas de mapping EF sans paquet dedie.
+        // sql_variant, hierarchyid, geography...: no EF mapping without a dedicated package.
         return sqlType switch
         {
             "bigint" => "long",

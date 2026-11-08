@@ -194,7 +194,7 @@ internal static class OracleScriptSplitter
         {
             if (s[j] == quote)
             {
-                // Guillemet double : echappement, la chaine continue.
+                // Doubled quote: escape, the string goes on.
                 if (At(s, j + 1) == quote)
                 {
                     j += 2;

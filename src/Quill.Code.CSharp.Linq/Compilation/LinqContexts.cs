@@ -35,12 +35,12 @@ internal static class LinqContexts
         var task = models.GetValue(schema, compile);
         if (task.IsFaulted)
         {
-            // Un echec n'est pas garde : la prochaine demande retente la compilation.
+            // A failure is not kept: the next request retries the compilation.
             models.Remove(schema);
             task = models.GetValue(schema, compile);
         }
 
-        // Compilation partagee : l'annulation d'un appelant ne l'interrompt pas.
+        // Shared compilation: a caller's cancellation does not interrupt it.
         return await task.WaitAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -52,19 +52,19 @@ internal static class LinqContexts
     {
         parameters ??= [];
 
-        // Le source genere sert de cle : memes noms et types, meme assembly, quelles que soient les valeurs.
+        // The generated source serves as key: same names and types, same assembly, whatever the values.
         var key = LinqQuerySource.BuildGlobals(model?.Model, parameters);
         var entries = model is null ? ParametersWithoutModel : Parameters.GetValue(model, static _ => new());
 
         var task = entries.GetOrAdd(key, _ => Compile(model, parameters));
         if (task.IsFaulted)
         {
-            // Un echec n'est pas garde : la prochaine demande retente la compilation.
+            // A failure is not kept: the next request retries the compilation.
             entries.TryRemove(new KeyValuePair<string, Task<LinqParametersAssembly>>(key, task));
             task = entries.GetOrAdd(key, _ => Compile(model, parameters));
         }
 
-        // Compilation partagee : l'annulation d'un appelant ne l'interrompt pas.
+        // Shared compilation: a caller's cancellation does not interrupt it.
         return await task.WaitAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -85,7 +85,7 @@ internal static class LinqContexts
         }
         catch (LinqCompilationException)
         {
-            // Un parametre au type inutilisable ne doit pas priver l'editeur du contexte.
+            // A parameter with an unusable type must not deprive the editor of the context.
             globals = await GetParametersAsync(model, [], cancellationToken).ConfigureAwait(false);
         }
 

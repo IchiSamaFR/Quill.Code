@@ -7,7 +7,7 @@ public sealed class SqlDatabaseSchema
 {
     private readonly HashSet<string> _schemas;
 
-    // Objets par nom, dbo en tête : Find est rappelé pour chaque table d'une requête, sur des milliers d'objets.
+    // Objects by name, dbo first: Find is called again for each table of a query, over thousands of objects.
     private readonly Dictionary<string, SqlSchemaObject[]> _byName;
 
     /// <param name="name">Name of the database.</param>

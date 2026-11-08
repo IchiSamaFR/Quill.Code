@@ -20,7 +20,7 @@ public sealed class OracleLinqProvider : ILinqDatabaseProvider
     {
         ArgumentNullException.ThrowIfNull(column);
 
-        // SqlType est DATA_TYPE : NUMBER, VARCHAR2, TIMESTAMP(6) WITH TIME ZONE...
+        // SqlType is DATA_TYPE: NUMBER, VARCHAR2, TIMESTAMP(6) WITH TIME ZONE...
         var sqlType = (string.IsNullOrEmpty(column.SqlType) ? column.DataType : column.SqlType).ToUpperInvariant();
 
         if (sqlType.StartsWith("TIMESTAMP", StringComparison.Ordinal))
@@ -32,7 +32,7 @@ public sealed class OracleLinqProvider : ILinqDatabaseProvider
         if (parenthesis > 0)
             sqlType = sqlType[..parenthesis];
 
-        // ROWID, XMLTYPE, SDO_GEOMETRY, INTERVAL YEAR... : pas de mapping sans paquet dedie.
+        // ROWID, XMLTYPE, SDO_GEOMETRY, INTERVAL YEAR...: no mapping without a dedicated package.
         return sqlType switch
         {
             "NUMBER" => NumberType(column.Precision, column.Scale),
@@ -54,7 +54,7 @@ public sealed class OracleLinqProvider : ILinqDatabaseProvider
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        // Plus petit dialecte pris en charge : evite le SQL 23ai (BOOLEAN, JSON...) sur un serveur plus ancien.
+        // Lowest supported dialect: avoids 23ai SQL (BOOLEAN, JSON...) on an older server.
         builder.UseOracle(connectionString, oracle => oracle.UseOracleSQLCompatibility(OracleSQLCompatibility.DatabaseVersion19));
     }
 

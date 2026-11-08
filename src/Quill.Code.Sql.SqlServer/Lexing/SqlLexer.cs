@@ -31,7 +31,7 @@ public static class SqlLexer
                 if (i < 0)
                     i = text.Length;
 
-                // Une ligne de commentaire ne se "referme" pas : curseur en fin de ligne = dedans.
+                // A line comment does not "close": caret at end of line = inside.
                 tokens.Add(new SqlToken(SqlTokenKind.LineComment, start, TrimCarriageReturn(text, start, i) - start, false));
                 continue;
             }

@@ -82,7 +82,7 @@ public sealed class OracleSchemaReader : ISqlSchemaReader
         await using var connection = await OpenAsync(connectionString, cancellationToken);
         var databaseName = await GetDatabaseNameAsync(connection, cancellationToken);
 
-        // Oracle ne rend pas plusieurs jeux par commande : deux requetes sur la meme connexion.
+        // Oracle does not return several sets per command: two queries on the same connection.
         var objects = new List<(string Schema, string Name, SqlSchemaObjectKind Kind)>();
         await using (var command = new OracleCommand(OracleQueries.SnapshotObjects, connection))
         await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
