@@ -4,12 +4,12 @@ using System.Globalization;
 namespace Quill.Data.Sql;
 
 /// <summary>
-/// Lecture tolerante des colonnes du catalogue, commune aux lecteurs de moteur : chaque pilote rend booleens et nombres
-/// sous son propre type (bit, tinyint, bigint, NUMBER...), NULL compris.
+/// Tolerant reading of catalog columns, shared by the engine readers: each driver returns booleans and numbers
+/// under its own type (bit, tinyint, bigint, NUMBER...), NULL included.
 /// </summary>
 public static class DbDataReaderExtensions
 {
-    /// <summary>Booleen, quel que soit son type SQL (bit, entier, NUMBER) ; NULL = faux.</summary>
+    /// <summary>Boolean, whatever its SQL type (bit, integer, NUMBER); NULL = false.</summary>
     public static bool GetFlag(this DbDataReader reader, int ordinal)
     {
         ArgumentNullException.ThrowIfNull(reader);
@@ -22,7 +22,7 @@ public static class DbDataReaderExtensions
         };
     }
 
-    /// <summary>Entier, quel que soit son type SQL ; NULL = 0.</summary>
+    /// <summary>Integer, whatever its SQL type; NULL = 0.</summary>
     public static int GetInt32Value(this DbDataReader reader, int ordinal)
     {
         ArgumentNullException.ThrowIfNull(reader);
@@ -31,11 +31,11 @@ public static class DbDataReaderExtensions
         return value is DBNull ? 0 : Convert.ToInt32(value, CultureInfo.InvariantCulture);
     }
 
-    /// <summary>Precision ou echelle, bornee a un octet ; NULL = 0.</summary>
+    /// <summary>Precision or scale, bounded to one byte; NULL = 0.</summary>
     public static byte GetByteValue(this DbDataReader reader, int ordinal)
         => (byte)Math.Clamp(reader.GetInt32Value(ordinal), byte.MinValue, byte.MaxValue);
 
-    /// <summary>Texte non vide sans blancs de bord ; null si NULL ou vide (ex. commentaire absent).</summary>
+    /// <summary>Non-empty text without surrounding whitespace; null if NULL or empty (e.g. missing comment).</summary>
     public static string? GetTrimmedStringOrNull(this DbDataReader reader, int ordinal)
     {
         ArgumentNullException.ThrowIfNull(reader);

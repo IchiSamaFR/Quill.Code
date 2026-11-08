@@ -1,8 +1,8 @@
 ﻿namespace Quill.Code.Sql.SqlServer.Lexing;
 
 /// <summary>
-/// Lexer T-SQL minimal pour l'autocompletion. Contrairement a la coloration, il doit
-/// distinguer commentaires, chaines et identifiants, et tolerer un texte en cours de frappe.
+/// Minimal T-SQL lexer for completion. Unlike highlighting, it must
+/// distinguish comments, strings and identifiers, and tolerate text being typed.
 /// </summary>
 public static class SqlLexer
 {
@@ -104,7 +104,7 @@ public static class SqlLexer
         return tokens;
     }
 
-    /// <summary># en tete pour les tables temporaires (#tmp, ##global).</summary>
+    /// <summary>Leading # for temporary tables (#tmp, ##global).</summary>
     private static bool IsWordStart(char c) => char.IsLetter(c) || c is '_' or '#';
 
     private static bool IsWordChar(char c) => char.IsLetterOrDigit(c) || c is '_' or '@' or '#' or '$';
@@ -112,7 +112,7 @@ public static class SqlLexer
     private static int TrimCarriageReturn(string text, int start, int end)
         => end > start && text[end - 1] == '\r' ? end - 1 : end;
 
-    /// <summary>Les commentaires bloc s'imbriquent en T-SQL.</summary>
+    /// <summary>Block comments nest in T-SQL.</summary>
     private static bool SkipBlockComment(string text, ref int i)
     {
         var depth = 0;
@@ -139,7 +139,7 @@ public static class SqlLexer
         return false;
     }
 
-    /// <summary>Delimiteur double = caractere echappe ('' dans une chaine, ]] dans un identifiant).</summary>
+    /// <summary>Doubled delimiter = escaped character ('' in a string, ]] in an identifier).</summary>
     private static bool SkipDelimited(string text, ref int i, char closing)
     {
         i++;
@@ -163,7 +163,7 @@ public static class SqlLexer
         return false;
     }
 
-    /// <summary>Entier, decimal, exposant ou hexadecimal (0x1F) : les lettres collees font partie du nombre.</summary>
+    /// <summary>Integer, decimal, exponent or hexadecimal (0x1F): attached letters are part of the number.</summary>
     private static int SkipNumber(string text, int i)
     {
         while (i < text.Length)

@@ -7,8 +7,8 @@ using System.Reflection;
 namespace Quill.Code.CSharp.Linq.Oracle;
 
 /// <summary>
-/// Requetes LINQ sur Oracle : Oracle.EntityFrameworkCore sur ODP.NET Core, SQL genere compatible Oracle 19c.
-/// Une connexion Oracle porte une seule base : la base demandee est ignoree. A garder en une instance par application.
+/// LINQ queries on Oracle: Oracle.EntityFrameworkCore on ODP.NET Core, generated SQL compatible with Oracle 19c.
+/// An Oracle connection holds a single database: the requested database is ignored. Keep one instance per application.
 /// </summary>
 public sealed class OracleLinqProvider : ILinqDatabaseProvider
 {
@@ -58,7 +58,7 @@ public sealed class OracleLinqProvider : ILinqDatabaseProvider
         builder.UseOracle(connectionString, oracle => oracle.UseOracleSQLCompatibility(OracleSQLCompatibility.DatabaseVersion19));
     }
 
-    /// <summary>NUMBER(p, 0) : entier selon sa largeur, comme le mapping par defaut d'EF Core Oracle ; sinon decimal.</summary>
+    /// <summary>NUMBER(p, 0): integer according to its width, like EF Core Oracle's default mapping; otherwise decimal.</summary>
     private static string NumberType(byte precision, byte scale) => (precision, scale) switch
     {
         (1, 0) => "bool",

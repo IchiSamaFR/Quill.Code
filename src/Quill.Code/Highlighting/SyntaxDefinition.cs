@@ -3,8 +3,8 @@
 namespace Quill.Code.Highlighting;
 
 /// <summary>
-/// Définition de coloration d'un langage, lue depuis un fichier .xshd (<see cref="XshdReader"/>).
-/// Immuable : une même définition sert à tous les éditeurs, sur tous les threads.
+/// Highlighting definition of a language, read from a .xshd file (<see cref="XshdReader"/>).
+/// Immutable: the same definition serves all editors, on all threads.
 /// </summary>
 public sealed class SyntaxDefinition
 {
@@ -26,27 +26,27 @@ public sealed class SyntaxDefinition
         Rules = rules;
     }
 
-    /// <summary>Nom du langage (attribut <c>name</c>).</summary>
+    /// <summary>Language name (<c>name</c> attribute).</summary>
     public string Name { get; }
 
-    /// <summary>Extensions associées (ex. « .sql »), telles que déclarées dans le .xshd.</summary>
+    /// <summary>Associated extensions (e.g. ".sql"), as declared in the .xshd.</summary>
     public IReadOnlyList<string> Extensions { get; }
 
-    /// <summary>Éléments <c>Property</c> (nom → valeur), sans distinction de casse sur le nom.</summary>
+    /// <summary><c>Property</c> elements (name → value), with a case-insensitive name.</summary>
     public IReadOnlyDictionary<string, string> Properties { get; }
 
-    /// <summary>Couleurs nommées, sans distinction de casse sur le nom.</summary>
+    /// <summary>Named colors, with a case-insensitive name.</summary>
     public IReadOnlyDictionary<string, SyntaxColor> Colors { get; }
 
-    /// <summary>Mise en forme du texte qu'aucune règle ne reconnaît (couleur « Default »), ou null.</summary>
+    /// <summary>Formatting of text no rule recognizes ("Default" color), or null.</summary>
     public SyntaxColor? DefaultColor { get; }
 
-    /// <summary>Mots des listes <c>Keywords</c>, dans l'ordre du fichier.</summary>
+    /// <summary>Words of the <c>Keywords</c> lists, in file order.</summary>
     public IReadOnlyList<SyntaxKeyword> Keywords { get; }
 
-    /// <summary>Préfixe de commentaire de ligne (propriété <c>LineComment</c>), ou null.</summary>
+    /// <summary>Line comment prefix (<c>LineComment</c> property), or null.</summary>
     public string? LineComment => Properties.TryGetValue(HighlightingConstants.LineCommentProperty, out var value) && value.Length > 0 ? value : null;
 
-    /// <summary>Règles dans l'ordre du fichier : à position égale, la première l'emporte.</summary>
+    /// <summary>Rules in file order: at the same position, the first one wins.</summary>
     internal IReadOnlyList<SyntaxRule> Rules { get; }
 }

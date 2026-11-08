@@ -1,26 +1,26 @@
 ﻿namespace Quill.Code.Execution;
 
-/// <summary>Type d'un parametre de requete, traduit par chaque moteur dans son propre type.</summary>
+/// <summary>Type of a query parameter, translated by each engine into its own type.</summary>
 public enum QueryParameterType
 {
-    /// <summary>Texte (nvarchar(max) sur SQL Server).</summary>
+    /// <summary>Text (nvarchar(max) on SQL Server).</summary>
     Text,
 
-    /// <summary>Entier 64 bits.</summary>
+    /// <summary>64-bit integer.</summary>
     Integer,
 
     /// <summary>Decimal.</summary>
     Decimal,
 
-    /// <summary>Date sans heure.</summary>
+    /// <summary>Date without time.</summary>
     Date,
 
-    /// <summary>Date et heure.</summary>
+    /// <summary>Date and time.</summary>
     DateTime,
 
-    /// <summary>Booleen (bit).</summary>
+    /// <summary>Boolean (bit).</summary>
     Boolean,
 
-    /// <summary>Identifiant unique.</summary>
+    /// <summary>Unique identifier.</summary>
     Guid,
 }

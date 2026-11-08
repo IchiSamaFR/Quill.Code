@@ -2,14 +2,14 @@
 
 namespace Quill.Code.Sql.SqlServer.Schema;
 
-/// <summary>Catalogue en mémoire : schémas déjà chargés, ou construits pour des tests.</summary>
+/// <summary>In-memory catalog: schemas already loaded, or built for tests.</summary>
 public sealed class SqlCatalog : ISqlCatalog
 {
     private readonly Dictionary<string, SqlDatabaseSchema> _databases;
     private readonly SqlDatabaseSchema? _default;
     private readonly IReadOnlyList<SqlDatabaseInfo> _infos;
 
-    /// <param name="databases">Bases connues ; la première est la base par défaut.</param>
+    /// <param name="databases">Known databases; the first one is the default database.</param>
     public SqlCatalog(IEnumerable<SqlDatabaseSchema> databases)
     {
         ArgumentNullException.ThrowIfNull(databases);

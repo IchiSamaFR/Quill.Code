@@ -1,6 +1,6 @@
 ﻿namespace Quill.Code.Tests.Highlighting;
 
-/// <summary>Définition réduite, inspirée des fichiers de Querify et PocketForge.</summary>
+/// <summary>Reduced definition, inspired by the Querify and PocketForge files.</summary>
 internal static class SampleXshd
 {
     public const string Xml = """

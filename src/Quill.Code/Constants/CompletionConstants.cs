@@ -1,8 +1,8 @@
 ﻿namespace Quill.Code.Constants;
 
-/// <summary>Constantes de l'autocomplétion.</summary>
+/// <summary>Completion constants.</summary>
 public static class CompletionConstants
 {
-    /// <summary>Au-delà, la liste n'aide plus : mieux vaut taper une lettre de plus.</summary>
+    /// <summary>Beyond this, the list no longer helps: better to type one more letter.</summary>
     public const int DefaultMaxResults = 100;
 }

@@ -2,7 +2,7 @@
 
 namespace Quill.Code.Tests.Editing;
 
-/// <summary>Notation des tests : « | » marque le curseur, « [ » et « ] » le début et la fin d'une sélection.</summary>
+/// <summary>Test notation: "|" marks the caret, "[" and "]" the start and end of a selection.</summary>
 internal static class Caret
 {
     public static (string Text, TextSelection Selection) Parse(string marked)

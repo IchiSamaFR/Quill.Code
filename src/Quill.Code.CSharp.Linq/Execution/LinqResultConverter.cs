@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Quill.Code.CSharp.Linq.Execution;
 
-/// <summary>Valeurs affichees par Dump() converties en jeux de resultats (grille) : objets, scalaires, dictionnaires, requetes EF.</summary>
+/// <summary>Values displayed by Dump() converted to result sets (grid): objects, scalars, dictionaries, EF queries.</summary>
 [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
 [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
 [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
@@ -20,8 +20,8 @@ internal static class LinqResultConverter
         .Single(m => m.Name == nameof(Queryable.Take) && m.GetParameters()[1].ParameterType == typeof(int));
 
     /// <summary>
-    /// Jeu de resultats d'un Dump(valeur, titre), capture tout de suite : il montre la valeur a cet instant, meme si le
-    /// script la modifie ensuite. Une requete IQueryable est plafonnee cote serveur ; son SQL est rendu a part.
+    /// Result set of a Dump(value, title), captured immediately: it shows the value at that moment, even if the
+    /// script modifies it afterwards. An IQueryable query is limited on the server side; its SQL is returned separately.
     /// </summary>
     public static (QueryResultSet ResultSet, string? Sql) Capture(object? value, int index, string? title, int maxRows, CancellationToken cancellationToken)
     {
@@ -149,7 +149,7 @@ internal static class LinqResultConverter
             || underlying == typeof(TimeOnly) || underlying == typeof(TimeSpan) || underlying == typeof(Guid);
     }
 
-    /// <summary>Nom C# court : int?, string, List&lt;Commande&gt;...</summary>
+    /// <summary>Short C# name: int?, string, List&lt;Commande&gt;...</summary>
     private static string FriendlyName(Type type)
     {
         if (Nullable.GetUnderlyingType(type) is { } underlying)
@@ -180,7 +180,7 @@ internal static class LinqResultConverter
         };
     }
 
-    /// <summary>Memes conventions d'affichage que l'execution SQL.</summary>
+    /// <summary>Same display conventions as the SQL execution.</summary>
     private static string? Format(object? value) => value switch
     {
         null => null,

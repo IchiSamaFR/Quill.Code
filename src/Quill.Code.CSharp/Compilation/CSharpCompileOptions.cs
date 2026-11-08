@@ -4,30 +4,30 @@ using System.Reflection;
 namespace Quill.Code.CSharp.Compilation;
 
 /// <summary>
-/// Réglages de <see cref="CSharpLanguageService.CompileAsync(string, CSharpCompileOptions?, CancellationToken)"/> et de
-/// <see cref="CSharpLanguageService.RunAsync"/> ; <see cref="RunOptions.Log"/> reçoit les messages <c>Log</c> du code
-/// compilé (<see cref="Scripting.LogSource.Code"/>), propres à cette compilation, et demande <see cref="CSharpLanguageOptions.IncludeLogRuntime"/>.
+/// Settings for <see cref="CSharpLanguageService.CompileAsync(string, CSharpCompileOptions?, CancellationToken)"/> and
+/// <see cref="CSharpLanguageService.RunAsync"/>; <see cref="RunOptions.Log"/> receives the <c>Log</c> messages of the compiled
+/// code (<see cref="Scripting.LogSource.Code"/>), specific to this compilation, and requires <see cref="CSharpLanguageOptions.IncludeLogRuntime"/>.
 /// </summary>
 public sealed record CSharpCompileOptions : RunOptions
 {
-    /// <summary>Nom de l'assembly émise ; par défaut le nom du projet suivi d'un identifiant unique.</summary>
+    /// <summary>Name of the emitted assembly; by default the project name followed by a unique identifier.</summary>
     public string? AssemblyName { get; init; }
 
     /// <summary>
-    /// Assemblies (fichiers) que le code peut charger, résolues par nom et lues en mémoire pour ne pas verrouiller
-    /// les fichiers (ex. packages d'un script).
+    /// Assemblies (files) the code can load, resolved by name and read into memory so as not to lock
+    /// the files (e.g. a script's packages).
     /// </summary>
     public IEnumerable<string> AssemblyFiles { get; init; } = [];
 
     /// <summary>
-    /// Résolution des autres assemblies demandées par le code, avant <see cref="AssemblyFiles"/> (ex. modèle déjà
-    /// chargé dans un autre contexte) ; null : le runtime les fournit.
+    /// Resolution of other assemblies requested by the code, before <see cref="AssemblyFiles"/> (e.g. model already
+    /// loaded in another context); null: the runtime provides them.
     /// </summary>
     public Func<AssemblyName, Assembly?>? ResolveAssembly { get; init; }
 
     /// <summary>
-    /// Faux pour charger l'assembly pour toute la vie de l'application (ex. modèle dont une bibliothèque garde les
-    /// types en cache) : <see cref="CSharpCompilationResult.Dispose"/> ne la décharge alors pas.
+    /// False to load the assembly for the application's whole lifetime (e.g. model whose types a library
+    /// caches): <see cref="CSharpCompilationResult.Dispose"/> then does not unload it.
     /// </summary>
     public bool Collectible { get; init; } = true;
 }

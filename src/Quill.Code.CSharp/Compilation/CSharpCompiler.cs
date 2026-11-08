@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace Quill.Code.CSharp.Compilation;
 
-/// <summary>Émission du projet d'un document et chargement de l'assembly obtenue.</summary>
+/// <summary>Emits a document's project and loads the resulting assembly.</summary>
 internal static class CSharpCompiler
 {
     public static async Task<CSharpCompilationResult> CompileAsync(CSharpDocument document, CSharpCompileOptions options, CancellationToken cancellationToken)

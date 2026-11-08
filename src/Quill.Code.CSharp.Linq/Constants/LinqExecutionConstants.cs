@@ -1,20 +1,20 @@
 ﻿namespace Quill.Code.CSharp.Linq.Constants;
 
-/// <summary>Plafonds et libelles de l'execution LINQ.</summary>
+/// <summary>Limits and labels of the LINQ execution.</summary>
 internal static class LinqExecutionConstants
 {
-    /// <summary>Sortie Log d'un script : une boucle d'affichage ne doit pas saturer la memoire ni l'onglet Messages.</summary>
+    /// <summary>Log output of a script: a display loop must not saturate memory or the Messages tab.</summary>
     internal const int MaxLogLength = 200_000;
 
-    /// <summary>Erreurs remises quand le code genere (modele, parametres) ne compile pas.</summary>
+    /// <summary>Errors reported when the generated code (model, parameters) does not compile.</summary>
     internal const int MaxGeneratedErrors = 20;
 
-    /// <summary>Erreurs de compilation reprises dans l'exception d'une lecture (ReadAsync).</summary>
+    /// <summary>Compilation errors included in the exception of a read (ReadAsync).</summary>
     internal const int MaxReadErrors = 5;
 
-    /// <summary>Octets affiches d'une valeur binaire, comme l'execution SQL.</summary>
+    /// <summary>Displayed bytes of a binary value, like the SQL execution.</summary>
     internal const int MaxBinaryBytes = 64;
 
-    /// <summary>Colonne d'un Dump de valeurs simples.</summary>
+    /// <summary>Column of a Dump of simple values.</summary>
     internal const string ScalarColumn = "Valeur";
 }

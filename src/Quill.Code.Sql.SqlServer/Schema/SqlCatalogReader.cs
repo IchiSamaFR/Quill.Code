@@ -4,8 +4,8 @@ using Quill.Data.Sql;
 namespace Quill.Code.Sql.SqlServer.Schema;
 
 /// <summary>
-/// Accès au catalogue de l'hôte pour l'autocomplétion et le survol : une erreur du catalogue (serveur injoignable…)
-/// vaut absence de schéma, jamais une exception à la frappe ou au survol.
+/// Access to the host catalog for completion and hover: a catalog error (unreachable server…)
+/// counts as a missing schema, never an exception while typing or hovering.
 /// </summary>
 internal sealed class SqlCatalogReader
 {
@@ -52,7 +52,7 @@ internal sealed class SqlCatalogReader
         => (await GetDatabasesAsync(cancellationToken).ConfigureAwait(false))
             .Any(d => string.Equals(d.Name, name, StringComparison.OrdinalIgnoreCase));
 
-    /// <summary>Objet désigné par une table du lot ; null pour une table temporaire ou inconnue.</summary>
+    /// <summary>Object designated by a table of the batch; null for a temporary or unknown table.</summary>
     public async Task<SqlSchemaObject?> FindAsync(SqlContext scope, SqlTableReference table, CancellationToken cancellationToken)
     {
         if (table.Name.StartsWith('#'))

@@ -4,8 +4,8 @@ using Quill.Data.Sql.MySql.Constants;
 namespace Quill.Data.Sql.MySql;
 
 /// <summary>
-/// Catalogue MySQL / MariaDB lu dans information_schema. Une base MySQL est aussi son unique schema :
-/// <see cref="SqlSchemaObject.Schema"/> porte le nom de la base.
+/// MySQL / MariaDB catalog read from information_schema. A MySQL database is also its only schema:
+/// <see cref="SqlSchemaObject.Schema"/> holds the database name.
 /// </summary>
 public sealed class MySqlSchemaReader : ISqlSchemaReader
 {

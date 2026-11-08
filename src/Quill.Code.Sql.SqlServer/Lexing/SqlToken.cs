@@ -1,10 +1,10 @@
 ﻿namespace Quill.Code.Sql.SqlServer.Lexing;
 
-/// <summary>Jeton T-SQL : nature et position dans le texte.</summary>
-/// <param name="Kind">Nature du jeton.</param>
-/// <param name="Start">Début dans le texte.</param>
-/// <param name="Length">Longueur.</param>
-/// <param name="IsTerminated">Faux pour une chaine, un commentaire ou un [identifiant] non referme.</param>
+/// <summary>T-SQL token: kind and position in the text.</summary>
+/// <param name="Kind">Kind of the token.</param>
+/// <param name="Start">Start in the text.</param>
+/// <param name="Length">Length.</param>
+/// <param name="IsTerminated">False for an unterminated string, comment or [identifier].</param>
 public readonly record struct SqlToken(SqlTokenKind Kind, int Start, int Length, bool IsTerminated = true)
 {
     public int End => Start + Length;

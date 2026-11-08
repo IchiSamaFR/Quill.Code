@@ -1,13 +1,13 @@
 ﻿namespace Quill.Code.Text;
 
-/// <summary>Ligne et colonne d'une position dans un texte, comptées à partir de 1.</summary>
-/// <param name="Line">Ligne, à partir de 1.</param>
-/// <param name="Column">Colonne, à partir de 1.</param>
+/// <summary>Line and column of a position in a text, counted from 1.</summary>
+/// <param name="Line">Line, from 1.</param>
+/// <param name="Column">Column, from 1.</param>
 public readonly record struct LinePosition(int Line, int Column)
 {
     /// <summary>
-    /// Calcule la ligne et la colonne de <paramref name="offset"/> dans <paramref name="text"/>.
-    /// \r\n, \n et \r comptent chacun pour un saut de ligne.
+    /// Computes the line and column of <paramref name="offset"/> in <paramref name="text"/>.
+    /// \r\n, \n and \r each count as one line break.
     /// </summary>
     public static LinePosition FromOffset(string text, int offset)
     {

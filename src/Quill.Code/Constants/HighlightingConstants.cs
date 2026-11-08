@@ -1,9 +1,9 @@
 ﻿namespace Quill.Code.Constants;
 
-/// <summary>Constantes de la coloration syntaxique (format .xshd).</summary>
+/// <summary>Syntax highlighting constants (.xshd format).</summary>
 public static class HighlightingConstants
 {
-    /// <summary>Propriété .xshd du préfixe de commentaire de ligne.</summary>
+    /// <summary>.xshd property for the line comment prefix.</summary>
     public const string LineCommentProperty = "LineComment";
 
     internal const string DefaultColorName = "Default";

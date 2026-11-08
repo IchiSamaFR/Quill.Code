@@ -1,6 +1,6 @@
 ﻿namespace Quill.Code.Completion;
 
-/// <summary>Nature d'une proposition ; l'ordre sert aussi de priorité d'affichage à score égal.</summary>
+/// <summary>Kind of a suggestion; the order also sets display priority for equal scores.</summary>
 public enum CompletionItemKind
 {
     // Objets de base de données
@@ -36,6 +36,6 @@ public enum CompletionItemKind
     DataType,
     Snippet,
 
-    /// <summary>Mot déjà présent dans le document.</summary>
+    /// <summary>Word already present in the document.</summary>
     Text,
 }

@@ -5,7 +5,7 @@ using Quill.Code.CSharp.Roslyn;
 
 namespace Quill.Code.CSharp.Features;
 
-/// <summary>Infobulle du nom survolé, calculée par le QuickInfo de Roslyn.</summary>
+/// <summary>Tooltip of the hovered name, computed by Roslyn's QuickInfo.</summary>
 internal static class CSharpHoverEngine
 {
     public static async Task<HoverInfo?> GetHoverAsync(CSharpDocument document, int position, CancellationToken cancellationToken)

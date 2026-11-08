@@ -3,9 +3,9 @@ using Quill.Code.Completion;
 
 namespace Quill.Code;
 
-/// <summary>Services d'éditeur d'un langage, sur le texte brut : autocomplétion, diagnostics, survol et signatures.</summary>
+/// <summary>Editor services for a language, on raw text: completion, diagnostics, hover and signatures.</summary>
 public interface ICodeLanguageService : ICodeCompletion, ICodeDiagnostic, ICodeSignature, ICodeHover
 {
-    /// <summary>Langage du service (voir <see cref="Languages.CodeLanguages"/>).</summary>
+    /// <summary>Language of the service (see <see cref="Languages.CodeLanguages"/>).</summary>
     string Language { get; }
 }

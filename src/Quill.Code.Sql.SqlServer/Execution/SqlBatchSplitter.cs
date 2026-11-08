@@ -5,8 +5,8 @@ using System.Text.RegularExpressions;
 namespace Quill.Code.Sql.SqlServer.Execution;
 
 /// <summary>
-/// Decoupe un script sur les separateurs GO, comme SSMS : GO n'est pas du T-SQL,
-/// le serveur le rejetterait. Un GO dans une chaine ou un commentaire bloc est ignore.
+/// Splits a script on GO separators, like SSMS: GO is not T-SQL,
+/// the server would reject it. A GO inside a string or block comment is ignored.
 /// </summary>
 internal static partial class SqlBatchSplitter
 {
@@ -62,7 +62,7 @@ internal static partial class SqlBatchSplitter
         batches.Add(new SqlBatch(text.ToString(), startLine, repeatCount));
     }
 
-    /// <summary>Suit les chaines, identifiants [..] / ".." et commentaires bloc d'une ligne a l'autre.</summary>
+    /// <summary>Tracks strings, [..] / ".." identifiers and block comments from one line to the next.</summary>
     private sealed class ScanState
     {
         private int _blockCommentDepth;

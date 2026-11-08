@@ -2,7 +2,7 @@
 
 namespace Quill.Code.Sql.SqlServer.Analysis;
 
-/// <summary>Diagnostics T-SQL : fautes de syntaxe relevées par <see cref="SqlSyntaxChecker"/>.</summary>
+/// <summary>T-SQL diagnostics: syntax errors found by <see cref="SqlSyntaxChecker"/>.</summary>
 internal sealed class SqlDiagnosticService : ICodeDiagnostic
 {
     private readonly SqlLanguageOptions _options;

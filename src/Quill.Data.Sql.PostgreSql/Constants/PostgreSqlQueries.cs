@@ -1,6 +1,6 @@
 ﻿namespace Quill.Data.Sql.PostgreSql.Constants;
 
-/// <summary>Requêtes de lecture du catalogue dans pg_catalog (PostgreSQL 12 et suivants).</summary>
+/// <summary>Catalog queries on pg_catalog (PostgreSQL 12 and later).</summary>
 internal static class PostgreSqlQueries
 {
     internal const string Databases = """

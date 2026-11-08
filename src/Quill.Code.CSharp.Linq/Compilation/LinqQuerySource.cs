@@ -12,8 +12,8 @@ using static Quill.Code.CSharp.Linq.Constants.LinqQueryConstants;
 namespace Quill.Code.CSharp.Linq.Compilation;
 
 /// <summary>
-/// Cadre C# des requetes LINQ (sans etat) : usings et alias du contexte, globals (contexte et parametres), references
-/// et options de compilation. Partage par l'editeur et l'execution.
+/// C# frame of LINQ queries (stateless): usings and context alias, globals (context and parameters), references
+/// and compilation options. Shared by the editor and the execution.
 /// </summary>
 [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Compilation en memoire : reflexion assumee, pas de publication trimmed.")]
 internal static class LinqQuerySource
@@ -33,9 +33,9 @@ internal static class LinqQuerySource
     };
 
     /// <summary>
-    /// Assemblies de la plateforme et d'EF contre lesquelles on compile, prises dans le runtime
-    /// charge (comme LINQPad) : pas de packs de reference a embarquer. Listes couteuses : calculees une fois,
-    /// sans fournisseur (C# seul) puis par fournisseur.
+    /// Platform and EF assemblies compiled against, taken from the loaded runtime
+    /// (like LINQPad): no reference packs to ship. Expensive lists: computed once,
+    /// without a provider (C# only) then per provider.
     /// </summary>
     private static readonly Lazy<IReadOnlyList<MetadataReference>> NeutralReferences = new(() => LoadPlatformReferences(null));
 
@@ -46,17 +46,17 @@ internal static class LinqQuerySource
         "System.", "mscorlib", "netstandard", "Microsoft.CSharp", "Microsoft.EntityFrameworkCore", "Microsoft.Extensions."
     ];
 
-    /// <summary>References communes a la compilation et a l'autocompletion ; <paramref name="provider"/> null : sans fournisseur.</summary>
+    /// <summary>References shared by compilation and completion; <paramref name="provider"/> null: without a provider.</summary>
     internal static IReadOnlyList<MetadataReference> GetPlatformReferences(ILinqDatabaseProvider? provider)
         => provider is null ? NeutralReferences.Value : ProviderReferences.GetValue(provider, LoadPlatformReferences);
 
-    /// <summary>Le modele genere n'a pas de point d'entree : une bibliotheque.</summary>
+    /// <summary>The generated model has no entry point: a library.</summary>
     internal static CSharpCompilationOptions ModelCompilationOptions { get; } = new(OutputKind.DynamicallyLinkedLibrary, nullableContextOptions: NullableContextOptions.Disable);
 
     /// <summary>
-    /// Source de <see cref="LinqParametersAssembly"/> : <see cref="GlobalsClass"/> avec le contexte et un membre par parametre,
-    /// sans valeur (proprietes en AsyncLocal, posees avant chaque execution). Sert aussi de cle de cache : memes noms et
-    /// types, meme assembly.
+    /// Source of <see cref="LinqParametersAssembly"/>: <see cref="GlobalsClass"/> with the context and one member per parameter,
+    /// without values (AsyncLocal properties, set before each execution). Also serves as cache key: same names and
+    /// types, same assembly.
     /// </summary>
     internal static string BuildGlobals(EfGeneratedModel? model, IReadOnlyList<LinqParameter> parameters)
     {
@@ -77,7 +77,7 @@ internal static class LinqQuerySource
         return code.ToString();
     }
 
-    /// <summary>Propriete en AsyncLocal : deux executions simultanees partagent l'assembly, pas leurs valeurs.</summary>
+    /// <summary>AsyncLocal property: two simultaneous executions share the assembly, not their values.</summary>
     private static void AppendGlobal(StringBuilder code, string type, string name)
     {
         code.AppendLine($"    private static readonly global::System.Threading.AsyncLocal<{type}> __{name} = new();");
@@ -85,8 +85,8 @@ internal static class LinqQuerySource
     }
 
     /// <summary>
-    /// Parametres exposes par <see cref="GlobalsClass"/>, sous leur nom sans @. Un nom qui n'est pas un identifiant C#,
-    /// un mot reserve ou un doublon n'est pas expose : le script ne peut pas le nommer.
+    /// Parameters exposed by <see cref="GlobalsClass"/>, under their name without @. A name that is not a C# identifier,
+    /// a reserved word or a duplicate is not exposed: the script cannot name it.
     /// </summary>
     internal static IReadOnlyList<(string Name, LinqParameter Parameter)> GetGlobalParameters(IReadOnlyList<LinqParameter> parameters)
     {
@@ -103,7 +103,7 @@ internal static class LinqQuerySource
         return globals;
     }
 
-    /// <summary>Valeur du parametre convertie en son type, null sans valeur. Une valeur qui ne convient pas au type leve <see cref="ArgumentException"/>.</summary>
+    /// <summary>Parameter value converted to its type, null without a value. A value that does not fit the type throws <see cref="ArgumentException"/>.</summary>
     internal static object? ConvertValue(string name, LinqParameter parameter)
     {
         if (parameter.Value is null)
@@ -136,7 +136,7 @@ internal static class LinqQuerySource
         return TypeKeywords.TryGetValue(type, out var keyword) ? keyword : $"global::{type.FullName}";
     }
 
-    /// <summary>Usings implicites et alias du contexte, document fixe du projet ; la requete peut declarer les siens.</summary>
+    /// <summary>Implicit usings and context alias, fixed document of the project; the query can declare its own.</summary>
     internal static string BuildGlobalUsings(EfGeneratedModel? model)
     {
         var code = new StringBuilder();

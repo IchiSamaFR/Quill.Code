@@ -1,9 +1,9 @@
 ﻿namespace Quill.Code.Editing;
 
-/// <summary>Repérage des lignes d'un texte ; « \n » et « \r\n » sont acceptés.</summary>
+/// <summary>Locates the lines of a text; "\n" and "\r\n" are accepted.</summary>
 public static class TextLines
 {
-    /// <summary>Début de la ligne qui contient <paramref name="position"/>.</summary>
+    /// <summary>Start of the line containing <paramref name="position"/>.</summary>
     public static int LineStart(string text, int position)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -12,7 +12,7 @@ public static class TextLines
         return position == 0 ? 0 : text.LastIndexOf('\n', position - 1) + 1;
     }
 
-    /// <summary>Fin de la ligne qui contient <paramref name="position"/>, avant son saut de ligne.</summary>
+    /// <summary>End of the line containing <paramref name="position"/>, before its line break.</summary>
     public static int LineEnd(string text, int position)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -25,7 +25,7 @@ public static class TextLines
         return newLine > position && text[newLine - 1] == '\r' ? newLine - 1 : newLine;
     }
 
-    /// <summary>Début de la ligne suivante (après le saut de ligne qui commence à <paramref name="lineEnd"/>).</summary>
+    /// <summary>Start of the next line (after the line break starting at <paramref name="lineEnd"/>).</summary>
     public static int NextLineStart(string text, int lineEnd)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -36,7 +36,7 @@ public static class TextLines
         return text[lineEnd] == '\r' && lineEnd + 1 < text.Length && text[lineEnd + 1] == '\n' ? lineEnd + 2 : lineEnd + 1;
     }
 
-    /// <summary>Fin de la ligne précédente (début de son saut de ligne) ; 0 pour la première ligne.</summary>
+    /// <summary>End of the previous line (start of its line break); 0 for the first line.</summary>
     public static int PreviousLineEnd(string text, int lineStart)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -47,7 +47,7 @@ public static class TextLines
         return lineStart >= 2 && text[lineStart - 2] == '\r' ? lineStart - 2 : lineStart - 1;
     }
 
-    /// <summary>Nombre d'espaces et tabulations à partir de <paramref name="start"/>, sans dépasser <paramref name="end"/>.</summary>
+    /// <summary>Number of spaces and tabs from <paramref name="start"/>, not going past <paramref name="end"/>.</summary>
     public static int LeadingWhitespaceLength(string text, int start, int end)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -60,8 +60,8 @@ public static class TextLines
     }
 
     /// <summary>
-    /// Lignes touchées par la sélection : début de la première, fin de la dernière. Une sélection qui finit
-    /// en début de ligne n'inclut pas cette ligne.
+    /// Lines touched by the selection: start of the first, end of the last. A selection ending
+    /// at the start of a line does not include that line.
     /// </summary>
     public static (int Start, int End) SelectedLines(string text, TextSelection selection)
     {
@@ -74,7 +74,7 @@ public static class TextLines
         return (LineStart(text, selection.Start), LineEnd(text, end));
     }
 
-    /// <summary>Colonne affichée : une tabulation va au taquet suivant.</summary>
+    /// <summary>Displayed column: a tab goes to the next tab stop.</summary>
     public static int VisualColumn(string text, int lineStart, int position, int tabSize)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -86,7 +86,7 @@ public static class TextLines
         return column;
     }
 
-    /// <summary>Lignes (début, fin) de <paramref name="start"/> à <paramref name="end"/> compris.</summary>
+    /// <summary>Lines (start, end) from <paramref name="start"/> to <paramref name="end"/> inclusive.</summary>
     internal static List<(int Start, int End)> Lines(string text, int start, int end)
     {
         List<(int Start, int End)> lines = [];

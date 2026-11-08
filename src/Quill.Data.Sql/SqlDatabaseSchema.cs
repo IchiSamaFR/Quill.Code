@@ -2,7 +2,7 @@
 
 namespace Quill.Data.Sql;
 
-/// <summary>Schéma complet d'une base : objets et colonnes, indexés pour les recherches répétées (autocomplétion, survol).</summary>
+/// <summary>Complete schema of a database: objects and columns, indexed for repeated lookups (completion, hover).</summary>
 public sealed class SqlDatabaseSchema
 {
     private readonly HashSet<string> _schemas;
@@ -10,8 +10,8 @@ public sealed class SqlDatabaseSchema
     // Objets par nom, dbo en tête : Find est rappelé pour chaque table d'une requête, sur des milliers d'objets.
     private readonly Dictionary<string, SqlSchemaObject[]> _byName;
 
-    /// <param name="name">Nom de la base.</param>
-    /// <param name="objects">Tables, vues et procédures de la base.</param>
+    /// <param name="name">Name of the database.</param>
+    /// <param name="objects">Tables, views and procedures of the database.</param>
     public SqlDatabaseSchema(string name, IReadOnlyList<SqlSchemaObject> objects)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -29,19 +29,19 @@ public sealed class SqlDatabaseSchema
                 StringComparer.OrdinalIgnoreCase);
     }
 
-    /// <summary>Nom de la base.</summary>
+    /// <summary>Name of the database.</summary>
     public string Name { get; }
 
-    /// <summary>Tables, vues et procédures.</summary>
+    /// <summary>Tables, views and procedures.</summary>
     public IReadOnlyList<SqlSchemaObject> Objects { get; }
 
-    /// <summary>Schémas possédant au moins un objet, triés.</summary>
+    /// <summary>Schemas owning at least one object, sorted.</summary>
     public IReadOnlyList<string> Schemas { get; }
 
-    /// <summary>Vrai pour le schéma par défaut (<see cref="SqlSchemaConstants.DefaultSchema"/>).</summary>
+    /// <summary>True for the default schema (<see cref="SqlSchemaConstants.DefaultSchema"/>).</summary>
     public static bool IsDefaultSchema(string schema) => string.Equals(schema, SqlSchemaConstants.DefaultSchema, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>Objet par nom (sans casse) ; sans schéma, <see cref="SqlSchemaConstants.DefaultSchema"/> est préféré.</summary>
+    /// <summary>Object by name (case-insensitive); without a schema, <see cref="SqlSchemaConstants.DefaultSchema"/> is preferred.</summary>
     public SqlSchemaObject? Find(string? schema, string name)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -55,6 +55,6 @@ public sealed class SqlDatabaseSchema
         return Array.Find(candidates, c => string.Equals(c.Schema, schema, StringComparison.OrdinalIgnoreCase));
     }
 
-    /// <summary>Vrai si un objet de la base appartient à <paramref name="schema"/>.</summary>
+    /// <summary>True if an object of the database belongs to <paramref name="schema"/>.</summary>
     public bool HasSchema(string schema) => _schemas.Contains(schema);
 }

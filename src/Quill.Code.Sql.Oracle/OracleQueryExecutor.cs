@@ -10,9 +10,9 @@ using Quill.Code.Sql.Execution;
 namespace Quill.Code.Sql.Oracle;
 
 /// <summary>
-/// Execution Oracle (ODP.NET Core) : Oracle n'accepte qu'une instruction par commande, le script est donc decoupe comme
-/// sous SQL*Plus (« ; » ou ligne « / » apres un bloc PL/SQL) et une instruction en echec n'empeche pas les suivantes.
-/// Parametres lies par nom (<c>:nom</c>). Une connexion Oracle porte une seule base : la base demandee est ignoree.
+/// Oracle execution (ODP.NET Core): Oracle only accepts one statement per command, so the script is split as
+/// in SQL*Plus (";" or a "/" line after a PL/SQL block) and a failed statement does not prevent the following ones.
+/// Parameters bound by name (<c>:name</c>). An Oracle connection holds a single database: the requested database is ignored.
 /// </summary>
 public sealed class OracleQueryExecutor : DbQueryExecutor
 {

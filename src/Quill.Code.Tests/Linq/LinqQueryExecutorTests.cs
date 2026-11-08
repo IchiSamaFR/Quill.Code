@@ -5,7 +5,7 @@ using Quill.Data.Sql;
 
 namespace Quill.Code.Tests.Linq;
 
-/// <summary>API publique, sans connexion : les requetes n'affichent que des valeurs calculees, rien n'est envoye au serveur.</summary>
+/// <summary>Public API, without a connection: queries only display computed values, nothing is sent to the server.</summary>
 public class LinqQueryExecutorTests
 {
     private const string ConnectionString = "Server=localhost;Database=RaveOnDb;Trusted_Connection=True;TrustServerCertificate=True";

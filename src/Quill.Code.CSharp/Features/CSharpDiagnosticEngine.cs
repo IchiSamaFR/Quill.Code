@@ -3,7 +3,7 @@ using Quill.Code.CSharp.Roslyn;
 
 namespace Quill.Code.CSharp.Features;
 
-/// <summary>Diagnostics Roslyn ramenés au texte de l'éditeur.</summary>
+/// <summary>Roslyn diagnostics mapped back to the editor text.</summary>
 internal static class CSharpDiagnosticEngine
 {
     public static async Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(CSharpDocument document, CancellationToken cancellationToken)

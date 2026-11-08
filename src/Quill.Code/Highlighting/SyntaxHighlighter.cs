@@ -3,18 +3,18 @@
 namespace Quill.Code.Highlighting;
 
 /// <summary>
-/// Découpe un texte en portions colorées selon une <see cref="SyntaxDefinition"/>. Travaille ligne par ligne :
-/// seul l'état « span multiligne ouvert » (<see cref="SyntaxLineState"/>) passe d'une ligne à la suivante.
+/// Splits a text into colored spans according to a <see cref="SyntaxDefinition"/>. Works line by line:
+/// only the "open multi-line span" state (<see cref="SyntaxLineState"/>) carries from one line to the next.
 /// </summary>
 /// <remarks>
-/// À chaque position, la correspondance la plus proche l'emporte ; à égalité, la règle déclarée en premier
-/// (comme AvalonEdit). Les portions rendues sont ordonnées et disjointes.
+/// At each position, the nearest match wins; on a tie, the rule declared first
+/// (like AvalonEdit). Returned spans are ordered and disjoint.
 /// </remarks>
 public static class SyntaxHighlighter
 {
     /// <summary>
-    /// Colore une ligne (sans son saut de ligne) ; <paramref name="state"/> est l'état de fin de la ligne précédente
-    /// (<see cref="SyntaxLineState.Initial"/> pour la première).
+    /// Colors one line (without its line break); <paramref name="state"/> is the end state of the previous line
+    /// (<see cref="SyntaxLineState.Initial"/> for the first one).
     /// </summary>
     public static IReadOnlyList<SyntaxToken> HighlightLine(SyntaxDefinition definition, string line, SyntaxLineState state, out SyntaxLineState endState)
     {
@@ -97,8 +97,8 @@ public static class SyntaxHighlighter
     }
 
     /// <summary>
-    /// Colore un texte entier (sauts de ligne \n ou \r\n) ; positions dans <paramref name="text"/>.
-    /// Un span multiligne donne une portion par ligne, les sauts de ligne restant hors des portions.
+    /// Colors a whole text (\n or \r\n line breaks); positions in <paramref name="text"/>.
+    /// A multi-line span yields one span per line, line breaks staying outside the spans.
     /// </summary>
     public static IReadOnlyList<SyntaxToken> Highlight(SyntaxDefinition definition, string text, CancellationToken cancellationToken = default)
     {

@@ -1,41 +1,41 @@
 ﻿namespace Quill.Data.Sql;
 
-/// <summary>Colonne d'une table ou d'une vue.</summary>
-/// <param name="Name">Nom de la colonne.</param>
-/// <param name="DataType">Type tel qu'affiché, longueur ou précision comprise (ex. <c>nvarchar(50)</c>).</param>
+/// <summary>Column of a table or view.</summary>
+/// <param name="Name">Name of the column.</param>
+/// <param name="DataType">Type as displayed, length or precision included (e.g. <c>nvarchar(50)</c>).</param>
 public sealed record SqlColumn(string Name, string DataType)
 {
-    /// <summary>Type système de base, alias résolus (ex. <c>nvarchar</c>) ; vide s'il n'est pas connu.</summary>
+    /// <summary>Base system type, aliases resolved (e.g. <c>nvarchar</c>); empty if unknown.</summary>
     public string SqlType { get; init; } = string.Empty;
 
-    /// <summary>Accepte NULL.</summary>
+    /// <summary>Accepts NULL.</summary>
     public bool IsNullable { get; init; } = true;
 
-    /// <summary>Position dans la clé primaire (base 1) ; 0 hors clé.</summary>
+    /// <summary>Position in the primary key (1-based); 0 outside the key.</summary>
     public int PrimaryKeyOrdinal { get; init; }
 
-    /// <summary>Précision d'un type numérique ; 0 si sans objet.</summary>
+    /// <summary>Precision of a numeric type; 0 if not applicable.</summary>
     public byte Precision { get; init; }
 
-    /// <summary>Échelle d'un type numérique ou temporel ; 0 si sans objet.</summary>
+    /// <summary>Scale of a numeric or temporal type; 0 if not applicable.</summary>
     public byte Scale { get; init; }
 
-    /// <summary>Fait partie d'une clé étrangère.</summary>
+    /// <summary>Part of a foreign key.</summary>
     public bool IsForeignKey { get; init; }
 
-    /// <summary>Colonne IDENTITY.</summary>
+    /// <summary>IDENTITY column.</summary>
     public bool IsIdentity { get; init; }
 
-    /// <summary>Colonne calculée.</summary>
+    /// <summary>Computed column.</summary>
     public bool IsComputed { get; init; }
 
-    /// <summary>Commentaire (MS_Description sous SQL Server) ; null si absent.</summary>
+    /// <summary>Comment (MS_Description on SQL Server); null if missing.</summary>
     public string? Comment { get; init; }
 
-    /// <summary>Fait partie de la clé primaire.</summary>
+    /// <summary>Part of the primary key.</summary>
     public bool IsPrimaryKey => PrimaryKeyOrdinal > 0;
 
-    /// <summary>Résumé façon SSMS : « PK, FK, int, not null ».</summary>
+    /// <summary>SSMS-style summary: "PK, FK, int, not null".</summary>
     public string Description
     {
         get

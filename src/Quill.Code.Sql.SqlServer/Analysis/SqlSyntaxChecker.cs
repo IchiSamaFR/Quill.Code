@@ -7,12 +7,12 @@ using Quill.Code.Sql.SqlServer.Constants;
 namespace Quill.Code.Sql.SqlServer.Analysis;
 
 /// <summary>
-/// Fautes de syntaxe T-SQL, par le parseur de SQL Server (ScriptDom) : lots GO compris, sans connexion.
-/// Les noms (tables, colonnes, variables) ne sont pas verifies : seule la base le pourrait.
+/// T-SQL syntax errors, from the SQL Server parser (ScriptDom): GO batches included, no connection.
+/// Names (tables, columns, variables) are not checked: only the database could do that.
 /// </summary>
 public static class SqlSyntaxChecker
 {
-    /// <summary>Fautes de syntaxe de <paramref name="text"/> ; liste vide si le script est correct.</summary>
+    /// <summary>Syntax errors of <paramref name="text"/>; empty list if the script is correct.</summary>
     public static IReadOnlyList<CodeDiagnostic> Check(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -34,7 +34,7 @@ public static class SqlSyntaxChecker
             .ToArray();
     }
 
-    /// <summary>Le parseur ne donne qu'une position : on souligne le jeton qui s'y trouve.</summary>
+    /// <summary>The parser only gives a position: the token found there is underlined.</summary>
     private static CodeDiagnostic ToDiagnostic(string text, IReadOnlyList<SqlToken> tokens, ParseError error)
     {
         var (start, length) = Locate(text, tokens, Math.Clamp(error.Offset, 0, text.Length));

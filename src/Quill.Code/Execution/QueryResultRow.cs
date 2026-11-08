@@ -1,9 +1,9 @@
 ﻿namespace Quill.Code.Execution;
 
 /// <summary>
-/// Ligne d'un jeu de resultats, deja convertie en texte affichable.
-/// Une cellule null represente un NULL SQL.
+/// Row of a result set, already converted to displayable text.
+/// A null cell represents a SQL NULL.
 /// </summary>
-/// <param name="Number">Numero de la ligne (base 1).</param>
-/// <param name="Cells">Valeurs, dans l'ordre des colonnes.</param>
+/// <param name="Number">Row number (1-based).</param>
+/// <param name="Cells">Values, in column order.</param>
 public sealed record QueryResultRow(int Number, string?[] Cells);

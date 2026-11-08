@@ -5,8 +5,8 @@ using Quill.Data.Sql;
 namespace Quill.Code.Sql.SqlServer.Completion;
 
 /// <summary>
-/// Bases, schémas, tables, vues, procédures et colonnes du catalogue, selon le contexte :
-/// FROM → tables, alias. → colonnes, USE → bases, EXEC → procédures.
+/// Databases, schemas, tables, views, procedures and columns of the catalog, depending on the context:
+/// FROM → tables, alias. → columns, USE → databases, EXEC → procedures.
 /// </summary>
 internal sealed class SqlSchemaCompletion
 {
@@ -50,7 +50,7 @@ internal sealed class SqlSchemaCompletion
             })
             .ToArray();
 
-    /// <summary>Objets et schémas de la base courante, plus les autres bases pour écrire base.schéma.objet.</summary>
+    /// <summary>Objects and schemas of the current database, plus the other databases to write database.schema.object.</summary>
     private async Task<IReadOnlyList<CompletionItem>> GetSourceItemsAsync(string? database, SqlSchemaObjectKind[] kinds, CancellationToken cancellationToken)
     {
         var schema = await _catalog.GetDatabaseAsync(database, cancellationToken).ConfigureAwait(false);
@@ -59,7 +59,7 @@ internal sealed class SqlSchemaCompletion
         return [.. objects, .. await GetDatabaseItemsAsync(cancellationToken).ConfigureAwait(false)];
     }
 
-    /// <summary>Colonnes de toutes les tables citées dans le lot (SELECT, WHERE, ON…), avec la table d'origine.</summary>
+    /// <summary>Columns of all tables referenced in the batch (SELECT, WHERE, ON…), with the source table.</summary>
     private async Task<IReadOnlyList<CompletionItem>> GetQueryColumnItemsAsync(SqlContext context, CancellationToken cancellationToken)
     {
         List<CompletionItem> items = [];
@@ -73,8 +73,8 @@ internal sealed class SqlSchemaCompletion
     }
 
     /// <summary>
-    /// Après un point : alias ou table → colonnes, schéma → objets, base → schémas,
-    /// base.schéma → objets, [base.]schéma.table → colonnes.
+    /// After a dot: alias or table → columns, schema → objects, database → schemas,
+    /// database.schema → objects, [database.]schema.table → columns.
     /// </summary>
     private async Task<IReadOnlyList<CompletionItem>> GetMemberItemsAsync(SqlContext context, CancellationToken cancellationToken)
     {
@@ -128,7 +128,7 @@ internal sealed class SqlSchemaCompletion
 
     // ---------- Construction des propositions ----------
 
-    /// <summary>Objets d'une base, d'un schéma si précisé ; les schémas eux-mêmes pour enchaîner sur « schéma. ».</summary>
+    /// <summary>Objects of a database, of a schema if specified; the schemas themselves to continue with "schema.".</summary>
     private static IReadOnlyList<CompletionItem> ObjectItems(SqlDatabaseSchema database, string? schema, SqlSchemaObjectKind[] kinds, bool withSchemas)
     {
         var objects = database.Objects

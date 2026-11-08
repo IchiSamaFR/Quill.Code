@@ -5,19 +5,19 @@ using Quill.Code.Constants;
 namespace Quill.Code.Highlighting;
 
 /// <summary>
-/// Lecture des définitions de coloration au format .xshd d'AvalonEdit (2008).
+/// Reads highlighting definitions in AvalonEdit's .xshd format (2008).
 /// </summary>
 /// <remarks>
-/// Pris en charge : <c>Property</c>, <c>Color</c> (foreground, fontWeight, fontStyle), le <c>RuleSet</c> principal avec ses
-/// <c>Span</c> (Begin/End, multiline), <c>Rule</c> et <c>Keywords</c>. Les RuleSet imbriqués (échappements dans un span)
-/// et les imports sont ignorés : le span est alors coloré d'un seul tenant.
+/// Supported: <c>Property</c>, <c>Color</c> (foreground, fontWeight, fontStyle), the main <c>RuleSet</c> with its
+/// <c>Span</c> (Begin/End, multiline), <c>Rule</c> and <c>Keywords</c>. Nested RuleSets (escapes inside a span)
+/// and imports are ignored: the span is then colored as a whole.
 /// </remarks>
 public static class XshdReader
 {
     private static readonly XNamespace Xshd = "http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008";
 
-    /// <summary>Lit une définition depuis un flux.</summary>
-    /// <exception cref="FormatException">Fichier sans RuleSet, couleur sans nom ou non déclarée.</exception>
+    /// <summary>Reads a definition from a stream.</summary>
+    /// <exception cref="FormatException">File without a RuleSet, color without a name or not declared.</exception>
     public static SyntaxDefinition Load(Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -31,14 +31,14 @@ public static class XshdReader
         return Load(await XDocument.LoadAsync(stream, LoadOptions.None, cancellationToken));
     }
 
-    /// <summary>Lit une définition depuis son texte XML.</summary>
+    /// <summary>Reads a definition from its XML text.</summary>
     public static SyntaxDefinition Parse(string xml)
     {
         ArgumentNullException.ThrowIfNull(xml);
         return Load(XDocument.Parse(xml));
     }
 
-    /// <summary>Lit une définition depuis un document XML déjà chargé.</summary>
+    /// <summary>Reads a definition from an already loaded XML document.</summary>
     public static SyntaxDefinition Load(XDocument document)
     {
         ArgumentNullException.ThrowIfNull(document);

@@ -2,10 +2,10 @@
 
 namespace Quill.Code.CSharp.Compilation;
 
-/// <summary>Le code passé à <see cref="CSharpLanguageService.RunAsync"/> ne compile pas : rien n'a été exécuté.</summary>
+/// <summary>The code passed to <see cref="CSharpLanguageService.RunAsync"/> does not compile: nothing was run.</summary>
 public sealed class CSharpCompilationException : Exception
 {
-    /// <summary>Compilation en échec, avec tous ses diagnostics (erreurs et avertissements).</summary>
+    /// <summary>Failed compilation, with all its diagnostics (errors and warnings).</summary>
     public CSharpCompilationException(IReadOnlyList<CodeDiagnostic> diagnostics)
         : base("Le code ne compile pas.")
     {
@@ -13,9 +13,9 @@ public sealed class CSharpCompilationException : Exception
         Diagnostics = diagnostics;
     }
 
-    /// <summary>Erreurs et avertissements, aux positions du texte de l'éditeur.</summary>
+    /// <summary>Errors and warnings, at editor text positions.</summary>
     public IReadOnlyList<CodeDiagnostic> Diagnostics { get; }
 
-    /// <summary>Erreurs seules.</summary>
+    /// <summary>Errors only.</summary>
     public IReadOnlyList<CodeDiagnostic> Errors => Diagnostics.Where(d => d.IsError).ToArray();
 }

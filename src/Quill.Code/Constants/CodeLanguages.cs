@@ -1,17 +1,17 @@
 ﻿namespace Quill.Code.Constants;
 
 /// <summary>
-/// Langues de code source connues par Quill.
+/// Source code languages known to Quill.
 /// </summary>
 public static class CodeLanguages
 {
     /// <summary>
-    /// Langue C#.
+    /// C# language.
     /// </summary>
     public const string CSharp = "csharp";
 
     /// <summary>
-    /// Langue SQL.
+    /// SQL language.
     /// </summary>
     public const string Sql = "sql";
 }

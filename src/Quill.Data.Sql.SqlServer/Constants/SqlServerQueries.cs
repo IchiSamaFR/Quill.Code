@@ -1,6 +1,6 @@
 ﻿namespace Quill.Data.Sql.SqlServer.Constants;
 
-/// <summary>Requêtes de lecture du catalogue dans les vues système (sys.*).</summary>
+/// <summary>Catalog queries on the system views (sys.*).</summary>
 internal static class SqlServerQueries
 {
     internal const string Databases = """

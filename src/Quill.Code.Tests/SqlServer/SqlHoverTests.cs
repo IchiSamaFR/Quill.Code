@@ -2,7 +2,7 @@
 
 namespace Quill.Code.Tests.SqlServer;
 
-/// <summary>Le caractère | marque la position survolée.</summary>
+/// <summary>The | character marks the hovered position.</summary>
 public class SqlHoverTests
 {
     [Fact]

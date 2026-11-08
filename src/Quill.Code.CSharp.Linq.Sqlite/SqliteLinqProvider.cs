@@ -6,8 +6,8 @@ using System.Reflection;
 namespace Quill.Code.CSharp.Linq.Sqlite;
 
 /// <summary>
-/// Requetes LINQ sur SQLite : Microsoft.EntityFrameworkCore.Sqlite. Les types declares suivent les regles d'affinite de
-/// SQLite (INT, CHAR, REAL...) ; une base par fichier, la base demandee est ignoree. A garder en une instance par application.
+/// LINQ queries on SQLite: Microsoft.EntityFrameworkCore.Sqlite. Declared types follow SQLite's affinity
+/// rules (INT, CHAR, REAL...); one database per file, the requested database is ignored. Keep one instance per application.
 /// </summary>
 public sealed class SqliteLinqProvider : ILinqDatabaseProvider
 {

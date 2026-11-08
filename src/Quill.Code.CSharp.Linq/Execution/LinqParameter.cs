@@ -3,15 +3,15 @@
 namespace Quill.Code.CSharp.Linq.Execution;
 
 /// <summary>
-/// Parametre de la requete, expose au script par son nom sans @ : propriete de QueryGlobals, de ce type, initialisee a cette valeur.
-/// Capture par la requete, EF l'envoie comme parametre SQL, jamais concatene au texte.
+/// Query parameter, exposed to the script by its name without @: a QueryGlobals property of this type, initialized to this value.
+/// Captured by the query, EF sends it as a SQL parameter, never concatenated into the text.
 /// </summary>
-/// <param name="Type">Type C# de la variable (int?, string, DateTime?...) ; <paramref name="Value"/> doit lui etre affectable.</param>
+/// <param name="Type">C# type of the variable (int?, string, DateTime?...); <paramref name="Value"/> must be assignable to it.</param>
 internal sealed record LinqParameter(string Name, Type Type, object? Value)
 {
     /// <summary>
-    /// Parametre de requete en variable C# nullable (NULL autorise). Un entier tient en int quand il le peut :
-    /// compare a une colonne int, un long forcerait un CAST cote SQL.
+    /// Query parameter as a nullable C# variable (NULL allowed). An integer fits in an int when it can:
+    /// compared with an int column, a long would force a CAST on the SQL side.
     /// </summary>
     public static LinqParameter From(QueryParameter parameter)
     {

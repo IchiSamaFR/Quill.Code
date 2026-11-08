@@ -5,7 +5,7 @@ using Quill.Code.CSharp.Roslyn;
 
 namespace Quill.Code.CSharp.Features;
 
-/// <summary>Surcharges de la méthode dont le curseur est dans la liste d'arguments.</summary>
+/// <summary>Overloads of the method whose argument list contains the caret.</summary>
 internal static class CSharpSignatureHelpEngine
 {
     public static async Task<SignatureHelpInfo?> GetSignatureHelpAsync(CSharpDocument document, int position, CancellationToken cancellationToken)
@@ -45,7 +45,7 @@ internal static class CSharpSignatureHelpEngine
     private static bool IsSameMethod(IMethodSymbol left, IMethodSymbol right)
         => SymbolEqualityComparer.Default.Equals((left.ReducedFrom ?? left).OriginalDefinition, (right.ReducedFrom ?? right).OriginalDefinition);
 
-    /// <summary>Liste d'arguments la plus intérieure dont le curseur est entre les parenthèses.</summary>
+    /// <summary>Innermost argument list whose parentheses contain the caret.</summary>
     private static ArgumentListSyntax? FindArgumentList(SyntaxNode root, int position)
         => root.FindToken(position - 1).Parent?
             .AncestorsAndSelf()

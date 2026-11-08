@@ -2,13 +2,13 @@
 
 namespace Quill.Code.Completion;
 
-/// <summary>Filtre et tri des propositions sur le mot en cours de frappe, rejoué à chaque touche sans relancer le fournisseur.</summary>
+/// <summary>Filters and sorts suggestions on the word being typed, replayed on each keystroke without calling the provider again.</summary>
 public static class CompletionFilter
 {
     /// <summary>
-    /// Propositions dont <see cref="CompletionItem.TextToFilter"/> contient <paramref name="prefix"/> (sans casse) :
-    /// celles qui commencent par lui d'abord, puis celles où il ouvre un segment (NUM → ROW_NUMBER), puis les autres ;
-    /// à égalité, par nature puis par libellé.
+    /// Suggestions whose <see cref="CompletionItem.TextToFilter"/> contains <paramref name="prefix"/> (case-insensitive):
+    /// those starting with it first, then those where it starts a segment (NUM → ROW_NUMBER), then the others;
+    /// ties broken by kind, then by label.
     /// </summary>
     public static IReadOnlyList<CompletionItem> Filter(IReadOnlyList<CompletionItem> items, string? prefix, int maxResults = CompletionConstants.DefaultMaxResults)
     {
@@ -40,7 +40,7 @@ public static class CompletionFilter
         return filtered;
     }
 
-    /// <summary>0 = commence par, 1 = début d'un segment, 2 = contient, -1 = rejeté.</summary>
+    /// <summary>0 = starts with, 1 = start of a segment, 2 = contains, -1 = rejected.</summary>
     private static int Score(string text, string prefix)
     {
         if (prefix.Length == 0 || text.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))

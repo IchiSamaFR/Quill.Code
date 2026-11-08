@@ -3,7 +3,7 @@ using Quill.Code.Analysis;
 
 namespace Quill.Code.Tests.Linq;
 
-/// <summary>Le caractere | marque la position (souris ou curseur) ; Roslyn analyse dans le contexte genere.</summary>
+/// <summary>The | character marks the position (mouse or caret); Roslyn analyzes in the generated context.</summary>
 public class LinqAnalysisTests
 {
     private static Lazy<LinqGeneratedModelAssembly> Model => TestLinq.Model;

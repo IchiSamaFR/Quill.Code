@@ -1,14 +1,14 @@
 ﻿namespace Quill.Code.Analysis;
 
-/// <summary>Gravité d'un diagnostic.</summary>
+/// <summary>Severity of a diagnostic.</summary>
 public enum CodeDiagnosticSeverity
 {
-    /// <summary>Information ou suggestion.</summary>
+    /// <summary>Information or suggestion.</summary>
     Info,
 
-    /// <summary>Avertissement (souligné en jaune).</summary>
+    /// <summary>Warning (yellow underline).</summary>
     Warning,
 
-    /// <summary>Erreur (souligné en rouge).</summary>
+    /// <summary>Error (red underline).</summary>
     Error,
 }

@@ -6,14 +6,14 @@ using System.Reflection;
 namespace Quill.Code.CSharp.Linq.SqlServer;
 
 /// <summary>
-/// Requetes LINQ sur SQL Server : mapping EF Core SQL Server par defaut, Microsoft.Data.SqlClient pour la connexion.
-/// A garder en une instance par application (cache des DbContext compiles).
+/// LINQ queries on SQL Server: default EF Core SQL Server mapping, Microsoft.Data.SqlClient for the connection.
+/// Keep one instance per application (cache of compiled DbContexts).
 /// </summary>
 public sealed class SqlServerLinqProvider : ILinqDatabaseProvider
 {
     private readonly string? _applicationName;
 
-    /// <summary>Fournisseur SQL Server ; <paramref name="applicationName"/> est vu du serveur (sys.dm_exec_sessions).</summary>
+    /// <summary>SQL Server provider; <paramref name="applicationName"/> is seen by the server (sys.dm_exec_sessions).</summary>
     public SqlServerLinqProvider(string? applicationName = null)
     {
         _applicationName = applicationName;

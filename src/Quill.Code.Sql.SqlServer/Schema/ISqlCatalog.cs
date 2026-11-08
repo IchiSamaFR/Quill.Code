@@ -3,16 +3,16 @@
 namespace Quill.Code.Sql.SqlServer.Schema;
 
 /// <summary>
-/// Catalogue des bases, fourni par l'hôte : Quill ne se connecte à rien. Une base indisponible (connexion fermée,
-/// droits insuffisants…) se rend vide ou null plutôt que par une exception ; Quill traite de toute façon une
-/// exception autre qu'une annulation comme une absence de schéma.
+/// Catalog of databases, provided by the host: Quill connects to nothing. An unavailable database (closed connection,
+/// insufficient permissions…) is returned empty or null rather than through an exception; Quill treats any
+/// exception other than a cancellation as a missing schema anyway.
 /// </summary>
 public interface ISqlCatalog
 {
-    /// <summary>Bases du serveur (USE, base.schéma.objet).</summary>
+    /// <summary>Databases of the server (USE, database.schema.object).</summary>
     Task<IReadOnlyList<SqlDatabaseInfo>> GetDatabasesAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Schéma complet d'une base, colonnes comprises ; null si elle est inconnue ou indisponible.</summary>
-    /// <param name="database">Nom de la base ; null = base par défaut de la connexion.</param>
+    /// <summary>Complete schema of a database, columns included; null if it is unknown or unavailable.</summary>
+    /// <param name="database">Name of the database; null = default database of the connection.</param>
     Task<SqlDatabaseSchema?> GetDatabaseAsync(string? database, CancellationToken cancellationToken = default);
 }

@@ -12,15 +12,15 @@ using Quill.Code.Sql.Execution;
 namespace Quill.Code.Sql.SqlServer;
 
 /// <summary>
-/// Execution SQL Server, calquee sur le comportement de SSMS : decoupage sur GO, un lot en echec n'empeche pas
-/// les suivants. Tout est remis au fil de l'eau : PRINT et erreurs SQL (provenance Code), lignes affectees (Host) par Log, jeux de resultats
-/// par Data. Une connexion est ouverte pour chaque appel.
+/// SQL Server execution, modeled on SSMS behavior: split on GO, a failed batch does not prevent
+/// the following ones. Everything is handed over as it comes: PRINT and SQL errors (Code origin), affected rows (Host) through Log, result sets
+/// through Data. A connection is opened for each call.
 /// </summary>
 public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
 {
     private readonly string? _applicationName;
 
-    /// <summary>Executeur SQL Server ; <paramref name="applicationName"/> est vu du serveur (sys.dm_exec_sessions).</summary>
+    /// <summary>SQL Server executor; <paramref name="applicationName"/> is seen by the server (sys.dm_exec_sessions).</summary>
     public SqlServerQueryExecutor(string? applicationName = null)
     {
         _applicationName = applicationName;
@@ -137,7 +137,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         return await DbResultSetReader.ReadAsync(reader, 1, maxRows, DbResultSetReader.FormatForRead, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <returns>Nombre de jeux de resultats lus depuis le debut du script.</returns>
+    /// <returns>Number of result sets read since the start of the script.</returns>
     private static async Task<int> ExecuteBatchAsync(SqlConnection connection, SqlBatch batch, int resultSetCount, DataRunOptions? options, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();

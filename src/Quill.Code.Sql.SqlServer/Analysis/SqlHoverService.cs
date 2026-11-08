@@ -9,12 +9,12 @@ using Quill.Code.Sql.SqlServer.Constants;
 namespace Quill.Code.Sql.SqlServer.Analysis;
 
 /// <summary>
-/// Survol T-SQL : type d'une colonne, colonnes d'une table ou d'un alias, objet, schéma ou base (catalogue de l'hôte),
-/// type d'une variable déclarée dans le texte ou fournie par l'hôte.
+/// T-SQL hover: type of a column, columns of a table or alias, object, schema or database (host catalog),
+/// type of a variable declared in the text or provided by the host.
 /// </summary>
 internal sealed class SqlHoverService : ICodeHover
 {
-    /// <summary>Mots qui terminent une instruction DECLARE.</summary>
+    /// <summary>Words ending a DECLARE statement.</summary>
     private static readonly HashSet<string> StatementWords = new(StringComparer.OrdinalIgnoreCase)
     {
         "SELECT", "SET", "DECLARE", "INSERT", "UPDATE", "DELETE", "MERGE", "IF", "WHILE", "BEGIN", "END",
@@ -59,7 +59,7 @@ internal sealed class SqlHoverService : ICodeHover
         return described is { } hover ? new HoverInfo(token.Start, token.Length, hover.Signature, hover.Description) : null;
     }
 
-    /// <summary>Parties avant le nom : ["u"] pour u.Name, ["dbo", "Users"] pour dbo.Users.Name.</summary>
+    /// <summary>Parts before the name: ["u"] for u.Name, ["dbo", "Users"] for dbo.Users.Name.</summary>
     private static List<string> ReadQualifier(string text, SqlToken[] tokens, int index)
     {
         List<string> parts = [];
@@ -155,7 +155,7 @@ internal sealed class SqlHoverService : ICodeHover
 
     // ---------- Textes ----------
 
-    /// <summary>Ex. « (colonne) Name nvarchar(50) NOT NULL », puis la table (et les autres tables du lot qui l'ont aussi).</summary>
+    /// <summary>E.g. "(column) Name nvarchar(50) NOT NULL", then the table (and the other tables of the batch that also have it).</summary>
     private static (string, string?) DescribeColumn(SqlSchemaObject table, SqlColumn column, IReadOnlyList<string> alsoIn)
     {
         var description = new StringBuilder(table.QualifiedName);
@@ -167,7 +167,7 @@ internal sealed class SqlHoverService : ICodeHover
         return ($"(colonne) {column.Name} {column.DataType} {(column.IsNullable ? "NULL" : "NOT NULL")}", description.ToString());
     }
 
-    /// <summary>Ex. « (table) dbo.Users », puis ses premières colonnes avec leur type.</summary>
+    /// <summary>E.g. "(table) dbo.Users", then its first columns with their type.</summary>
     private static (string, string?) DescribeObject(SqlSchemaObject source, string? alias)
     {
         var kind = source.Kind switch
@@ -209,7 +209,7 @@ internal sealed class SqlHoverService : ICodeHover
             : null;
     }
 
-    /// <summary>Type donné par un DECLARE @a int, @b nvarchar(50) = 'x' du texte ; null si la variable n'y est pas déclarée.</summary>
+    /// <summary>Type given by a DECLARE @a int, @b nvarchar(50) = 'x' in the text; null if the variable is not declared there.</summary>
     private static string? FindDeclaredType(string text, SqlToken[] tokens, string name)
     {
         for (var i = 0; i < tokens.Length; i++)
@@ -252,7 +252,7 @@ internal sealed class SqlHoverService : ICodeHover
         return null;
     }
 
-    /// <summary>Index de la variable suivante du même DECLARE, ou au-delà de la fin si l'instruction s'arrête.</summary>
+    /// <summary>Index of the next variable of the same DECLARE, or past the end if the statement stops.</summary>
     private static int SkipToNextVariable(string text, SqlToken[] tokens, int index)
     {
         var depth = 0;

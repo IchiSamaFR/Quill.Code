@@ -3,15 +3,15 @@ using Quill.Code.Analysis;
 
 namespace Quill.Code.CSharp.Features;
 
-/// <summary>Textes des signatures et précisions du survol, comme Visual Studio : types sans espace de noms, mots-clés C#.</summary>
+/// <summary>Signature texts and hover details, like Visual Studio: types without namespace, C# keywords.</summary>
 internal static class CSharpSymbolFormatter
 {
     private static readonly SymbolDisplayFormat Format = SymbolDisplayFormat.MinimallyQualifiedFormat
         .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
     /// <summary>
-    /// [Description] portée par le symbole, son type ou l'élément d'une collection (DbSet&lt;Student&gt;) ;
-    /// pour une méthode, le type qui la déclare.
+    /// [Description] carried by the symbol, its type or the element of a collection (DbSet&lt;Student&gt;);
+    /// for a method, the type declaring it.
     /// </summary>
     public static string? Details(ISymbol symbol)
     {
@@ -32,7 +32,7 @@ internal static class CSharpSymbolFormatter
             ?? (type is INamedTypeSymbol { IsGenericType: true, TypeArguments: [var element, ..] } ? DescriptionOf(element) : null);
     }
 
-    /// <summary>Surcharge d'une méthode : préfixe, paramètres un par un, suffixe.</summary>
+    /// <summary>Overload of a method: prefix, parameters one by one, suffix.</summary>
     public static SignatureInfo ToSignature(IMethodSymbol method)
     {
         var typeArguments = method.IsGenericMethod

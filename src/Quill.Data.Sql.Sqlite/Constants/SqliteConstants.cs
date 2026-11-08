@@ -1,27 +1,27 @@
 ﻿namespace Quill.Data.Sql.Sqlite.Constants;
 
-/// <summary>Constantes du catalogue SQLite.</summary>
+/// <summary>SQLite catalog constants.</summary>
 internal static class SqliteConstants
 {
-    /// <summary>Base principale d'une connexion.</summary>
+    /// <summary>Main database of a connection.</summary>
     internal const string MainDatabase = "main";
 
-    /// <summary>Base des objets temporaires.</summary>
+    /// <summary>Database of temporary objects.</summary>
     internal const string TempDatabase = "temp";
 
     internal const string TableType = "table";
 
     internal const string ViewType = "view";
 
-    /// <summary>Type affiche d'une colonne declaree sans type (affinite BLOB, valeurs de tout type).</summary>
+    /// <summary>Displayed type of a column declared without a type (BLOB affinity, values of any type).</summary>
     internal const string UntypedColumn = "ANY";
 
-    /// <summary>pragma_table_xinfo.hidden : colonne d'une table virtuelle, jamais listee.</summary>
+    /// <summary>pragma_table_xinfo.hidden: column of a virtual table, never listed.</summary>
     internal const int HiddenColumn = 1;
 
-    /// <summary>pragma_table_xinfo.hidden : a partir de cette valeur, colonne generee (VIRTUAL ou STORED).</summary>
+    /// <summary>pragma_table_xinfo.hidden: from this value on, generated column (VIRTUAL or STORED).</summary>
     internal const int FirstGeneratedColumn = 2;
 
-    /// <summary>Type d'une cle primaire alias de rowid (auto-incrementee).</summary>
+    /// <summary>Type of a primary key aliasing rowid (auto-incremented).</summary>
     internal const string RowIdAliasType = "INTEGER";
 }

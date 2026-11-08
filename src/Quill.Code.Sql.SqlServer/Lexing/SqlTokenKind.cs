@@ -1,6 +1,6 @@
 ﻿namespace Quill.Code.Sql.SqlServer.Lexing;
 
-/// <summary>Nature d'un jeton T-SQL.</summary>
+/// <summary>Kind of a T-SQL token.</summary>
 public enum SqlTokenKind
 {
     Word,

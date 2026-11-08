@@ -1,12 +1,12 @@
 ﻿namespace Quill.Code.CSharp.Linq.Constants;
 
-/// <summary>Noms du modele EF genere depuis la structure d'une base.</summary>
+/// <summary>Names of the EF model generated from a database structure.</summary>
 internal static class EfModelConstants
 {
-    /// <summary>Espace de noms du DbContext et des entites generes.</summary>
+    /// <summary>Namespace of the generated DbContext and entities.</summary>
     internal const string GeneratedNamespace = "Quill.Generated";
 
-    /// <summary>Classe generee portant Dump() ; sa propriete privee <see cref="DumpSinkPropertyName"/> recoit les valeurs.</summary>
+    /// <summary>Generated class holding Dump(); its private property <see cref="DumpSinkPropertyName"/> receives the values.</summary>
     internal const string ExtensionsClassName = "QueryExtensions";
 
     /// <inheritdoc cref="ExtensionsClassName"/>

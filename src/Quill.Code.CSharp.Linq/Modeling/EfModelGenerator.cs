@@ -7,19 +7,19 @@ using static Quill.Code.CSharp.Linq.Constants.EfModelConstants;
 namespace Quill.Code.CSharp.Linq.Modeling;
 
 /// <summary>
-/// Genere le code C# d'un DbContext EF Core a partir de la structure d'une base : une classe par
-/// table ou vue, un DbSet par classe, et le mapping (tables, cles, noms de colonnes, precisions).
+/// Generates the C# code of an EF Core DbContext from a database structure: one class per
+/// table or view, one DbSet per class, and the mapping (tables, keys, column names, precisions).
 /// </summary>
 internal static class EfModelGenerator
 {
-    /// <summary>Noms que l'entite ne peut pas prendre : ils masqueraient les types utilises par le code genere.</summary>
+    /// <summary>Names the entity cannot take: they would hide the types used by the generated code.</summary>
     private static readonly HashSet<string> ReservedTypeNames = new(StringComparer.Ordinal)
     {
         "DbContext", "DbSet", "DbContextOptions", "ModelBuilder", "System", "Microsoft", "String", "DateTime",
         "DateOnly", "TimeSpan", "DateTimeOffset", "Guid", "Decimal", "Object", ExtensionsClassName
     };
 
-    /// <param name="provider">Moteur de la base : type C# de chaque colonne.</param>
+    /// <param name="provider">Database engine: C# type of each column.</param>
     public static EfGeneratedModel Generate(SqlDatabaseSchema snapshot, ILinqDatabaseProvider provider)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
@@ -134,7 +134,7 @@ internal static class EfModelGenerator
         return code.ToString();
     }
 
-    /// <summary>Dump() facon LINQPad : affiche une valeur dans son propre onglet et la rend telle quelle.</summary>
+    /// <summary>LINQPad-style Dump(): displays a value in its own tab and returns it as is.</summary>
     private static void WriteExtensions(StringBuilder code)
     {
         code.AppendLine(CultureInfo.InvariantCulture, $"public static class {ExtensionsClassName}");
@@ -217,7 +217,7 @@ internal static class EfModelGenerator
 
     // ---------- Identifiants ----------
 
-    /// <summary>Identifiant C# valide : caracteres interdits -> _, chiffre initial prefixe, mot-cle echappe par @.</summary>
+    /// <summary>Valid C# identifier: forbidden characters -> _, leading digit prefixed, keyword escaped with @.</summary>
     public static string ToIdentifier(string name)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -242,17 +242,17 @@ internal static class EfModelGenerator
         return candidate;
     }
 
-    /// <summary>Ex. "Table dbo.Student".</summary>
+    /// <summary>E.g. "Table dbo.Student".</summary>
     private static string DescribeSource(SqlSchemaObject source)
         => $"{(source.Kind == SqlSchemaObjectKind.View ? "Vue" : "Table")} {source.Schema}.{source.Name}";
 
-    /// <summary>Ex. "Colonne dbo.Student.Name · nvarchar(50) · not null · clé primaire".</summary>
+    /// <summary>E.g. "Colonne dbo.Student.Name · nvarchar(50) · not null · clé primaire".</summary>
     private static string DescribeColumn(SqlSchemaObject source, SqlColumn column)
     {
         var description = $"Colonne {source.Schema}.{source.Name}.{column.Name} · {column.DataType} · {(column.IsNullable ? "null" : "not null")}";
         return column.IsPrimaryKey ? description + " · clé primaire" : description;
     }
 
-    /// <summary>Litteral C# echappe par Roslyn (guillemets, antislash, retours a la ligne, caracteres de controle).</summary>
+    /// <summary>C# literal escaped by Roslyn (quotes, backslash, line breaks, control characters).</summary>
     private static string Literal(string value) => SymbolDisplay.FormatLiteral(value, quote: true);
 }

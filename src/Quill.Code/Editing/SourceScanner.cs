@@ -3,11 +3,11 @@
 namespace Quill.Code.Editing;
 
 /// <summary>
-/// Découpage minimal du source en code, commentaires et chaînes (sans coloration), selon une <see cref="SourceSyntax"/>.
+/// Minimal splitting of the source into code, comments and strings (no highlighting), according to a <see cref="SourceSyntax"/>.
 /// </summary>
 public static class SourceScanner
 {
-    /// <summary>Région de chaque caractère du texte (à garder en cache tant que le texte ne change pas).</summary>
+    /// <summary>Region of each character of the text (to cache as long as the text does not change).</summary>
     public static SourceRegion[] Classify(string text, SourceSyntax syntax)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -18,7 +18,7 @@ public static class SourceScanner
         return regions;
     }
 
-    /// <summary>Région dans laquelle tombe une insertion à <paramref name="offset"/>.</summary>
+    /// <summary>Region an insertion at <paramref name="offset"/> falls into.</summary>
     public static SourceRegion RegionAt(string text, int offset, SourceSyntax syntax)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -27,7 +27,7 @@ public static class SourceScanner
         return Scan(text, Math.Clamp(offset, 0, text.Length), syntax, null);
     }
 
-    /// <returns>La région encore ouverte après text[..limit].</returns>
+    /// <returns>The region still open after text[..limit].</returns>
     private static SourceRegion Scan(string text, int limit, SourceSyntax syntax, SourceRegion[]? regions)
     {
         var state = SourceRegion.Code;

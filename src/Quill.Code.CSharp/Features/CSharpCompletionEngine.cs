@@ -5,7 +5,7 @@ using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
 namespace Quill.Code.CSharp.Features;
 
-/// <summary>Autocomplétion C# de Roslyn, ramenée au texte de l'éditeur.</summary>
+/// <summary>Roslyn C# completion, mapped back to the editor text.</summary>
 internal static class CSharpCompletionEngine
 {
     public static async Task<CompletionList> GetCompletionsAsync(CSharpDocument document, int position, CancellationToken cancellationToken)
@@ -49,8 +49,8 @@ internal static class CSharpCompletionEngine
     }
 
     /// <summary>
-    /// Le source peut différer du texte de l'éditeur (directives neutralisées) : le changement de Roslyn est ramené
-    /// à un diff fin, rejoué sur le texte réel, dont on prend l'enveloppe. Null s'il sort du texte.
+    /// The source may differ from the editor text (neutralized directives): Roslyn's change is reduced
+    /// to a fine-grained diff, replayed on the real text, whose envelope is taken. Null if it falls outside the text.
     /// </summary>
     private static async Task<CompletionChange?> ToEditorChangeAsync(CSharpDocument document, RoslynCompletion.CompletionChange change, CancellationToken cancellationToken)
     {

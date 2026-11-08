@@ -4,37 +4,37 @@ using System.Text.RegularExpressions;
 namespace Quill.Code.Sql.SqlServer.Completion;
 
 /// <summary>
-/// Devine ce que le T-SQL attend au curseur, sans vrai parser : jeton precedent d'abord,
-/// puis mot-cle de clause le plus proche au meme niveau de parentheses. L'analyse se limite
-/// au lot courant (delimite par GO), comme l'execution.
+/// Guesses what T-SQL expects at the caret, without a real parser: previous token first,
+/// then nearest clause keyword at the same parenthesis level. The analysis is limited
+/// to the current batch (delimited by GO), like the execution.
 /// </summary>
 public static partial class SqlContextAnalyzer
 {
-    /// <summary>Mots apres lesquels on attend un nom de table.</summary>
+    /// <summary>Words after which a table name is expected.</summary>
     private static readonly HashSet<string> TableSourceKeywords = new(StringComparer.OrdinalIgnoreCase)
     {
         "FROM", "JOIN", "UPDATE", "INTO", "TABLE", "MERGE", "USING", "APPLY"
     };
 
-    /// <summary>Sources ou un alias peut suivre le nom de la table.</summary>
+    /// <summary>Sources where an alias can follow the table name.</summary>
     private static readonly HashSet<string> AliasedSources = new(StringComparer.OrdinalIgnoreCase)
     {
         "FROM", "JOIN", "MERGE", "USING", "APPLY"
     };
 
-    /// <summary>Clauses dont le contenu est une expression (colonnes, fonctions).</summary>
+    /// <summary>Clauses whose content is an expression (columns, functions).</summary>
     private static readonly HashSet<string> ExpressionClauses = new(StringComparer.OrdinalIgnoreCase)
     {
         "SELECT", "WHERE", "ON", "HAVING", "BY", "SET", "VALUES", "OUTPUT", "IF", "WHILE", "RETURN", "PRINT"
     };
 
-    /// <summary>Clauses qui ouvrent une nouvelle instruction.</summary>
+    /// <summary>Clauses opening a new statement.</summary>
     private static readonly HashSet<string> StatementClauses = new(StringComparer.OrdinalIgnoreCase)
     {
         "UNION", "EXCEPT", "INTERSECT", "BEGIN", "END", "DECLARE", "EXEC", "EXECUTE"
     };
 
-    /// <summary>Mots qui ne peuvent pas etre un nom ou un alias de table.</summary>
+    /// <summary>Words that cannot be a table name or alias.</summary>
     private static readonly HashSet<string> ReservedWords = new(StringComparer.OrdinalIgnoreCase)
     {
         "SELECT", "FROM", "WHERE", "GROUP", "ORDER", "BY", "HAVING", "JOIN", "INNER", "LEFT", "RIGHT", "FULL",
@@ -48,14 +48,14 @@ public static partial class SqlContextAnalyzer
 
     private static readonly HashSet<string> ConvertFunctions = new(StringComparer.OrdinalIgnoreCase) { "CONVERT", "TRY_CONVERT" };
 
-    /// <summary>Reste de la ligne apres GO : un nombre de repetitions et un commentaire, rien d'autre.</summary>
+    /// <summary>Rest of the line after GO: a repetition count and a comment, nothing else.</summary>
     [GeneratedRegex(@"^[ \t]*\d*[ \t]*(?:--.*)?\r?$", RegexOptions.CultureInvariant)]
     private static partial Regex GoLineTailRegex();
 
-    /// <summary>Analyse le texte autour de <paramref name="caret"/>.</summary>
-    /// <param name="text">Texte complet de l'éditeur.</param>
-    /// <param name="caret">Position du curseur.</param>
-    /// <param name="database">Base imposée par l'appelant (dashboard…), si le texte n'en choisit pas par USE.</param>
+    /// <summary>Analyzes the text around <paramref name="caret"/>.</summary>
+    /// <param name="text">Full editor text.</param>
+    /// <param name="caret">Caret position.</param>
+    /// <param name="database">Database imposed by the caller (dashboard…), if the text does not choose one with USE.</param>
     public static SqlContext Analyze(string text, int caret, string? database = null)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -97,8 +97,8 @@ public static partial class SqlContextAnalyzer
     }
 
     /// <summary>
-    /// Tables et base du lot contenant <paramref name="offset"/>, sans deviner ce qui est attendu :
-    /// l'infobulle en a besoin sur un nom deja ecrit, la ou <see cref="Analyze"/> ne propose rien.
+    /// Tables and database of the batch containing <paramref name="offset"/>, without guessing what is expected:
+    /// the tooltip needs them on an already written name, where <see cref="Analyze"/> suggests nothing.
     /// </summary>
     public static SqlContext AnalyzeScope(string text, int offset, string? database)
     {
@@ -116,7 +116,7 @@ public static partial class SqlContextAnalyzer
         };
     }
 
-    /// <summary>Début du mot en cours de frappe (@ et # pour les variables et tables temporaires).</summary>
+    /// <summary>Start of the word being typed (@ and # for variables and temporary tables).</summary>
     public static int FindWordStart(string text, int caret)
     {
         var start = Math.Clamp(caret, 0, text.Length);
@@ -138,7 +138,7 @@ public static partial class SqlContextAnalyzer
         return token.Start < caret && (caret < token.End || (caret == token.End && !token.IsTerminated));
     }
 
-    /// <summary>Bornes du lot contenant le curseur : entre les lignes GO qui l'encadrent.</summary>
+    /// <summary>Bounds of the batch containing the caret: between the GO lines around it.</summary>
     private static (int Start, int End) FindBatch(string text, IReadOnlyList<SqlToken> tokens, int caret)
     {
         var start = 0;
@@ -225,7 +225,7 @@ public static partial class SqlContextAnalyzer
         return (SqlContextKind.General, []);
     }
 
-    /// <summary>Remonte "a.b." depuis le point : parties nommees, la plus a gauche en premier.</summary>
+    /// <summary>Walks "a.b." back from the dot: named parts, leftmost first.</summary>
     private static List<string> ReadQualifier(string text, SqlToken[] tokens, int dotIndex)
     {
         List<string> parts = [];
@@ -241,8 +241,8 @@ public static partial class SqlContextAnalyzer
     }
 
     /// <summary>
-    /// "AS" introduit un type dans CAST(x AS |), un alias dans SELECT / FROM, et le corps
-    /// d'une vue ou d'une procedure (CREATE VIEW v AS |).
+    /// "AS" introduces a type in CAST(x AS |), an alias in SELECT / FROM, and the body
+    /// of a view or procedure (CREATE VIEW v AS |).
     /// </summary>
     private static SqlContextKind AfterAs(string text, SqlToken[] tokens, int asIndex)
     {
@@ -256,8 +256,8 @@ public static partial class SqlContextAnalyzer
     }
 
     /// <summary>
-    /// Dans FROM / JOIN : apres une virgule on attend une table ; juste apres le nom d'une table,
-    /// sur la meme ligne, un alias ou la suite de la requete (WHERE, JOIN...) ; sinon tout.
+    /// In FROM / JOIN: after a comma a table is expected; right after a table name,
+    /// on the same line, an alias or the rest of the query (WHERE, JOIN...); otherwise anything.
     /// </summary>
     private static SqlContextKind AfterTableSource(string text, SqlToken[] tokens, int index, int wordStart, string clause, bool isInsideParen)
     {
@@ -279,7 +279,7 @@ public static partial class SqlContextAnalyzer
         return SqlContextKind.General;
     }
 
-    /// <summary>Vrai si le jeton termine le nom (eventuellement qualifie) qui suit FROM, JOIN, une virgule...</summary>
+    /// <summary>True if the token ends the (possibly qualified) name following FROM, JOIN, a comma...</summary>
     private static bool IsTableNamePosition(string text, SqlToken[] tokens, int nameIndex)
     {
         var i = nameIndex;
@@ -293,7 +293,7 @@ public static partial class SqlContextAnalyzer
         return before.Kind == SqlTokenKind.Comma || IsWordIn(text, before, TableSourceKeywords);
     }
 
-    /// <summary>CREATE PROCEDURE p @a |, (@a |, @b ...) : parametres types.</summary>
+    /// <summary>CREATE PROCEDURE p @a |, (@a |, @b ...): typed parameters.</summary>
     private static bool IsRoutineHeader(string text, SqlToken[] tokens, int index)
     {
         for (var i = index - 1; i >= 0; i--)
@@ -309,8 +309,8 @@ public static partial class SqlContextAnalyzer
     }
 
     /// <summary>
-    /// Mot-cle de clause le plus proche en remontant au meme niveau de parentheses ;
-    /// une parenthese ouvrante non fermee fait remonter d'un niveau (COUNT(| -> SELECT).
+    /// Nearest clause keyword walking back at the same parenthesis level;
+    /// an unclosed opening parenthesis moves up one level (COUNT(| -> SELECT).
     /// </summary>
     private static (string? Clause, bool IsInsideParen) FindClause(string text, SqlToken[] tokens, int index)
     {
@@ -344,7 +344,7 @@ public static partial class SqlContextAnalyzer
         return (null, isInsideParen);
     }
 
-    /// <summary>Nom de la fonction dont la parenthese ouvrante englobe le jeton.</summary>
+    /// <summary>Name of the function whose opening parenthesis encloses the token.</summary>
     private static string? FindOpenParenFunction(string text, SqlToken[] tokens, int index)
     {
         var depth = 0;
@@ -361,7 +361,7 @@ public static partial class SqlContextAnalyzer
 
     // ---------- Tables et base ----------
 
-    /// <summary>Tables apres FROM, JOIN, UPDATE, INTO, MERGE, USING, APPLY, et apres les virgules d'un FROM.</summary>
+    /// <summary>Tables after FROM, JOIN, UPDATE, INTO, MERGE, USING, APPLY, and after the commas of a FROM.</summary>
     private static List<SqlTableReference> ParseTables(string text, SqlToken[] tokens)
     {
         List<SqlTableReference> tables = [];
@@ -391,8 +391,8 @@ public static partial class SqlContextAnalyzer
     }
 
     /// <summary>
-    /// Lit "[db.][schema.]nom [(args)] [AS] [alias] [WITH (hints)]" ; une sous-requete
-    /// (SELECT ...) alias est sautee sans produire de table.
+    /// Reads "[db.][schema.]name [(args)] [AS] [alias] [WITH (hints)]"; a subquery
+    /// (SELECT ...) alias is skipped without producing a table.
     /// </summary>
     private static bool TryParseTable(string text, SqlToken[] tokens, int start, out SqlTableReference? table, out int next)
     {
@@ -454,7 +454,7 @@ public static partial class SqlContextAnalyzer
         return true;
     }
 
-    /// <summary>Dernier USE avant le curseur, tous lots confondus.</summary>
+    /// <summary>Last USE before the caret, across all batches.</summary>
     private static string? FindDatabase(string text, IReadOnlyList<SqlToken> tokens, int caret)
     {
         string? database = null;
@@ -497,7 +497,7 @@ public static partial class SqlContextAnalyzer
 
     private static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
 
-    /// <summary>[Ma Table] -> Ma Table, "x""y" -> x"y.</summary>
+    /// <summary>[My Table] -> My Table, "x""y" -> x"y.</summary>
     public static string Unquote(string name)
     {
         if (name.Length >= 2 && name[0] == '[')

@@ -1,6 +1,6 @@
 ﻿namespace Quill.Code.CSharp.Linq.Compilation;
 
-/// <summary>Le code genere ne compile pas (bug du generateur, cas de schema non prevu), ou un parametre ne convient pas a son type.</summary>
+/// <summary>The generated code does not compile (generator bug, unforeseen schema case), or a parameter does not fit its type.</summary>
 internal sealed class LinqCompilationException : Exception
 {
     public LinqCompilationException(string message, IReadOnlyList<string> errors)
@@ -9,6 +9,6 @@ internal sealed class LinqCompilationException : Exception
         Errors = errors;
     }
 
-    /// <summary>Messages Roslyn, positions dans le source genere ; vide pour un parametre.</summary>
+    /// <summary>Roslyn messages, positions in the generated source; empty for a parameter.</summary>
     public IReadOnlyList<string> Errors { get; }
 }

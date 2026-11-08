@@ -1,41 +1,41 @@
 ﻿# Quill.Code
 
-Briques communes aux éditeurs de code .NET, indépendantes du framework d'interface (WPF, MAUI…) : coloration syntaxique, autocomplétion, diagnostics et algorithmes d'édition.
+Shared building blocks for .NET code editors, independent of the UI framework (WPF, MAUI…): syntax highlighting, completion, diagnostics and editing algorithms.
 
-## Paquets
+## Packages
 
-| Paquet | Contenu |
+| Package | Contents |
 |---|---|
-| `Quill.Code` | Modèles, contrats, lecture des définitions `.xshd`, découpage en zones colorées, algorithmes d'édition . Aucune dépendance d'interface. |
-| `Quill.Code.CSharp` | C# via Roslyn : autocomplétion, diagnostics, survol, aide à la signature, compilation et chargement. |
-| `Quill.Code.CSharp.Linq` | LINQ / Entity Framework Core (net10.0), sans moteur : DbContext généré depuis la structure d'une base (`Quill.Data.Sql`), autocomplétion, diagnostics et survol C# dans ce contexte (`LinqLanguageService`), exécution (`LinqQueryExecutor`, même contrat que `SqlServerQueryExecutor`) ; le moteur est un `ILinqDatabaseProvider`. |
-| `Quill.Code.CSharp.Linq.SqlServer` | `SqlServerLinqProvider` : LINQ sur SQL Server (types SQL Server, EF Core SqlServer, Microsoft.Data.SqlClient). |
-| `Quill.Code.CSharp.Linq.MySql` | `MySqlLinqProvider` : LINQ sur MySQL / MariaDB (Microting.EntityFrameworkCore.MySql, fork EF Core 10 de Pomelo, MySqlConnector). |
-| `Quill.Code.CSharp.Linq.PostgreSql` | `PostgreSqlLinqProvider` : LINQ sur PostgreSQL (Npgsql.EntityFrameworkCore.PostgreSQL). |
-| `Quill.Code.CSharp.Linq.Oracle` | `OracleLinqProvider` : LINQ sur Oracle (Oracle.EntityFrameworkCore, SQL compatible 19c). |
-| `Quill.Code.CSharp.Linq.Sqlite` | `SqliteLinqProvider` : LINQ sur SQLite (Microsoft.EntityFrameworkCore.Sqlite). |
-| `Quill.Code.Sql` | Socle de l'exécution SQL : contrat `ISqlQueryExecutor` et base ADO.NET (`DbQueryExecutor`, `DbResultSetReader`). Aucune dépendance. |
-| `Quill.Code.Sql.SqlServer` | T-SQL : lexer, analyse du contexte de saisie (ce qu'attend la grammaire au curseur, tables et alias du lot, base du `USE`) diagnostics de syntaxe par ScriptDom, autocomplétion et survol sur le catalogue fourni par l'hôte (`ISqlCatalog`) ; exécution sur SQL Server (`SqlServerQueryExecutor`). |
-| `Quill.Code.Sql.MySql` / `.PostgreSql` / `.Oracle` / `.Sqlite` | Exécution SQL sur chaque moteur (`MySqlQueryExecutor`, `PostgreSqlQueryExecutor`, `OracleQueryExecutor` — script découpé comme sous SQL*Plus —, `SqliteQueryExecutor`), sur `DbQueryExecutor`. |
-| `Quill.Data.Sql` | Structure d'une base (bases, schémas, tables, vues, procédures, colonnes) et contrat de lecture du catalogue (`ISqlSchemaReader`). Aucune dépendance. |
-| `Quill.Data.Sql.SqlServer` | Lecture du catalogue SQL Server (`sys.*`) via Microsoft.Data.SqlClient. |
-| `Quill.Data.Sql.MySql` / `.PostgreSql` / `.Oracle` / `.Sqlite` | Lecture du catalogue : `information_schema` (MySqlConnector), `pg_catalog` (Npgsql), vues `ALL_*` (ODP.NET Core), `sqlite_master` et pragmas (Microsoft.Data.Sqlite). |
+| `Quill.Code` | Models, contracts, reading of `.xshd` definitions, splitting into colored spans, editing algorithms. No UI dependency. |
+| `Quill.Code.CSharp` | C# via Roslyn: completion, diagnostics, hover, signature help, compilation and loading. |
+| `Quill.Code.CSharp.Linq` | LINQ / Entity Framework Core (net10.0), engine-agnostic: DbContext generated from a database structure (`Quill.Data.Sql`), C# completion, diagnostics and hover in that context (`LinqLanguageService`), execution (`LinqQueryExecutor`, same contract as `SqlServerQueryExecutor`); the engine is an `ILinqDatabaseProvider`. |
+| `Quill.Code.CSharp.Linq.SqlServer` | `SqlServerLinqProvider`: LINQ on SQL Server (SQL Server types, EF Core SqlServer, Microsoft.Data.SqlClient). |
+| `Quill.Code.CSharp.Linq.MySql` | `MySqlLinqProvider`: LINQ on MySQL / MariaDB (Microting.EntityFrameworkCore.MySql, EF Core 10 fork of Pomelo, MySqlConnector). |
+| `Quill.Code.CSharp.Linq.PostgreSql` | `PostgreSqlLinqProvider`: LINQ on PostgreSQL (Npgsql.EntityFrameworkCore.PostgreSQL). |
+| `Quill.Code.CSharp.Linq.Oracle` | `OracleLinqProvider`: LINQ on Oracle (Oracle.EntityFrameworkCore, 19c-compatible SQL). |
+| `Quill.Code.CSharp.Linq.Sqlite` | `SqliteLinqProvider`: LINQ on SQLite (Microsoft.EntityFrameworkCore.Sqlite). |
+| `Quill.Code.Sql` | Foundation of SQL execution: `ISqlQueryExecutor` contract and ADO.NET base (`DbQueryExecutor`, `DbResultSetReader`). No dependency. |
+| `Quill.Code.Sql.SqlServer` | T-SQL: lexer, input context analysis (what the grammar expects at the caret, tables and aliases of the batch, database of the `USE`), syntax diagnostics through ScriptDom, completion and hover on the catalog provided by the host (`ISqlCatalog`); execution on SQL Server (`SqlServerQueryExecutor`). |
+| `Quill.Code.Sql.MySql` / `.PostgreSql` / `.Oracle` / `.Sqlite` | SQL execution on each engine (`MySqlQueryExecutor`, `PostgreSqlQueryExecutor`, `OracleQueryExecutor` — script split as in SQL*Plus —, `SqliteQueryExecutor`), on `DbQueryExecutor`. |
+| `Quill.Data.Sql` | Structure of a database (databases, schemas, tables, views, procedures, columns) and catalog reading contract (`ISqlSchemaReader`). No dependency. |
+| `Quill.Data.Sql.SqlServer` | Reads the SQL Server catalog (`sys.*`) via Microsoft.Data.SqlClient. |
+| `Quill.Data.Sql.MySql` / `.PostgreSql` / `.Oracle` / `.Sqlite` | Catalog reading: `information_schema` (MySqlConnector), `pg_catalog` (Npgsql), `ALL_*` views (ODP.NET Core), `sqlite_master` and pragmas (Microsoft.Data.Sqlite). |
 
-L'affichage reste à la charge de l'application : chaque app traduit les zones colorées, propositions et diagnostics vers ses propres contrôles.
+Display is up to the application: each app maps colored spans, suggestions and diagnostics to its own controls.
 
 ## Installation
 
-Les paquets sont publiés sur [nuget.org](https://www.nuget.org/profiles/IchiSamaFR) :
+Packages are published on [nuget.org](https://www.nuget.org/profiles/IchiSamaFR):
 
 ```
 dotnet add package QuillCode.CSharp
 ```
 
-Le préfixe `Quill.` étant réservé sur nuget.org, chaque projet `Quill.Code.X` est publié sous l'ID `QuillCode.X` et `Quill.Data.Sql.X` sous `QuillCode.Data.Sql.X` ; assemblies et namespaces gardent leur nom.
+Since the `Quill.` prefix is reserved on nuget.org, each `Quill.Code.X` project is published under the ID `QuillCode.X` and `Quill.Data.Sql.X` under `QuillCode.Data.Sql.X`; assemblies and namespaces keep their names.
 
-## Utilisation
+## Usage
 
-Un service par contexte, avec son propre projet Roslyn, créé à la première demande (hors du thread de l'interface) :
+One service per context, with its own Roslyn project, created on first request (off the UI thread):
 
 ```csharp
 var language = new CSharpLanguageService(() => new CSharpLanguageOptions
@@ -44,9 +44,9 @@ var language = new CSharpLanguageService(() => new CSharpLanguageOptions
     References = CSharpReferences.FromTrustedPlatformAssemblies(),
     CompilationOptions = new(OutputKind.ConsoleApplication),
     AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = "global using System;" },
-    SourceTransform = code => code,   // facultatif : source analysé, de même longueur que le texte
-    TextReferences = code => [],      // facultatif : références déclarées par le texte
-    IncludeSemanticDiagnostics = true, // faux : fautes de syntaxe seulement
+    SourceTransform = code => code,   // optional: analyzed source, same length as the text
+    TextReferences = code => [],      // optional: references declared by the text
+    IncludeSemanticDiagnostics = true, // false: syntax errors only
 });
 
 var completions = await language.GetCompletionsAsync(code, caret);
@@ -54,24 +54,24 @@ var change = await language.GetChangeAsync(code, completions.Items[0]);
 var diagnostics = await language.GetDiagnosticsAsync(code);
 ```
 
-`CSharpLanguageService` implémente `ICodeLanguageService` : un contrôle d'éditeur s'y lie sans dépendre de Roslyn. Sans options, le service analyse une bibliothèque qui référence le framework.
+`CSharpLanguageService` implements `ICodeLanguageService`: an editor control binds to it without depending on Roslyn. Without options, the service analyzes a library that references the framework.
 
-Compilation du même projet que l'éditeur, chargée dans un contexte déchargeable (l'appel du code reste à l'application) :
+Compiling the same project as the editor, loaded into a collectible context (calling the code is up to the application):
 
 ```csharp
 using var compiled = await language.CompileAsync(code, new CSharpCompileOptions
 {
-    AssemblyFiles = packageAssemblies,     // assemblies chargeables, lues en mémoire
+    AssemblyFiles = packageAssemblies,     // loadable assemblies, read into memory
 });
 
 if (!compiled.Success)
     foreach (var error in compiled.Errors)
-        Console.WriteLine(error.Describe(code)); // « Ligne 2, colonne 6 : CS0103 … »
+        Console.WriteLine(error.Describe(code)); // "Ligne 2, colonne 6 : CS0103 …"
 else
     Run(compiled.Assembly!);
 ```
 
-Script (point d'entrée ou instructions de niveau supérieur) compilé et exécuté en un appel, sans retour : la sortie passe par `Log`, l'assembly est déchargée à la fin.
+A script (entry point or top-level statements) compiled and run in one call, with no return value: output goes through `Log`, the assembly is unloaded at the end.
 
 ```csharp
 try
@@ -85,45 +85,45 @@ catch (CSharpCompilationException ex)
 }
 ```
 
-Les positions reçues et rendues sont toujours celles du texte de l'éditeur.
+Positions received and returned are always those of the editor text.
 
-Sources ajoutées à la volée (ex. classe utilitaire) : visibles par la complétion et l'analyse, compilées avec le texte.
+Sources added on the fly (e.g. a helper class): visible to completion and analysis, compiled with the text.
 
 ```csharp
-language.SetSource("FileHelper.cs", helperCode);                       // nom → code
-var key = await language.SetSourceFileAsync(@"C:\Helpers\FileHelper.cs"); // relu à chaque appel
+language.SetSource("FileHelper.cs", helperCode);                       // name → code
+var key = await language.SetSourceFileAsync(@"C:\Helpers\FileHelper.cs"); // read again on each call
 language.RemoveSource(key);
 language.SourcesChanged += (_, _) => RefreshDiagnostics();
 ```
 
-Une erreur dans une source est rendue en position 0 avec le fichier : « FileHelper.cs (12, 5) : … ».
+An error in a source is returned at position 0 with the file: "FileHelper.cs (12, 5) : …".
 
 ### T-SQL
 
-Quill ne se connecte à aucune base : l'hôte fournit un `ISqlCatalog` (bases, puis schéma complet d'une base, colonnes comprises), ou un `SqlCatalog` en mémoire.
+Quill connects to no database: the host provides an `ISqlCatalog` (databases, then the complete schema of a database, columns included), or an in-memory `SqlCatalog`.
 
 ```csharp
 var language = new SqlLanguageService(new SqlLanguageOptions
 {
-    Catalog = new SqlCatalog([new SqlDatabaseSchema("Shop", objects)]), // ou l'implémentation de l'hôte
-    Database = "Shop",                                                   // null : base par défaut du catalogue
-    Variables = [new SqlVariable("@MaxRows", "int", "Paramètre")],       // connues sans DECLARE
+    Catalog = new SqlCatalog([new SqlDatabaseSchema("Shop", objects)]), // or the host's implementation
+    Database = "Shop",                                                   // null: default database of the catalog
+    Variables = [new SqlVariable("@MaxRows", "int", "Parameter")],       // known without DECLARE
 });
 
-var completions = await language.GetCompletionsAsync("SELECT u.| FROM dbo.Users u", caret); // colonnes de Users
+var completions = await language.GetCompletionsAsync("SELECT u.| FROM dbo.Users u", caret); // columns of Users
 ```
 
-Sans catalogue, l'autocomplétion propose les mots-clés, les mots du document et les variables. Un catalogue indisponible rend une liste vide (ou null) ; une exception est traitée comme une absence de schéma.
+Without a catalog, completion suggests keywords, document words and variables. An unavailable catalog returns an empty list (or null); an exception is treated as a missing schema.
 
-## Développement
+## Development
 
 ```
 dotnet build src/Quill.Code.slnx
 dotnet test src/Quill.Code.slnx
 ```
 
-Publier une version sur nuget.org : `git tag v0.1.0 && git push origin v0.1.0` (pré-version : `v0.2.0-beta.1`), puis monter `VersionPrefix` dans `src/Directory.Build.props`.
+Publishing a version on nuget.org: `git tag v0.1.0 && git push origin v0.1.0` (pre-release: `v0.2.0-beta.1`), then bump `VersionPrefix` in `src/Directory.Build.props`.
 
-## Licence
+## License
 
 MIT

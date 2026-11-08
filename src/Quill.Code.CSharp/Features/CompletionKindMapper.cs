@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace Quill.Code.CSharp.Features;
 
-/// <summary>Nature d'une proposition Roslyn d'après ses étiquettes.</summary>
+/// <summary>Kind of a Roslyn suggestion based on its tags.</summary>
 internal static class CompletionKindMapper
 {
     // Du plus précis au plus général : une méthode d'extension porte aussi l'étiquette « Method ».

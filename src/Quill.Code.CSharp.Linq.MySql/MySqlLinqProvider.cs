@@ -8,16 +8,16 @@ using System.Reflection;
 namespace Quill.Code.CSharp.Linq.MySql;
 
 /// <summary>
-/// Requetes LINQ sur MySQL / MariaDB : Microting.EntityFrameworkCore.MySql (fork EF Core 10 de Pomelo) sur MySqlConnector.
-/// La version du serveur, exigee par le fournisseur, est detectee a la premiere execution puis gardee par serveur.
-/// A garder en une instance par application (cache des DbContext compiles).
+/// LINQ queries on MySQL / MariaDB: Microting.EntityFrameworkCore.MySql (EF Core 10 fork of Pomelo) on MySqlConnector.
+/// The server version, required by the provider, is detected on first execution then kept per server.
+/// Keep one instance per application (cache of compiled DbContexts).
 /// </summary>
 public sealed class MySqlLinqProvider : ILinqDatabaseProvider
 {
     private readonly string? _applicationName;
     private readonly ConcurrentDictionary<string, ServerVersion> _serverVersions = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Fournisseur MySQL ; <paramref name="applicationName"/> est vu du serveur (attribut de connexion program_name).</summary>
+    /// <summary>MySQL provider; <paramref name="applicationName"/> is seen by the server (program_name connection attribute).</summary>
     public MySqlLinqProvider(string? applicationName = null)
     {
         _applicationName = applicationName;

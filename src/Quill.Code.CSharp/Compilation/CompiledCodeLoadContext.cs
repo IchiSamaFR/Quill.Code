@@ -4,8 +4,8 @@ using System.Runtime.Loader;
 namespace Quill.Code.CSharp.Compilation;
 
 /// <summary>
-/// Contexte du code compilé, déchargeable par défaut : chaque exécution ne laisse pas son assembly en mémoire. Les assemblies
-/// demandées viennent de <see cref="CSharpCompileOptions.ResolveAssembly"/>, puis des fichiers fournis, puis du runtime.
+/// Context of the compiled code, collectible by default: each execution does not leave its assembly in memory. Requested
+/// assemblies come from <see cref="CSharpCompileOptions.ResolveAssembly"/>, then from the provided files, then from the runtime.
 /// </summary>
 internal sealed class CompiledCodeLoadContext : AssemblyLoadContext
 {

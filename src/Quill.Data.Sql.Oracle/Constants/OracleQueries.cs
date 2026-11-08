@@ -1,6 +1,6 @@
 ﻿namespace Quill.Data.Sql.Oracle.Constants;
 
-/// <summary>Requêtes de lecture du catalogue dans les vues ALL_* (Oracle 12c et suivants).</summary>
+/// <summary>Catalog queries on the ALL_* views (Oracle 12c and later).</summary>
 internal static class OracleQueries
 {
     internal const string Database = """

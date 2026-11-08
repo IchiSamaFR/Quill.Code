@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Quill.Code.Tests.Linq;
 
-/// <summary>Requetes compilees contre le modele genere, traduites en SQL sans connexion.</summary>
+/// <summary>Queries compiled against the generated model, translated to SQL without a connection.</summary>
 public class LinqCompilerTests
 {
     private const string ConnectionString = "Server=localhost;Database=RaveOnDb;Trusted_Connection=True;TrustServerCertificate=True";
@@ -253,8 +253,8 @@ public class LinqCompilerTests
     }
 
     /// <summary>
-    /// Execute sans ouvrir de connexion et rend les valeurs affichees : une requete IQueryable n'est que traduite
-    /// (ToQueryString), apres coup, d'ou un contexte non libere ici.
+    /// Runs without opening a connection and returns the displayed values: an IQueryable query is only translated
+    /// (ToQueryString), afterwards, hence a context not disposed here.
     /// </summary>
     private static async Task<List<object?>> DumpsAsync(string query, LinqParametersAssembly? globals = null, IReadOnlyList<LinqParameter>? parameters = null, Action<LogEntry>? log = null)
     {

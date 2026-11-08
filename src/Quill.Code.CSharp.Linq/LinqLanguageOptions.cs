@@ -3,19 +3,19 @@ using Quill.Data.Sql;
 
 namespace Quill.Code.CSharp.Linq;
 
-/// <summary>Contexte d'un <see cref="LinqLanguageService"/> : ce qui donne un sens aux noms de la requete.</summary>
+/// <summary>Context of a <see cref="LinqLanguageService"/>: what gives meaning to the names in the query.</summary>
 public sealed record LinqLanguageOptions
 {
-    /// <summary>Moteur de la base (ex. <c>SqlServerLinqProvider</c>) ; null : <see cref="Schema"/> est ignoree, C# seul.</summary>
+    /// <summary>Database engine (e.g. <c>SqlServerLinqProvider</c>); null: <see cref="Schema"/> is ignored, C# only.</summary>
     public ILinqDatabaseProvider? Provider { get; init; }
 
     /// <summary>
-    /// Structure de la base interrogee, relue a chaque demande (une connexion qui s'ouvre enrichit les reponses sans
-    /// recreer le service) ; null, une structure nulle ou une exception : C# seul, <c>Db</c> etant un DbContext vide.
-    /// Une meme instance donne le meme DbContext compile : la lire depuis un cache.
+    /// Structure of the queried database, read again on each request (an opening connection enriches the answers without
+    /// recreating the service); null, a null structure or an exception: C# only, <c>Db</c> being an empty DbContext.
+    /// The same instance gives the same compiled DbContext: read it from a cache.
     /// </summary>
     public Func<CancellationToken, Task<SqlDatabaseSchema?>>? Schema { get; init; }
 
-    /// <summary>Parametres fournis a l'execution, utilisables par leur nom (sans @) ; seuls les noms et types comptent ici.</summary>
+    /// <summary>Parameters provided at execution, usable by name (without @); only names and types matter here.</summary>
     public IReadOnlyList<QueryParameter> Parameters { get; init; } = [];
 }

@@ -3,7 +3,7 @@ using Quill.Data.Sql.PostgreSql.Constants;
 
 namespace Quill.Data.Sql.PostgreSql;
 
-/// <summary>Catalogue PostgreSQL lu dans pg_catalog ; les fonctions sont listees avec les procedures.</summary>
+/// <summary>PostgreSQL catalog read from pg_catalog; functions are listed with procedures.</summary>
 public sealed class PostgreSqlSchemaReader : ISqlSchemaReader
 {
     /// <inheritdoc />

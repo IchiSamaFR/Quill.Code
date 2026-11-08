@@ -2,12 +2,12 @@
 
 namespace Quill.Code.Analysis;
 
-/// <summary>Présentation des diagnostics.</summary>
+/// <summary>Diagnostic formatting.</summary>
 public static class CodeDiagnosticExtensions
 {
     /// <summary>
-    /// Ligne de journal : « Ligne 2, colonne 6 : CS1061 message » (base 1), <paramref name="text"/> étant le texte
-    /// sur lequel portent les positions.
+    /// Log line: "Line 2, column 6: CS1061 message" (1-based), <paramref name="text"/> being the text
+    /// the positions refer to.
     /// </summary>
     public static string Describe(this CodeDiagnostic diagnostic, string text)
     {

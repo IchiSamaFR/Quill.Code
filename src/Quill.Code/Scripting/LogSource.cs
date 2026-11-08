@@ -1,11 +1,11 @@
 ﻿namespace Quill.Code.Scripting;
 
-/// <summary>Provenance d'un <see cref="LogEntry"/>, indépendante de sa gravité.</summary>
+/// <summary>Origin of a <see cref="LogEntry"/>, independent of its severity.</summary>
 public enum LogSource
 {
-    /// <summary>Écrit par l'hôte de l'exécution : lignes affectées, SQL généré, bilan, erreur de connexion...</summary>
+    /// <summary>Written by the execution host: affected rows, generated SQL, summary, connection error...</summary>
     Host,
 
-    /// <summary>Écrit par le code exécuté : <c>Log.*</c> d'un script, PRINT et erreurs SQL d'un lot.</summary>
+    /// <summary>Written by the executed code: a script's <c>Log.*</c>, PRINT and SQL errors of a batch.</summary>
     Code,
 }

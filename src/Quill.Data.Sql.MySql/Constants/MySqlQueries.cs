@@ -1,6 +1,6 @@
 ﻿namespace Quill.Data.Sql.MySql.Constants;
 
-/// <summary>Requêtes de lecture du catalogue dans information_schema (MySQL 8, MariaDB 10.3 et suivants).</summary>
+/// <summary>Catalog queries on information_schema (MySQL 8, MariaDB 10.3 and later).</summary>
 internal static class MySqlQueries
 {
     internal const string Databases = """

@@ -1,32 +1,32 @@
 ﻿namespace Quill.Code.Sql.SqlServer.Completion;
 
-/// <summary>Ce que la grammaire attend à la position du curseur.</summary>
+/// <summary>What the grammar expects at the caret position.</summary>
 public enum SqlContextKind
 {
-    /// <summary>Commentaire, chaîne, variable, alias en cours de déclaration : rien à proposer.</summary>
+    /// <summary>Comment, string, variable, alias being declared: nothing to suggest.</summary>
     None,
 
-    /// <summary>Début d'instruction ou position indéterminée.</summary>
+    /// <summary>Start of statement or undetermined position.</summary>
     General,
 
-    /// <summary>Expression : liste SELECT, WHERE, ON, SET, ORDER BY...</summary>
+    /// <summary>Expression: SELECT list, WHERE, ON, SET, ORDER BY...</summary>
     Column,
 
-    /// <summary>Après FROM, JOIN, UPDATE, INTO...</summary>
+    /// <summary>After FROM, JOIN, UPDATE, INTO...</summary>
     TableSource,
 
-    /// <summary>Juste après le nom d'une table : alias, ou suite de la requête (WHERE, JOIN...).</summary>
+    /// <summary>Right after a table name: alias, or rest of the query (WHERE, JOIN...).</summary>
     AfterTableName,
 
-    /// <summary>Après EXEC.</summary>
+    /// <summary>After EXEC.</summary>
     Procedure,
 
-    /// <summary>Après USE.</summary>
+    /// <summary>After USE.</summary>
     Database,
 
     /// <summary>DECLARE @x |, CAST(x AS |).</summary>
     DataType,
 
-    /// <summary>Après un qualificatif : alias.|, schema.|</summary>
+    /// <summary>After a qualifier: alias.|, schema.|</summary>
     MemberAccess
 }

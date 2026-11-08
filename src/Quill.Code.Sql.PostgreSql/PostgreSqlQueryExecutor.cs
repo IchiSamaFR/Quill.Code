@@ -8,14 +8,14 @@ using Quill.Code.Sql.Execution;
 namespace Quill.Code.Sql.PostgreSql;
 
 /// <summary>
-/// Execution PostgreSQL (Npgsql) : le script part en une commande, Npgsql le decoupe en instructions ; une erreur
-/// arrete les suivantes (et annule celles d'une transaction implicite). RAISE NOTICE remonte en Information.
+/// PostgreSQL execution (Npgsql): the script is sent as one command, Npgsql splits it into statements; an error
+/// stops the following ones (and rolls back those of an implicit transaction). RAISE NOTICE is reported as Information.
 /// </summary>
 public sealed class PostgreSqlQueryExecutor : DbQueryExecutor
 {
     private readonly string? _applicationName;
 
-    /// <summary>Executeur PostgreSQL ; <paramref name="applicationName"/> est vu du serveur (pg_stat_activity).</summary>
+    /// <summary>PostgreSQL executor; <paramref name="applicationName"/> is seen by the server (pg_stat_activity).</summary>
     public PostgreSqlQueryExecutor(string? applicationName = null)
     {
         _applicationName = applicationName;

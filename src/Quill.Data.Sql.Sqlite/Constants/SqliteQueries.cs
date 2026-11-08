@@ -1,8 +1,8 @@
 ﻿namespace Quill.Data.Sql.Sqlite.Constants;
 
 /// <summary>
-/// Requêtes de lecture du catalogue SQLite (sqlite_master et pragmas en fonctions de table, SQLite 3.16 et suivants).
-/// {0} : nom de base entre guillemets, un identifiant ne pouvant pas être passé en paramètre.
+/// SQLite catalog queries (sqlite_master and pragmas as table-valued functions, SQLite 3.16 and later).
+/// {0}: quoted database name, since an identifier cannot be passed as a parameter.
 /// </summary>
 internal static class SqliteQueries
 {

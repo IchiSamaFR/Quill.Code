@@ -1,8 +1,8 @@
 ﻿namespace Quill.Code.Sql.SqlServer.Constants;
 
-/// <summary>Constantes d'erreurs SQL Server.</summary>
+/// <summary>SQL Server error constants.</summary>
 internal static class SqlServerConstants
 {
-    /// <summary>« Must declare the scalar variable ».</summary>
+    /// <summary>"Must declare the scalar variable".</summary>
     internal const int UndeclaredVariableError = 137;
 }

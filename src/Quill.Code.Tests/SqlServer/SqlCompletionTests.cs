@@ -5,7 +5,7 @@ using Quill.Data.Sql;
 
 namespace Quill.Code.Tests.SqlServer;
 
-/// <summary>Le caractère | marque le curseur.</summary>
+/// <summary>The | character marks the caret.</summary>
 public class SqlCompletionTests
 {
     [Fact]

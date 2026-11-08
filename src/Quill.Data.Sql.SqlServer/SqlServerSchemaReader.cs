@@ -4,7 +4,7 @@ using Quill.Data.Sql.SqlServer.Constants;
 
 namespace Quill.Data.Sql.SqlServer;
 
-/// <summary>Catalogue SQL Server lu dans les vues systeme (sys.databases, sys.objects).</summary>
+/// <summary>SQL Server catalog read from the system views (sys.databases, sys.objects).</summary>
 public sealed class SqlServerSchemaReader : ISqlSchemaReader
 {
     /// <inheritdoc />
@@ -121,7 +121,7 @@ public sealed class SqlServerSchemaReader : ISqlSchemaReader
     private static string? ReadComment(SqlDataReader reader, int ordinal)
         => reader.IsDBNull(ordinal) || string.IsNullOrWhiteSpace(reader.GetString(ordinal)) ? null : reader.GetString(ordinal).Trim();
 
-    /// <summary>Type affiche comme dans SSMS : longueur, precision ou echelle selon le type de base.</summary>
+    /// <summary>Type displayed as in SSMS: length, precision or scale depending on the base type.</summary>
     private static string FormatType(string typeName, short maxLength, byte precision, byte scale)
     {
         string Length(int divisor) => maxLength == -1 ? "max" : (maxLength / divisor).ToString(CultureInfo.InvariantCulture);
