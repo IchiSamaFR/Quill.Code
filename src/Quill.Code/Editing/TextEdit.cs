@@ -1,17 +1,17 @@
 ﻿namespace Quill.Code.Editing;
 
-/// <summary>Remplacement d'une portion de texte.</summary>
-/// <param name="Start">Début de la portion remplacée.</param>
-/// <param name="Length">Longueur de la portion remplacée (0 pour une insertion).</param>
-/// <param name="NewText">Texte inséré à la place (vide pour une suppression).</param>
+/// <summary>Replacement of a span of text.</summary>
+/// <param name="Start">Start of the replaced span.</param>
+/// <param name="Length">Length of the replaced span (0 for an insertion).</param>
+/// <param name="NewText">Text inserted in its place (empty for a deletion).</param>
 public sealed record TextEdit(int Start, int Length, string NewText)
 {
-    /// <summary>Fin de la portion remplacée.</summary>
+    /// <summary>End of the replaced span.</summary>
     public int End => Start + Length;
 
     /// <summary>
-    /// Plus petit remplacement qui transforme <paramref name="oldText"/> en <paramref name="newText"/>
-    /// (préfixe et suffixe communs conservés), null si les textes sont égaux.
+    /// Smallest replacement turning <paramref name="oldText"/> into <paramref name="newText"/>
+    /// (common prefix and suffix kept), null if the texts are equal.
     /// </summary>
     public static TextEdit? Between(string oldText, string newText)
     {

@@ -3,7 +3,7 @@ using Quill.Data.Sql;
 
 namespace Quill.Code.Tests.SqlServer;
 
-/// <summary>Catalogue en mémoire des tests : base Shop par défaut, base Archive à côté.</summary>
+/// <summary>In-memory test catalog: Shop database by default, Archive database alongside.</summary>
 internal static class SqlTestCatalog
 {
     public static SqlCatalog Create() => new(

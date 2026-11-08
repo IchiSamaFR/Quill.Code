@@ -1,10 +1,10 @@
 ﻿namespace Quill.Code.CSharp.Linq.Modeling;
 
-/// <summary>Code C# d'un DbContext genere depuis la structure d'une base.</summary>
-/// <param name="Namespace">Espace de noms du code genere.</param>
-/// <param name="ContextClassName">Classe du DbContext (ex. RaveOnDbContext).</param>
-/// <param name="Source">Code C# complet, compilable seul avec EF Core.</param>
-/// <param name="EntityClassNames">Classes generees, dans l'ordre du source.</param>
+/// <summary>C# code of a DbContext generated from a database structure.</summary>
+/// <param name="Namespace">Namespace of the generated code.</param>
+/// <param name="ContextClassName">DbContext class (e.g. RaveOnDbContext).</param>
+/// <param name="Source">Complete C# code, compilable on its own with EF Core.</param>
+/// <param name="EntityClassNames">Generated classes, in source order.</param>
 internal sealed record EfGeneratedModel(
     string Namespace,
     string ContextClassName,

@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!-- EF Core 10 ne cible que net10.0. -->
+		<!-- EF Core 10 only targets net10.0. -->
 		<TargetFramework>net10.0</TargetFramework>
 		<RootNamespace>Quill.Code.CSharp.Linq.Oracle</RootNamespace>
-		<Description>Requetes LINQ / Entity Framework Core sur Oracle pour Quill.Code.CSharp.Linq (Oracle.EntityFrameworkCore).</Description>
+		<Description>LINQ / Entity Framework Core queries on Oracle for Quill.Code.CSharp.Linq (Oracle.EntityFrameworkCore).</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

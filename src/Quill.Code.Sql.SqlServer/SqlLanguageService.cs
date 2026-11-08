@@ -7,9 +7,9 @@ using Quill.Code.Sql.SqlServer.Completion;
 namespace Quill.Code.Sql.SqlServer;
 
 /// <summary>
-/// Services d'éditeur T-SQL : fautes de syntaxe (ScriptDom), autocomplétion et survol. Sans catalogue, les propositions
-/// se limitent aux mots-clés, aux mots du document et aux variables ; avec <see cref="SqlLanguageOptions.Catalog"/>,
-/// bases, schémas, tables, vues, procédures et colonnes s'y ajoutent.
+/// T-SQL editor services: syntax errors (ScriptDom), completion and hover. Without a catalog, suggestions
+/// are limited to keywords, document words and variables; with <see cref="SqlLanguageOptions.Catalog"/>,
+/// databases, schemas, tables, views, procedures and columns are added.
 /// </summary>
 public sealed class SqlLanguageService : ICodeLanguageService
 {
@@ -18,7 +18,7 @@ public sealed class SqlLanguageService : ICodeLanguageService
     private readonly SqlHoverService _hover;
     private readonly SqlSignatureService _signature = new();
 
-    /// <param name="options">Catalogue, base et variables connus ; à défaut, aucun.</param>
+    /// <param name="options">Known catalog, database and variables; none by default.</param>
     public SqlLanguageService(SqlLanguageOptions? options = null)
     {
         options ??= new SqlLanguageOptions();

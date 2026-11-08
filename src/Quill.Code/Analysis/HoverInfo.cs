@@ -1,12 +1,12 @@
 ﻿namespace Quill.Code.Analysis;
 
-/// <summary>Infobulle d'un nom survolé.</summary>
-/// <param name="Start">Début du nom : l'infobulle reste ouverte tant que la souris est dessus.</param>
-/// <param name="Length">Longueur du nom.</param>
-/// <param name="Signature">Ligne principale (ex. "(propriété) string Student.Name").</param>
-/// <param name="Description">Précision facultative (documentation, table d'origine…).</param>
+/// <summary>Tooltip for a hovered name.</summary>
+/// <param name="Start">Start of the name: the tooltip stays open while the mouse is over it.</param>
+/// <param name="Length">Length of the name.</param>
+/// <param name="Signature">Main line (e.g. "(property) string Student.Name").</param>
+/// <param name="Description">Optional detail (documentation, source table…).</param>
 public sealed record HoverInfo(int Start, int Length, string Signature, string? Description = null)
 {
-    /// <summary>Fin du nom.</summary>
+    /// <summary>End of the name.</summary>
     public int End => Start + Length;
 }

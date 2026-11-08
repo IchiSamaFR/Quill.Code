@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Code.Sql.PostgreSql</RootNamespace>
-		<Description>Execution SQL sur PostgreSQL pour Quill.Code (Npgsql), sur le contrat ISqlQueryExecutor.</Description>
+		<Description>SQL execution on PostgreSQL for Quill.Code (Npgsql), on the ISqlQueryExecutor contract.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

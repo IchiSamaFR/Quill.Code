@@ -13,22 +13,22 @@ using System.Runtime.CompilerServices;
 namespace Quill.Code.CSharp.Linq.Compilation;
 
 /// <summary>
-/// Requetes LINQ via Quill : DbContext genere (une fois par schema), QueryGlobals (une fois par modele et jeu de
-/// parametres), services C# de l'editeur, puis chaque requete, compilee depuis le projet meme de l'editeur.
-/// Sans etat propre hormis le cache des services.
+/// LINQ queries through Quill: generated DbContext (once per schema), QueryGlobals (once per model and set of
+/// parameters), editor C# services, then each query, compiled from the very project of the editor.
+/// No state of its own apart from the service cache.
 /// </summary>
-[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Compilation en memoire, sans trimming : compilation et reflexion assumees.")]
-[UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Compilation en memoire, sans trimming : compilation et reflexion assumees.")]
-[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Compilation en memoire, sans trimming : compilation et reflexion assumees.")]
-[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Compilation en memoire, sans AOT : compilation et reflexion assumees.")]
+[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "In-memory compilation, no trimming: compilation and reflection are intended.")]
+[UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "In-memory compilation, no trimming: compilation and reflection are intended.")]
+[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "In-memory compilation, no trimming: compilation and reflection are intended.")]
+[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "In-memory compilation, no AOT: compilation and reflection are intended.")]
 internal static class LinqCompiler
 {
-    // Un service par QueryGlobals compile (libere avec lui) : references, contexte et parametres ne changent pas d'une
-    // frappe a l'autre ni d'une execution a l'autre (les valeurs sont posees a l'execution), Roslyn reutilise sa compilation.
+    // One service per compiled QueryGlobals (released with it): references, context and parameters do not change from one
+    // keystroke to the next nor from one execution to the next (values are set at execution), Roslyn reuses its compilation.
     private static readonly ConditionalWeakTable<LinqParametersAssembly, CSharpLanguageService> Services = new();
 
-    /// <summary>Service C# (Quill) partage par l'editeur et l'execution : la requete est du C# natif.</summary>
-    /// <param name="parameters">QueryGlobals compile : DbContext de la connexion (ou C# seul) et parametres de la requete.</param>
+    /// <summary>C# service (Quill) shared by the editor and the execution: the query is native C#.</summary>
+    /// <param name="parameters">Compiled QueryGlobals: DbContext of the connection (or C# only) and query parameters.</param>
     public static CSharpLanguageService GetLanguageService(LinqParametersAssembly parameters)
     {
         ArgumentNullException.ThrowIfNull(parameters);
@@ -36,8 +36,8 @@ internal static class LinqCompiler
         return Services.GetValue(parameters, CreateLanguageService);
     }
 
-    /// <summary>Compile et charge le modele genere ; leve <see cref="LinqCompilationException"/> en cas d'echec.</summary>
-    /// <param name="provider">Moteur du modele : references de son fournisseur EF, connexion du contexte.</param>
+    /// <summary>Compiles and loads the generated model; throws <see cref="LinqCompilationException"/> on failure.</summary>
+    /// <param name="provider">Engine of the model: references of its EF provider, context connection.</param>
     public static async Task<LinqGeneratedModelAssembly> CompileModelAsync(EfGeneratedModel model, ILinqDatabaseProvider provider, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(model);
@@ -45,7 +45,7 @@ internal static class LinqCompiler
 
         var references = LinqQuerySource.GetPlatformReferences(provider);
 
-        // Projet a part, sans editeur : le modele est compile seul, une fois par schema.
+        // Separate project, without an editor: the model is compiled alone, once per schema.
         var service = new CSharpLanguageService(() => new CSharpLanguageOptions
         {
             Name = $"EfModel_{model.ContextClassName}",
@@ -53,7 +53,7 @@ internal static class LinqCompiler
             CompilationOptions = LinqQuerySource.ModelCompilationOptions,
         });
 
-        // Non collectable : le modele vit tant que l'application, et EF garde ses types en cache.
+        // Not collectible: the model lives as long as the application, and EF caches its types.
         var compiled = await service.CompileAsync(model.Source, new CSharpCompileOptions
         {
             AssemblyName = $"EfModel_{Guid.NewGuid():N}",
@@ -61,7 +61,7 @@ internal static class LinqCompiler
         }, cancellationToken);
 
         if (compiled.Assembly is not { } assembly)
-            throw new LinqCompilationException($"Le modele genere {model.ContextClassName} ne compile pas.", compiled.Errors.Select(e => e.Describe(model.Source)).ToArray());
+            throw new LinqCompilationException($"The generated model {model.ContextClassName} does not compile.", compiled.Errors.Select(e => e.Describe(model.Source)).ToArray());
 
         var contextType = assembly.GetType($"{model.Namespace}.{model.ContextClassName}", throwOnError: true)!;
         var extensionsType = assembly.GetType($"{model.Namespace}.{EfModelConstants.ExtensionsClassName}", throwOnError: true)!;
@@ -79,11 +79,11 @@ internal static class LinqCompiler
     }
 
     /// <summary>
-    /// Compile et charge QueryGlobals (contexte et parametres, sans valeur) contre <paramref name="model"/> ;
-    /// leve <see cref="LinqCompilationException"/> en cas d'echec.
+    /// Compiles and loads QueryGlobals (context and parameters, without values) against <paramref name="model"/>;
+    /// throws <see cref="LinqCompilationException"/> on failure.
     /// </summary>
-    /// <param name="model">DbContext compile de la connexion, ou null : Db est un DbContext (C# seul).</param>
-    /// <param name="parameters">Parametres de la requete ; seuls leurs noms et types comptent.</param>
+    /// <param name="model">Compiled DbContext of the connection, or null: Db is a DbContext (C# only).</param>
+    /// <param name="parameters">Query parameters; only their names and types matter.</param>
     public static async Task<LinqParametersAssembly> CompileParametersAsync(LinqGeneratedModelAssembly? model, IReadOnlyList<LinqParameter> parameters, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
@@ -96,7 +96,7 @@ internal static class LinqCompiler
             CompilationOptions = LinqQuerySource.ModelCompilationOptions,
         });
 
-        // Non collectable, comme le modele : les requetes (collectables) la referencent.
+        // Not collectible, like the model: the (collectible) queries reference it.
         var compiled = await service.CompileAsync(source, new CSharpCompileOptions
         {
             AssemblyName = $"LinqParameters_{Guid.NewGuid():N}",
@@ -105,7 +105,7 @@ internal static class LinqCompiler
         }, cancellationToken);
 
         if (compiled.Assembly is not { } assembly)
-            throw new LinqCompilationException("Les parametres de la requete ne compilent pas.", compiled.Errors.Select(e => e.Describe(source)).ToArray());
+            throw new LinqCompilationException("The query parameters do not compile.", compiled.Errors.Select(e => e.Describe(source)).ToArray());
 
         var globalsType = assembly.GetType(LinqQueryConstants.GlobalsClass, throwOnError: true)!;
 
@@ -121,28 +121,28 @@ internal static class LinqCompiler
     }
 
     /// <summary>
-    /// Compile une requete (C# natif, instructions de haut niveau) depuis le projet que l'editeur analyse, sans
-    /// l'executer ; les erreurs sont dans le resultat, pas levees.
+    /// Compiles a query (native C#, top-level statements) from the project the editor analyzes, without
+    /// running it; errors are in the result, not thrown.
     /// </summary>
-    /// <param name="log">Recoit les Log.* de la requete (runtime de script de Quill).</param>
+    /// <param name="log">Receives the query's Log.* (Quill script runtime).</param>
     public static Task<CSharpCompilationResult> CompileQueryAsync(LinqParametersAssembly parameters, string query, Action<LogEntry>? log = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(query);
 
-        // Projet meme de l'editeur (references, contexte genere, parametres) : ce qui est souligne est ce qui echoue.
+        // The editor's very project (references, generated context, parameters): what is underlined is what fails.
         return GetLanguageService(parameters).CompileAsync(query, QueryOptions(parameters, log), cancellationToken);
     }
 
     /// <summary>
-    /// Compile et execute la requete sur <paramref name="context"/> en un appel (<see cref="CSharpLanguageService.RunAsync"/>
-    /// de Quill), depuis le projet que l'editeur analyse : chaque Dump(valeur, titre) est converti en jeu de resultats
-    /// (<paramref name="maxRows"/> lignes au plus) et remis par <see cref="DataRunOptions.Data"/> ; le SQL genere d'une
-    /// requete EF et les Log.* passent par <see cref="RunOptions.Log"/>.
+    /// Compiles and runs the query on <paramref name="context"/> in one call (Quill's <see cref="CSharpLanguageService.RunAsync"/>),
+    /// from the project the editor analyzes: each Dump(value, title) is converted to a result set
+    /// (at most <paramref name="maxRows"/> rows) and handed over through <see cref="DataRunOptions.Data"/>; the generated SQL of an
+    /// EF query and the Log.* go through <see cref="RunOptions.Log"/>.
     /// </summary>
-    /// <param name="values">Valeurs des parametres, par nom ; un parametre absent vaut null.</param>
-    /// <exception cref="CSharpCompilationException">La requete ne compile pas ; rien n'a ete execute.</exception>
-    /// <exception cref="LinqCompilationException">Une valeur de parametre ne convient pas a son type ; rien n'a ete execute.</exception>
+    /// <param name="values">Parameter values, by name; a missing parameter is null.</param>
+    /// <exception cref="CSharpCompilationException">The query does not compile; nothing was run.</exception>
+    /// <exception cref="LinqCompilationException">A parameter value does not fit its type; nothing was run.</exception>
     public static Task RunAsync(LinqParametersAssembly parameters, string query, DbContext context, DataRunOptions options, int maxRows, IReadOnlyList<LinqParameter>? values = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -152,23 +152,23 @@ internal static class LinqCompiler
         {
             var (resultSet, sql) = LinqResultConverter.Capture(value, ++index, title, maxRows, cancellationToken);
             if (sql is not null)
-                options.Log?.Invoke(new LogEntry(LogLevel.Information, $"{resultSet.Title} : SQL généré :{Environment.NewLine}{sql}"));
+                options.Log?.Invoke(new LogEntry(LogLevel.Information, $"{resultSet.Title}: generated SQL:{Environment.NewLine}{sql}"));
 
             options.Data?.Invoke(resultSet);
         }), values, options, cancellationToken);
     }
 
     /// <summary>
-    /// Compile et execute la requete sur <paramref name="context"/> en un appel (<see cref="CSharpLanguageService.RunAsync"/>
-    /// de Quill) : chaque Dump(valeur, titre) est remis tel quel a <paramref name="dump"/>, les Log.* par
+    /// Compiles and runs the query on <paramref name="context"/> in one call (Quill's <see cref="CSharpLanguageService.RunAsync"/>):
+    /// each Dump(value, title) is handed as is to <paramref name="dump"/>, the Log.* through
     /// <see cref="RunOptions.Log"/>.
     /// </summary>
-    /// <param name="values">Valeurs des parametres, par nom ; un parametre absent vaut null.</param>
-    /// <exception cref="CSharpCompilationException">La requete ne compile pas ; rien n'a ete execute.</exception>
-    /// <exception cref="LinqCompilationException">Une valeur de parametre ne convient pas a son type ; rien n'a ete execute.</exception>
+    /// <param name="values">Parameter values, by name; a missing parameter is null.</param>
+    /// <exception cref="CSharpCompilationException">The query does not compile; nothing was run.</exception>
+    /// <exception cref="LinqCompilationException">A parameter value does not fit its type; nothing was run.</exception>
     /// <exception cref="CSharpRunAbandonedException">
-    /// Annulation : la main est rendue tout de suite, le script se termine en arriere-plan. Une exception du script est
-    /// relevee telle quelle.
+    /// Cancellation: control returns immediately, the script finishes in the background. An exception from the script is
+    /// rethrown as is.
     /// </exception>
     public static async Task RunAsync(LinqParametersAssembly parameters, string query, DbContext context, Action<object?, string?>? dump, IReadOnlyList<LinqParameter>? values = null, RunOptions? options = null, CancellationToken cancellationToken = default)
     {
@@ -177,9 +177,9 @@ internal static class LinqCompiler
         ArgumentNullException.ThrowIfNull(context);
 
         var model = parameters.Model
-            ?? throw new InvalidOperationException("Une requete ne s'execute que sur le modele d'une connexion.");
+            ?? throw new InvalidOperationException("A query only runs on the model of a connection.");
 
-        // Toutes les valeurs sont converties avant d'en poser une : une erreur n'en laisse aucune a moitie posee.
+        // All values are converted before setting any: an error leaves none half set.
         Dictionary<PropertyInfo, object?> converted = [];
         try
         {
@@ -194,7 +194,7 @@ internal static class LinqCompiler
             throw new LinqCompilationException(ex.Message, []);
         }
 
-        // Proprietes en AsyncLocal, posees dans ce flux avant le depart du script : Dump, Db puis les parametres.
+        // AsyncLocal properties, set in this flow before the script starts: Dump, Db then the parameters.
         model.DumpSinkProperty.SetValue(null, dump);
         parameters.ContextProperty.SetValue(null, context);
         foreach (var (property, value) in converted)
@@ -203,7 +203,7 @@ internal static class LinqCompiler
         await GetLanguageService(parameters).RunAsync(query, QueryOptions(parameters, options?.Log), cancellationToken);
     }
 
-    /// <summary>Contexte EF du modele sur une chaine de connexion de son moteur.</summary>
+    /// <summary>EF context of the model on a connection string of its engine.</summary>
     public static DbContext CreateContext(LinqGeneratedModelAssembly model, string connectionString)
     {
         ArgumentNullException.ThrowIfNull(model);
@@ -211,13 +211,13 @@ internal static class LinqCompiler
         var builder = (DbContextOptionsBuilder)Activator.CreateInstance(typeof(DbContextOptionsBuilder<>).MakeGenericType(model.ContextType))!;
         model.Provider.Configure(builder, connectionString);
 
-        // Lecture seule : pas de suivi des entites, inutile pour afficher des resultats.
+        // Read-only: no entity tracking, useless for displaying results.
         builder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
         return (DbContext)Activator.CreateInstance(model.ContextType, builder.Options)!;
     }
 
-    /// <summary>Options d'une requete : modele et parametres servis tels quels (EF garde ses types en cache), le reste vient du runtime.</summary>
+    /// <summary>Options of a query: model and parameters served as is (EF caches its types), the rest comes from the runtime.</summary>
     private static CSharpCompileOptions QueryOptions(LinqParametersAssembly parameters, Action<LogEntry>? log) => new()
     {
         AssemblyName = $"LinqQuery_{Guid.NewGuid():N}",
@@ -230,7 +230,7 @@ internal static class LinqCompiler
     private static Assembly? ResolveModel(LinqGeneratedModelAssembly? model, AssemblyName name)
         => model is not null && AssemblyName.ReferenceMatchesDefinition(name, model.Assembly.GetName()) ? model.Assembly : null;
 
-    /// <summary>Projet cree par Quill a sa premiere utilisation : le declarer ne coute rien.</summary>
+    /// <summary>Project created by Quill on first use: declaring it costs nothing.</summary>
     private static CSharpLanguageService CreateLanguageService(LinqParametersAssembly parameters)
     {
         return new(() => new CSharpLanguageOptions
@@ -241,14 +241,14 @@ internal static class LinqCompiler
                 : [.. parameters.Model.PlatformReferences, parameters.Model.Reference, parameters.Reference],
             DocumentName = LinqQueryConstants.QueryDocumentName,
 
-            // Usings implicites, alias QueryDbContext et import de QueryGlobals : fixes, Roslyn ne les reanalyse pas a
-            // chaque frappe. Dump vient du modele, Db et les parametres de QueryGlobals, Log et Script du runtime de Quill.
+            // Implicit usings, QueryDbContext alias and QueryGlobals import: fixed, Roslyn does not reanalyze them on
+            // every keystroke. Dump comes from the model, Db and the parameters from QueryGlobals, Log and Script from the Quill runtime.
             AdditionalDocuments = new Dictionary<string, string>
             {
                 [LinqQueryConstants.GlobalUsings] = LinqQuerySource.BuildGlobalUsings(parameters.Model?.Model),
             },
 
-            // Sans DbContext, les tables n'existent pas : seules les fautes de syntaxe ont un sens.
+            // Without a DbContext, tables do not exist: only syntax errors make sense.
             IncludeSemanticDiagnostics = parameters.Model is not null,
         });
     }

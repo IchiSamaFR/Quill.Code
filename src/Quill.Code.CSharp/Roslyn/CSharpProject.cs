@@ -5,8 +5,8 @@ using System.Text;
 namespace Quill.Code.CSharp.Roslyn;
 
 /// <summary>
-/// Projet Roslyn d'un <see cref="CSharpLanguageService"/>, créé à la première demande ; chaque document est ensuite un
-/// instantané. Les sources ajoutées à la volée sont appliquées au projet à sa prochaine utilisation.
+/// Roslyn project of a <see cref="CSharpLanguageService"/>, created on first request; each document is then a
+/// snapshot. Sources added on the fly are applied to the project on its next use.
 /// </summary>
 internal sealed class CSharpProject
 {
@@ -18,7 +18,7 @@ internal sealed class CSharpProject
     private Project? _project;
     private bool _sourcesChanged;
 
-    // Dernières références propres au texte : Roslyn réutilise sa compilation tant qu'elles ne changent pas.
+    // Last references specific to the text: Roslyn reuses its compilation as long as they do not change.
     private (Project Base, MetadataReference[] References, Project Project)? _textProject;
 
     public CSharpProject(Func<CSharpLanguageOptions> options)
@@ -33,7 +33,7 @@ internal sealed class CSharpProject
 
     public event EventHandler? SourcesChanged;
 
-    /// <summary>Projet Roslyn (créé au premier accès), sources ajoutées à la volée comprises.</summary>
+    /// <summary>Roslyn project (created on first access), including sources added on the fly.</summary>
     public Project Project => Current().Project;
 
     public IReadOnlyCollection<string> Sources
@@ -91,7 +91,7 @@ internal sealed class CSharpProject
         SourcesChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>Document du texte de l'éditeur, transformé et complété de ses références propres.</summary>
+    /// <summary>Document of the editor text, transformed and completed with its own references.</summary>
     public CSharpDocument CreateDocument(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -99,12 +99,12 @@ internal sealed class CSharpProject
         var (project, documentId, options) = Current();
         var source = options.SourceTransform?.Invoke(text) ?? text;
         if (source.Length != text.Length)
-            throw new InvalidOperationException("SourceTransform doit rendre un source de même longueur que le texte.");
+            throw new InvalidOperationException("SourceTransform must return a source of the same length as the text.");
 
         var document = WithTextReferences(project, options, text).GetDocument(documentId)
-            ?? throw new InvalidOperationException("Le document de l'éditeur est introuvable dans le projet.");
+            ?? throw new InvalidOperationException("The editor document cannot be found in the project.");
 
-        // Encodage requis pour émettre les informations de débogage (PDB).
+        // Encoding required to emit debug information (PDB).
         return new CSharpDocument(document.WithText(SourceText.From(source, Encoding.UTF8)), text, options);
     }
 
@@ -121,7 +121,7 @@ internal sealed class CSharpProject
         SourcesChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>Projet à jour des sources ajoutées à la volée.</summary>
+    /// <summary>Project updated with the sources added on the fly.</summary>
     private (Project Project, DocumentId DocumentId, CSharpLanguageOptions Options) Current()
     {
         var (initial, documentId, options) = _state.Value;

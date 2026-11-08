@@ -5,12 +5,12 @@ using Quill.Code.Sql.Constants;
 
 namespace Quill.Code.Sql.Execution;
 
-/// <summary>Lecture d'un jeu de resultats ADO.NET en <see cref="QueryResultSet"/>, commune aux executeurs SQL.</summary>
+/// <summary>Reads an ADO.NET result set into a <see cref="QueryResultSet"/>, shared by the SQL executors.</summary>
 public static class DbResultSetReader
 {
-    /// <summary>Lit le jeu courant de <paramref name="reader"/>, au plus <paramref name="maxRows"/> lignes.</summary>
-    /// <param name="index">Position du jeu dans l'execution (base 1).</param>
-    /// <param name="format">Mise en texte d'une valeur non nulle (<see cref="FormatForResults"/> ou <see cref="FormatForRead"/>).</param>
+    /// <summary>Reads the current set of <paramref name="reader"/>, at most <paramref name="maxRows"/> rows.</summary>
+    /// <param name="index">Position of the set in the execution (1-based).</param>
+    /// <param name="format">Text conversion of a non-null value (<see cref="FormatForResults"/> or <see cref="FormatForRead"/>).</param>
     public static async Task<QueryResultSet> ReadAsync(DbDataReader reader, int index, int maxRows, Func<object, string?> format, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(reader);
@@ -46,7 +46,7 @@ public static class DbResultSetReader
         return new QueryResultSet(index, columns, rows, isTruncated);
     }
 
-    /// <summary>Grille de resultats : valeurs completes, comme SSMS.</summary>
+    /// <summary>Results grid: full values, like SSMS.</summary>
     public static string? FormatForResults(object value) => value switch
     {
         string s => s,
@@ -59,7 +59,7 @@ public static class DbResultSetReader
         _ => value.ToString(),
     };
 
-    /// <summary>Requete parametree (cartes, graphiques) : dates courtes, binaires tronques plus tot.</summary>
+    /// <summary>Parameterized query (maps, charts): short dates, binaries truncated earlier.</summary>
     public static string? FormatForRead(object value) => value switch
     {
         DateTime d => d.TimeOfDay == TimeSpan.Zero
@@ -81,7 +81,7 @@ public static class DbResultSetReader
             }
             catch (Exception ex) when (ex is InvalidCastException or FileNotFoundException or NotSupportedException or OverflowException)
             {
-                // Types sans equivalent .NET charge (geography SQL Server, NUMBER Oracle au-dela de decimal...).
+                // Types without a loaded .NET equivalent (SQL Server geography, Oracle NUMBER beyond decimal...).
                 unsupportedColumns[ordinal] = true;
             }
         }

@@ -1,16 +1,17 @@
-﻿# Quill.Code - Instructions pour Claude
+﻿# Quill.Code - Instructions for Claude
 
-Bibliothèque .NET des briques communes aux éditeurs de code (coloration, autocomplétion, diagnostics, édition), sans dépendance à un framework d'interface. Consommée par Querify (MAUI) et PocketForge (WPF).
+.NET library of the building blocks shared by code editors (highlighting, completion, diagnostics, editing), with no dependency on a UI framework. Consumed by Querify (MAUI) and PocketForge (WPF).
 
-**Les instructions complètes se trouvent dans `.github/instructions.md`** : à lire avant toute modification.
+**The full instructions are in `.github/instructions.md`**: read them before any change.
 
-Points clés :
-1. Aucune référence à WPF, MAUI ou à un type d'interface : la bibliothèque produit des données, les apps les affichent.
-2. `Quill.Code` ← `Quill.Code.[Langage]` ; un langage ne référence jamais un autre langage. `Quill.Data.Sql` (structure d'une base, sans dépendance) ← `Quill.Data.Sql.[Moteur]` (lecture du catalogue) et ← `Quill.Code.Sql.SqlServer` et `Quill.Code.CSharp.Linq` (← `Quill.Code.CSharp`, sans moteur) ← `Quill.Code.CSharp.Linq.[Moteur]` (`ILinqDatabaseProvider`) ; `Quill.Code` ← `Quill.Code.Sql` (contrat `ISqlQueryExecutor`, base `DbQueryExecutor`) ← `Quill.Code.Sql.[Moteur]` (exécution SQL ; T-SQL en plus pour `Quill.Code.Sql.SqlServer`) ; un `Quill.Code.*` ne référence jamais un `Quill.Data.Sql.[Moteur]`. Moteurs : SqlServer, MySql, PostgreSql, Oracle, Sqlite. Exception : `Quill.Code.Sql.[Moteur]` et `Quill.Code.CSharp.Linq.[Moteur]` (net10.0) dépendent d'un pilote pour l'exécution (`ISqlQueryExecutor` de `Quill.Code.Sql`, `LinqQueryExecutor` sur un `ILinqDatabaseProvider`, même contrat de retour), l'analyse et l'autocomplétion restent sans connexion.
-3. Pas d'injection de dépendances dans Quill (ni conteneur, ni registre statique) : les apps instancient les services (`new CSharpLanguageService(() => options)`) ou les enregistrent dans leur propre conteneur.
-4. Réutiliser avant de créer : un type existant (de `Quill.Code` en priorité), au besoin étendu, plutôt qu'une nouvelle classe.
-5. Un type par fichier, `internal` / `sealed` par défaut, documentation XML en français sur l'API publique.
-6. Aucune constante déclarée dans une classe de travail : elles vont dans le dossier `Constants/` du projet (namespace `<Projet>.Constants`), une classe statique par contexte (`SqlServerConstants`, `EditingConstants`, `SqlServerQueries`…), `internal` sauf si elle fait partie de l'API.
-7. Versions de paquets uniquement dans `src/Directory.Packages.props`.
+Key points:
+1. No reference to WPF, MAUI or any UI type: the library produces data, the apps display it.
+2. `Quill.Code` ← `Quill.Code.[Language]`; a language never references another language. `Quill.Data.Sql` (database structure, no dependency) ← `Quill.Data.Sql.[Engine]` (catalog reading) and ← `Quill.Code.Sql.SqlServer` and `Quill.Code.CSharp.Linq` (← `Quill.Code.CSharp`, engine-agnostic) ← `Quill.Code.CSharp.Linq.[Engine]` (`ILinqDatabaseProvider`); `Quill.Code` ← `Quill.Code.Sql` (`ISqlQueryExecutor` contract, `DbQueryExecutor` base) ← `Quill.Code.Sql.[Engine]` (SQL execution; plus T-SQL for `Quill.Code.Sql.SqlServer`); a `Quill.Code.*` never references a `Quill.Data.Sql.[Engine]`. Engines: SqlServer, MySql, PostgreSql, Oracle, Sqlite. Exception: `Quill.Code.Sql.[Engine]` and `Quill.Code.CSharp.Linq.[Engine]` (net10.0) depend on a driver for execution (`ISqlQueryExecutor` from `Quill.Code.Sql`, `LinqQueryExecutor` on an `ILinqDatabaseProvider`, same return contract); analysis and completion stay connection-free.
+3. No dependency injection in Quill (no container, no static registry): apps instantiate the services (`new CSharpLanguageService(() => options)`) or register them in their own container.
+4. Reuse before creating: an existing type (from `Quill.Code` first), extended if needed, rather than a new class.
+5. One type per file, `internal` / `sealed` by default, XML documentation on the public API; everything (code, comments, docs, commits) in English.
+6. No constant declared in a working class: they go in the project's `Constants/` folder (namespace `<Project>.Constants`), one static class per context (`SqlServerConstants`, `EditingConstants`, `SqlServerQueries`…), `internal` unless it is part of the API.
+7. Package versions only in `src/Directory.Packages.props`.
+8. Commits: `type: description` in English, no trailers (`Co-Authored-By`, `Claude-Session`…).
 
-Compiler : `dotnet build src/Quill.Code.slnx` — Tester : `dotnet test src/Quill.Code.slnx`
+Build: `dotnet build src/Quill.Code.slnx` — Test: `dotnet test src/Quill.Code.slnx`

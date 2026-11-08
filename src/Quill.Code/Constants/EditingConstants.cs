@@ -1,6 +1,6 @@
 ﻿namespace Quill.Code.Constants;
 
-/// <summary>Constantes de l'édition et du parcours du source.</summary>
+/// <summary>Constants for editing and source scanning.</summary>
 internal static class EditingConstants
 {
     internal const string BracketOpeners = "([{";

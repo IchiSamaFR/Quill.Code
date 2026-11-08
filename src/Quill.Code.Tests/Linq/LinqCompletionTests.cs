@@ -4,7 +4,7 @@ using Quill.Code.Completion;
 
 namespace Quill.Code.Tests.Linq;
 
-/// <summary>Le caractere | marque le curseur ; Roslyn complete dans le contexte genere.</summary>
+/// <summary>The | character marks the caret; Roslyn completes in the generated context.</summary>
 public class LinqCompletionTests
 {
     private static Lazy<LinqGeneratedModelAssembly> Model => TestLinq.Model;

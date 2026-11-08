@@ -5,7 +5,7 @@ using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
 namespace Quill.Code.CSharp.Features;
 
-/// <summary>Autocomplétion C# de Roslyn, ramenée au texte de l'éditeur.</summary>
+/// <summary>Roslyn C# completion, mapped back to the editor text.</summary>
 internal static class CSharpCompletionEngine
 {
     public static async Task<CompletionList> GetCompletionsAsync(CSharpDocument document, int position, CancellationToken cancellationToken)
@@ -17,7 +17,7 @@ internal static class CSharpCompletionEngine
         if (list.ItemsList.Count == 0)
             return CompletionList.Empty;
 
-        // Toutes les propositions : le filtre de saisie de l'éditeur les réduit à la frappe.
+        // All suggestions: the editor's input filter narrows them down while typing.
         List<CompletionItem> items = new(list.ItemsList.Count);
         foreach (var item in list.ItemsList)
         {
@@ -38,7 +38,7 @@ internal static class CSharpCompletionEngine
     public static async Task<CompletionChange> GetChangeAsync(CSharpDocument document, CompletionItem item, CancellationToken cancellationToken)
     {
         if (item.Data is not RoslynCompletion.CompletionItem roslynItem)
-            throw new ArgumentException("La proposition ne vient pas de l'autocomplétion C#.", nameof(item));
+            throw new ArgumentException("The suggestion does not come from C# completion.", nameof(item));
 
         if (RoslynCompletion.CompletionService.GetService(document.Document) is not { } service)
             return Replace(document, roslynItem.Span, item.TextToInsert);
@@ -49,8 +49,8 @@ internal static class CSharpCompletionEngine
     }
 
     /// <summary>
-    /// Le source peut différer du texte de l'éditeur (directives neutralisées) : le changement de Roslyn est ramené
-    /// à un diff fin, rejoué sur le texte réel, dont on prend l'enveloppe. Null s'il sort du texte.
+    /// The source may differ from the editor text (neutralized directives): Roslyn's change is reduced
+    /// to a fine-grained diff, replayed on the real text, whose envelope is taken. Null if it falls outside the text.
     /// </summary>
     private static async Task<CompletionChange?> ToEditorChangeAsync(CSharpDocument document, RoslynCompletion.CompletionChange change, CancellationToken cancellationToken)
     {
@@ -63,7 +63,7 @@ internal static class CSharpCompletionEngine
         if (changes.Any(c => c.Span.End > document.Text.Length))
             return null;
 
-        // Positions croissantes et sans chevauchement : rejouées telles quelles sur le texte réel.
+        // Increasing, non-overlapping positions: replayed as is on the real text.
         var spanStart = changes.Min(c => c.Span.Start);
         var spanEnd = changes.Max(c => c.Span.End);
         var applied = SourceText.From(document.Text).WithChanges(changes).ToString();

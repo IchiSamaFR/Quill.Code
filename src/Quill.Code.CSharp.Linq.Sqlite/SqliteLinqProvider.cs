@@ -6,8 +6,8 @@ using System.Reflection;
 namespace Quill.Code.CSharp.Linq.Sqlite;
 
 /// <summary>
-/// Requetes LINQ sur SQLite : Microsoft.EntityFrameworkCore.Sqlite. Les types declares suivent les regles d'affinite de
-/// SQLite (INT, CHAR, REAL...) ; une base par fichier, la base demandee est ignoree. A garder en une instance par application.
+/// LINQ queries on SQLite: Microsoft.EntityFrameworkCore.Sqlite. Declared types follow SQLite's affinity
+/// rules (INT, CHAR, REAL...); one database per file, the requested database is ignored. Keep one instance per application.
 /// </summary>
 public sealed class SqliteLinqProvider : ILinqDatabaseProvider
 {
@@ -21,7 +21,7 @@ public sealed class SqliteLinqProvider : ILinqDatabaseProvider
 
         var sqlType = (string.IsNullOrEmpty(column.SqlType) ? column.DataType : column.SqlType).ToUpperInvariant();
 
-        // Noms courants d'abord (BOOLEAN, DATETIME, GUID...), puis affinite SQLite : un type declare est libre.
+        // Common names first (BOOLEAN, DATETIME, GUID...), then SQLite affinity: a declared type is free-form.
         if (sqlType.Contains("BOOL", StringComparison.Ordinal))
             return "bool";
         if (sqlType.Contains("DATETIME", StringComparison.Ordinal) || sqlType.Contains("TIMESTAMP", StringComparison.Ordinal))
@@ -43,7 +43,7 @@ public sealed class SqliteLinqProvider : ILinqDatabaseProvider
         if (sqlType.Contains("REAL", StringComparison.Ordinal) || sqlType.Contains("FLOA", StringComparison.Ordinal) || sqlType.Contains("DOUB", StringComparison.Ordinal))
             return "double";
 
-        // Colonne sans type (ANY) : valeurs de toute nature, lues en texte.
+        // Column without a type (ANY): values of any kind, read as text.
         return "string";
     }
 

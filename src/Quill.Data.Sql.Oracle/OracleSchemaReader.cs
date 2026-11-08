@@ -6,8 +6,8 @@ using Quill.Data.Sql.Oracle.Constants;
 namespace Quill.Data.Sql.Oracle;
 
 /// <summary>
-/// Catalogue Oracle lu dans les vues ALL_* : une connexion Oracle porte une seule base, dont les schemas sont les
-/// utilisateurs (hors comptes fournis par Oracle). Le nom de base demande n'est donc pas utilise pour se connecter.
+/// Oracle catalog read from the ALL_* views: an Oracle connection holds a single database, whose schemas are the
+/// users (excluding accounts supplied by Oracle). The requested database name is therefore not used to connect.
 /// </summary>
 public sealed class OracleSchemaReader : ISqlSchemaReader
 {
@@ -82,7 +82,7 @@ public sealed class OracleSchemaReader : ISqlSchemaReader
         await using var connection = await OpenAsync(connectionString, cancellationToken);
         var databaseName = await GetDatabaseNameAsync(connection, cancellationToken);
 
-        // Oracle ne rend pas plusieurs jeux par commande : deux requetes sur la meme connexion.
+        // Oracle does not return several sets per command: two queries on the same connection.
         var objects = new List<(string Schema, string Name, SqlSchemaObjectKind Kind)>();
         await using (var command = new OracleCommand(OracleQueries.SnapshotObjects, connection))
         await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
@@ -129,7 +129,7 @@ public sealed class OracleSchemaReader : ISqlSchemaReader
                 o.Kind != SqlSchemaObjectKind.Procedure && columns.TryGetValue((o.Schema, o.Name), out var list) ? list : [])).ToArray());
     }
 
-    /// <summary>Type affiche comme dans SQL Developer ; colonnes lues a partir de <paramref name="typeOrdinal"/> : type, octets, caracteres, precision, echelle.</summary>
+    /// <summary>Type displayed as in SQL Developer; columns read from <paramref name="typeOrdinal"/>: type, bytes, characters, precision, scale.</summary>
     private static string FormatType(DbDataReader reader, int typeOrdinal)
     {
         var typeName = reader.GetString(typeOrdinal);

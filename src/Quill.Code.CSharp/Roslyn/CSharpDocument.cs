@@ -3,20 +3,20 @@
 namespace Quill.Code.CSharp.Roslyn;
 
 /// <summary>
-/// Texte de l'éditeur placé dans un document Roslyn. Le source peut en différer (<see cref="CSharpLanguageOptions.SourceTransform"/>)
-/// mais garde sa longueur : les positions du texte et du source sont les mêmes.
+/// Editor text placed in a Roslyn document. The source may differ from it (<see cref="CSharpLanguageOptions.SourceTransform"/>)
+/// but keeps its length: text and source positions are the same.
 /// </summary>
 internal sealed class CSharpDocument(Document document, string text, CSharpLanguageOptions options)
 {
-    /// <summary>Document Roslyn analysé.</summary>
+    /// <summary>Analyzed Roslyn document.</summary>
     public Document Document { get; } = document;
 
-    /// <summary>Texte de l'éditeur.</summary>
+    /// <summary>Editor text.</summary>
     public string Text { get; } = text;
 
-    /// <summary>Options du projet du document.</summary>
+    /// <summary>Options of the document's project.</summary>
     public CSharpLanguageOptions Options { get; } = options;
 
-    /// <summary>Position bornée au texte.</summary>
+    /// <summary>Position clamped to the text.</summary>
     public int Clamp(int position) => Math.Clamp(position, 0, Text.Length);
 }

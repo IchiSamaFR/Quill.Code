@@ -1,17 +1,17 @@
 ﻿namespace Quill.Code.Scripting;
 
 /// <summary>
-/// Message écrit pendant une exécution, tel que le reçoit <see cref="Execution.RunOptions.Log"/> : à garder ou à
-/// afficher par l'application (journal d'un script, onglet Messages d'une requête...).
+/// Message written during an execution, as received by <see cref="Execution.RunOptions.Log"/>: to be kept or
+/// displayed by the application (script log, Messages tab of a query...).
 /// </summary>
-/// <param name="Level">Gravité du message.</param>
-/// <param name="Text">Texte du message.</param>
-/// <param name="Source">Provenance : l'hôte par défaut, <see cref="LogSource.Code"/> pour ce qu'écrit le code exécuté.</param>
+/// <param name="Level">Severity of the message.</param>
+/// <param name="Text">Text of the message.</param>
+/// <param name="Source">Origin: the host by default, <see cref="LogSource.Code"/> for what the executed code writes.</param>
 public sealed record LogEntry(LogLevel Level, string Text, LogSource Source = LogSource.Host)
 {
-    /// <summary>Moment de l'écriture ; par défaut, la création du message.</summary>
+    /// <summary>Time of writing; by default, the creation of the message.</summary>
     public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.Now;
 
-    /// <summary>Vrai pour une erreur (<see cref="LogLevel.Error"/> ou <see cref="LogLevel.Critical"/>).</summary>
+    /// <summary>True for an error (<see cref="LogLevel.Error"/> or <see cref="LogLevel.Critical"/>).</summary>
     public bool IsError => Level is LogLevel.Error or LogLevel.Critical;
 }

@@ -1,6 +1,6 @@
 ﻿namespace Quill.Code.Highlighting;
 
-/// <summary>Mot d'une liste <c>Keywords</c> du .xshd, réutilisable par l'autocomplétion.</summary>
-/// <param name="Word">Mot tel qu'écrit dans le fichier.</param>
-/// <param name="Category">Nom de la couleur de la liste (Keyword, DataType, Function…).</param>
+/// <summary>Word from a <c>Keywords</c> list of the .xshd, reusable by completion.</summary>
+/// <param name="Word">Word as written in the file.</param>
+/// <param name="Category">Color name of the list (Keyword, DataType, Function…).</param>
 public sealed record SyntaxKeyword(string Word, string Category);

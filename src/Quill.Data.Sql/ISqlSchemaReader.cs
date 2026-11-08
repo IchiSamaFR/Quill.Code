@@ -1,18 +1,18 @@
 ﻿namespace Quill.Data.Sql;
 
-/// <summary>Lecture du catalogue d'un serveur ; une implémentation par moteur (ex. Quill.Data.Sql.SqlServer).</summary>
+/// <summary>Reads the catalog of a server; one implementation per engine (e.g. Quill.Data.Sql.SqlServer).</summary>
 public interface ISqlSchemaReader
 {
-    /// <summary>Bases en ligne du serveur, triées par nom.</summary>
+    /// <summary>Online databases of the server, sorted by name.</summary>
     Task<IReadOnlyList<SqlDatabaseInfo>> GetDatabasesAsync(string connectionString, CancellationToken cancellationToken = default);
 
-    /// <summary>Objets utilisateur d'une nature donnée, sans leurs colonnes, triés par schéma puis nom.</summary>
+    /// <summary>User objects of a given kind, without their columns, sorted by schema then name.</summary>
     Task<IReadOnlyList<SqlSchemaObject>> GetObjectsAsync(string connectionString, string database, SqlSchemaObjectKind kind, CancellationToken cancellationToken = default);
 
-    /// <summary>Colonnes d'une table ou d'une vue, dans l'ordre de déclaration.</summary>
+    /// <summary>Columns of a table or view, in declaration order.</summary>
     Task<IReadOnlyList<SqlColumn>> GetColumnsAsync(string connectionString, string database, string schema, string objectName, CancellationToken cancellationToken = default);
 
-    /// <summary>Tables, vues, procédures et colonnes d'une base en un aller-retour.</summary>
-    /// <param name="database">Nom de la base ; null = base de la chaîne de connexion.</param>
+    /// <summary>Tables, views, procedures and columns of a database in a single round trip.</summary>
+    /// <param name="database">Name of the database; null = database of the connection string.</param>
     Task<SqlDatabaseSchema> GetSchemaAsync(string connectionString, string? database, CancellationToken cancellationToken = default);
 }

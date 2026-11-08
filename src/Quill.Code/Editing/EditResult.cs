@@ -3,12 +3,12 @@
 namespace Quill.Code.Editing;
 
 /// <summary>
-/// Résultat d'une commande d'édition : remplacements exprimés dans le texte d'origine (ordonnés, sans chevauchement),
-/// à appliquer en une seule étape d'annulation, et sélection dans le texte modifié.
+/// Result of an editing command: replacements expressed in the original text (ordered, non-overlapping),
+/// to apply as a single undo step, and the selection in the modified text.
 /// </summary>
 public sealed record EditResult(IReadOnlyList<TextEdit> Edits, TextSelection Selection)
 {
-    /// <summary>Applique les remplacements à <paramref name="text"/>.</summary>
+    /// <summary>Applies the replacements to <paramref name="text"/>.</summary>
     public string Apply(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -25,8 +25,8 @@ public sealed record EditResult(IReadOnlyList<TextEdit> Edits, TextSelection Sel
     }
 
     /// <summary>
-    /// Remplacement unique couvrant tous ceux du résultat (pour un contrôle qui n'applique qu'une portion à la fois),
-    /// null s'il n'y a rien à remplacer (simple déplacement du curseur).
+    /// Single replacement covering all of the result's replacements (for a control that applies one span at a time),
+    /// null if there is nothing to replace (caret move only).
     /// </summary>
     public TextEdit? ToSingleEdit(string text)
     {

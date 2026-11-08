@@ -5,8 +5,8 @@ using Quill.Data.Sql;
 namespace Quill.Code.Sql.SqlServer.Completion;
 
 /// <summary>
-/// Bases, schémas, tables, vues, procédures et colonnes du catalogue, selon le contexte :
-/// FROM → tables, alias. → colonnes, USE → bases, EXEC → procédures.
+/// Databases, schemas, tables, views, procedures and columns of the catalog, depending on the context:
+/// FROM → tables, alias. → columns, USE → databases, EXEC → procedures.
 /// </summary>
 internal sealed class SqlSchemaCompletion
 {
@@ -37,7 +37,7 @@ internal sealed class SqlSchemaCompletion
         };
     }
 
-    // ---------- Par contexte ----------
+    // ---------- By context ----------
 
     private async Task<IReadOnlyList<CompletionItem>> GetDatabaseItemsAsync(CancellationToken cancellationToken)
         => (await _catalog.GetDatabasesAsync(cancellationToken).ConfigureAwait(false))
@@ -46,11 +46,11 @@ internal sealed class SqlSchemaCompletion
                 Label = d.Name,
                 Kind = CompletionItemKind.Database,
                 InsertText = SqlKeywords.Quote(d.Name),
-                Detail = d.IsSystem ? "système" : null,
+                Detail = d.IsSystem ? "system" : null,
             })
             .ToArray();
 
-    /// <summary>Objets et schémas de la base courante, plus les autres bases pour écrire base.schéma.objet.</summary>
+    /// <summary>Objects and schemas of the current database, plus the other databases to write database.schema.object.</summary>
     private async Task<IReadOnlyList<CompletionItem>> GetSourceItemsAsync(string? database, SqlSchemaObjectKind[] kinds, CancellationToken cancellationToken)
     {
         var schema = await _catalog.GetDatabaseAsync(database, cancellationToken).ConfigureAwait(false);
@@ -59,7 +59,7 @@ internal sealed class SqlSchemaCompletion
         return [.. objects, .. await GetDatabaseItemsAsync(cancellationToken).ConfigureAwait(false)];
     }
 
-    /// <summary>Colonnes de toutes les tables citées dans le lot (SELECT, WHERE, ON…), avec la table d'origine.</summary>
+    /// <summary>Columns of all tables referenced in the batch (SELECT, WHERE, ON…), with the source table.</summary>
     private async Task<IReadOnlyList<CompletionItem>> GetQueryColumnItemsAsync(SqlContext context, CancellationToken cancellationToken)
     {
         List<CompletionItem> items = [];
@@ -73,8 +73,8 @@ internal sealed class SqlSchemaCompletion
     }
 
     /// <summary>
-    /// Après un point : alias ou table → colonnes, schéma → objets, base → schémas,
-    /// base.schéma → objets, [base.]schéma.table → colonnes.
+    /// After a dot: alias or table → columns, schema → objects, database → schemas,
+    /// database.schema → objects, [database.]schema.table → columns.
     /// </summary>
     private async Task<IReadOnlyList<CompletionItem>> GetMemberItemsAsync(SqlContext context, CancellationToken cancellationToken)
     {
@@ -93,7 +93,7 @@ internal sealed class SqlSchemaCompletion
                     if (current is not null && current.HasSchema(name))
                         return ObjectItems(current, name, kinds, withSchemas: false);
 
-                    // Table absente du lot : SELECT Users.| reste valide si Users est dans le FROM d'une autre instruction.
+                    // Table missing from the batch: SELECT Users.| stays valid if Users is in the FROM of another statement.
                     if (current?.Find(null, name) is { Columns.Count: > 0 } direct)
                         return ColumnItems(direct, null);
 
@@ -126,9 +126,9 @@ internal sealed class SqlSchemaCompletion
         }
     }
 
-    // ---------- Construction des propositions ----------
+    // ---------- Building suggestions ----------
 
-    /// <summary>Objets d'une base, d'un schéma si précisé ; les schémas eux-mêmes pour enchaîner sur « schéma. ».</summary>
+    /// <summary>Objects of a database, of a schema if specified; the schemas themselves to continue with "schema.".</summary>
     private static IReadOnlyList<CompletionItem> ObjectItems(SqlDatabaseSchema database, string? schema, SqlSchemaObjectKind[] kinds, bool withSchemas)
     {
         var objects = database.Objects
@@ -138,7 +138,7 @@ internal sealed class SqlSchemaCompletion
             {
                 Label = o.Name,
                 Kind = ToItemKind(o.Kind),
-                // Hors schéma par défaut, le schéma est inséré : « Users » seul viserait dbo.Users.
+                // Outside the default schema, the schema is inserted: "Users" alone would target dbo.Users.
                 InsertText = schema is not null || SqlDatabaseSchema.IsDefaultSchema(o.Schema)
                     ? SqlKeywords.Quote(o.Name)
                     : $"{SqlKeywords.Quote(o.Schema)}.{SqlKeywords.Quote(o.Name)}",
@@ -154,7 +154,7 @@ internal sealed class SqlSchemaCompletion
             Label = c.Name,
             Kind = CompletionItemKind.Column,
             InsertText = SqlKeywords.Quote(c.Name),
-            // Plusieurs tables dans le lot : on précise d'où vient la colonne.
+            // Several tables in the batch: specify where the column comes from.
             Detail = owner is null ? c.DataType : $"{c.DataType} · {owner}",
         }).ToArray();
 

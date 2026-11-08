@@ -4,8 +4,8 @@ using Quill.Data.Sql.MySql.Constants;
 namespace Quill.Data.Sql.MySql;
 
 /// <summary>
-/// Catalogue MySQL / MariaDB lu dans information_schema. Une base MySQL est aussi son unique schema :
-/// <see cref="SqlSchemaObject.Schema"/> porte le nom de la base.
+/// MySQL / MariaDB catalog read from information_schema. A MySQL database is also its only schema:
+/// <see cref="SqlSchemaObject.Schema"/> holds the database name.
 /// </summary>
 public sealed class MySqlSchemaReader : ISqlSchemaReader
 {
@@ -85,7 +85,7 @@ public sealed class MySqlSchemaReader : ISqlSchemaReader
 
         await reader.ReadAsync(cancellationToken);
         var databaseName = reader.IsDBNull(0)
-            ? throw new InvalidOperationException("Aucune base sélectionnée : précisez Database dans la chaîne de connexion.")
+            ? throw new InvalidOperationException("No database selected: specify Database in the connection string.")
             : reader.GetString(0);
 
         await reader.NextResultAsync(cancellationToken);

@@ -4,17 +4,17 @@ using Quill.Code.CSharp;
 
 namespace Quill.Code.Tests.CSharp;
 
-/// <summary>Services partagés par les tests : les références du framework sont coûteuses à lire.</summary>
+/// <summary>Services shared by the tests: framework references are expensive to read.</summary>
 internal static class CSharpTestProjects
 {
     public static IEnumerable<MetadataReference> References => LazyReferences.Value;
 
     private static readonly Lazy<IEnumerable<MetadataReference>> LazyReferences = new(() => CSharpReferences.FromTrustedPlatformAssemblies());
 
-    /// <summary>Instructions de niveau supérieur, comme un script PocketForge ou une requête LINQ de Querify.</summary>
+    /// <summary>Top-level statements, like a PocketForge script or a Querify LINQ query.</summary>
     public static CSharpLanguageService Script { get; } = new(() => ScriptOptions("Script"));
 
-    /// <summary>Options d'un script : application console, <c>System</c> importé.</summary>
+    /// <summary>Options of a script: console application, <c>System</c> imported.</summary>
     public static CSharpLanguageOptions ScriptOptions(string name) => new()
     {
         Name = name,
@@ -23,7 +23,7 @@ internal static class CSharpTestProjects
         AdditionalDocuments = new Dictionary<string, string> { ["GlobalUsings.cs"] = "global using System;" },
     };
 
-    /// <summary>Options d'une bibliothèque.</summary>
+    /// <summary>Options of a library.</summary>
     public static CSharpLanguageOptions LibraryOptions(string name) => new()
     {
         Name = name,

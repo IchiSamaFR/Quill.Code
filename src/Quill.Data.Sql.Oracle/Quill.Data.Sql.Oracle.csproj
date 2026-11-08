@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Data.Sql.Oracle</RootNamespace>
-		<Description>Lecture du catalogue Oracle (vues ALL_*) pour Quill.Data.Sql.</Description>
+		<Description>Oracle catalog reading (ALL_* views) for Quill.Data.Sql.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

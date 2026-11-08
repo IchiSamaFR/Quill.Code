@@ -5,7 +5,7 @@ using Quill.Data.Sql;
 
 namespace Quill.Code.Tests.SqlServer;
 
-/// <summary>Le caractère | marque le curseur.</summary>
+/// <summary>The | character marks the caret.</summary>
 public class SqlCompletionTests
 {
     [Fact]
@@ -71,10 +71,10 @@ public class SqlCompletionTests
     {
         var service = new SqlLanguageService(new SqlLanguageOptions { Variables = [new SqlVariable("MaxRows", "int")] });
 
-        const string code = "DECLARE @Limite int = 10;\nSELECT @@VERSION;\nSELECT @";
+        const string code = "DECLARE @Limit int = 10;\nSELECT @@VERSION;\nSELECT @";
         var items = (await service.GetCompletionsAsync(code, code.Length)).Items;
 
-        Assert.Contains(items, i => i.Label == "@Limite" && i.Kind == CompletionItemKind.Variable && i.Detail == "int");
+        Assert.Contains(items, i => i.Label == "@Limit" && i.Kind == CompletionItemKind.Variable && i.Detail == "int");
         Assert.Contains(items, i => i.Label == "@MaxRows" && i.Detail == "int");
         Assert.DoesNotContain(items, i => i.Label == "@@VERSION");
     }

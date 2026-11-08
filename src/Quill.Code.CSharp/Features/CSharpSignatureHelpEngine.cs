@@ -5,7 +5,7 @@ using Quill.Code.CSharp.Roslyn;
 
 namespace Quill.Code.CSharp.Features;
 
-/// <summary>Surcharges de la méthode dont le curseur est dans la liste d'arguments.</summary>
+/// <summary>Overloads of the method whose argument list contains the caret.</summary>
 internal static class CSharpSignatureHelpEngine
 {
     public static async Task<SignatureHelpInfo?> GetSignatureHelpAsync(CSharpDocument document, int position, CancellationToken cancellationToken)
@@ -20,7 +20,7 @@ internal static class CSharpSignatureHelpEngine
         if (await document.Document.GetSemanticModelAsync(cancellationToken) is not { } semantic)
             return null;
 
-        // Toutes les surcharges visibles (méthodes d'extension comprises) ; à défaut, les candidates d'un appel non résolu.
+        // All visible overloads (extension methods included); otherwise, the candidates of an unresolved call.
         var resolved = semantic.GetSymbolInfo(invocation, cancellationToken);
         var methods = semantic.GetMemberGroup(invocation.Expression, cancellationToken).OfType<IMethodSymbol>().ToList();
         if (methods.Count == 0)
@@ -41,11 +41,11 @@ internal static class CSharpSignatureHelpEngine
             argumentList.OpenParenToken.SpanStart);
     }
 
-    // Même méthode, qu'elle soit vue comme extension réduite (x.Where) ou statique (Queryable.Where).
+    // Same method, whether seen as a reduced extension (x.Where) or static (Queryable.Where).
     private static bool IsSameMethod(IMethodSymbol left, IMethodSymbol right)
         => SymbolEqualityComparer.Default.Equals((left.ReducedFrom ?? left).OriginalDefinition, (right.ReducedFrom ?? right).OriginalDefinition);
 
-    /// <summary>Liste d'arguments la plus intérieure dont le curseur est entre les parenthèses.</summary>
+    /// <summary>Innermost argument list whose parentheses contain the caret.</summary>
     private static ArgumentListSyntax? FindArgumentList(SyntaxNode root, int position)
         => root.FindToken(position - 1).Parent?
             .AncestorsAndSelf()

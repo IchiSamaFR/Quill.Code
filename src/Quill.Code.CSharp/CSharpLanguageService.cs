@@ -8,21 +8,21 @@ using Quill.Code.Constants;
 namespace Quill.Code.CSharp;
 
 /// <summary>
-/// Services d'éditeur C# fournis par Roslyn (autocomplétion, diagnostics, survol, signatures) et compilation, sur un
-/// projet propre au service, créé à la première demande. Les positions reçues et rendues sont celles du texte de l'éditeur.
+/// C# editor services provided by Roslyn (completion, diagnostics, hover, signatures) and compilation, on a
+/// project owned by the service, created on first request. Positions received and returned are those of the editor text.
 /// </summary>
 /// <remarks>
-/// Chaque demande travaille sur un instantané : les demandes peuvent être concurrentes. Roslyn calcule en partie de
-/// façon synchrone : chaque demande part sur le pool de threads pour ne pas figer l'interface.
+/// Each request works on a snapshot: requests may run concurrently. Roslyn computes partly
+/// synchronously: each request runs on the thread pool so as not to freeze the UI.
 /// </remarks>
 public sealed class CSharpLanguageService : ICodeLanguageService
 {
     private readonly CSharpProject _project;
 
-    /// <summary>Service sur son propre projet, créé à la première demande (hors du thread de l'interface).</summary>
+    /// <summary>Service on its own project, created on first request (off the UI thread).</summary>
     /// <param name="options">
-    /// Options du projet, construites à la première demande (ex. références lues sur le disque) ;
-    /// à défaut, une bibliothèque référençant le framework.
+    /// Project options, built on first request (e.g. references read from disk);
+    /// otherwise, a library referencing the framework.
     /// </param>
     public CSharpLanguageService(Func<CSharpLanguageOptions>? options = null)
     {
@@ -30,36 +30,36 @@ public sealed class CSharpLanguageService : ICodeLanguageService
         _project.SourcesChanged += (_, e) => SourcesChanged?.Invoke(this, e);
     }
 
-    /// <summary>Levé quand une source est ajoutée, remplacée ou retirée (ex. pour relancer l'analyse de l'éditeur).</summary>
+    /// <summary>Raised when a source is added, replaced or removed (e.g. to rerun the editor analysis).</summary>
     public event EventHandler? SourcesChanged;
 
     /// <inheritdoc />
     public string Language => CodeLanguages.CSharp;
 
-    /// <summary>Clés des sources ajoutées à la volée.</summary>
+    /// <summary>Keys of the sources added on the fly.</summary>
     public IReadOnlyCollection<string> Sources => _project.Sources;
 
     internal CSharpProject Project => _project;
 
-    /// <summary>Ajoute ou remplace une source (ex. une classe utilitaire), vue par l'éditeur et compilée avec lui.</summary>
-    /// <param name="name">Nom du document (ex. <c>FileHelper.cs</c>), repris dans les erreurs de compilation.</param>
-    /// <param name="code">Code C# de la source.</param>
+    /// <summary>Adds or replaces a source (e.g. a helper class), seen by the editor and compiled with it.</summary>
+    /// <param name="name">Document name (e.g. <c>FileHelper.cs</c>), shown in compilation errors.</param>
+    /// <param name="code">C# code of the source.</param>
     public void SetSource(string name, string code) => _project.SetSource(name, code);
 
-    /// <summary>Lit un fichier .cs et l'ajoute (ou le remplace) ; il est identifié par son chemin complet.</summary>
-    /// <returns>Clé de la source, à passer à <see cref="RemoveSource"/>.</returns>
+    /// <summary>Reads a .cs file and adds (or replaces) it; it is identified by its full path.</summary>
+    /// <returns>Key of the source, to pass to <see cref="RemoveSource"/>.</returns>
     public Task<string> SetSourceFileAsync(string path, CancellationToken cancellationToken = default)
         => _project.SetSourceFileAsync(path, cancellationToken);
 
-    /// <summary>Retire une source ajoutée à la volée (nom ou chemin complet).</summary>
-    /// <returns>Faux si aucune source ne porte cette clé.</returns>
+    /// <summary>Removes a source added on the fly (name or full path).</summary>
+    /// <returns>False if no source has this key.</returns>
     public bool RemoveSource(string key) => _project.RemoveSource(key);
 
-    /// <summary>Retire toutes les sources ajoutées à la volée.</summary>
+    /// <summary>Removes all sources added on the fly.</summary>
     public void ClearSources() => _project.ClearSources();
 
-    /// <summary>Précharge Roslyn (composition MEF, métadonnées, JIT) : sinon la première demande prend une à deux secondes.</summary>
-    /// <param name="code">Texte de préchauffage ; « Console. » prépare aussi la recherche des membres.</param>
+    /// <summary>Preloads Roslyn (MEF composition, metadata, JIT): otherwise the first request takes one to two seconds.</summary>
+    /// <param name="code">Warm-up text; "Console." also prepares member lookup.</param>
     public Task WarmUpAsync(string code = "", CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(code);
@@ -90,22 +90,22 @@ public sealed class CSharpLanguageService : ICodeLanguageService
         => OnThreadPoolAsync(code, (document, token) => CSharpSignatureHelpEngine.GetSignatureHelpAsync(document, position, token), cancellationToken);
 
     /// <summary>
-    /// Compile <paramref name="code"/> dans le projet du service (mêmes références, options et sources que l'éditeur),
-    /// puis charge l'assembly dans un contexte déchargeable. Les erreurs sont rendues, pas levées.
+    /// Compiles <paramref name="code"/> in the service's project (same references, options and sources as the editor),
+    /// then loads the assembly into a collectible context. Errors are returned, not thrown.
     /// </summary>
     public Task<CSharpCompilationResult> CompileAsync(string code, CSharpCompileOptions? options = null, CancellationToken cancellationToken = default)
         => OnThreadPoolAsync(code, (document, token) => CSharpCompiler.CompileAsync(document, options ?? new(), token), cancellationToken);
 
     /// <summary>
-    /// Compile <paramref name="code"/> comme <see cref="CompileAsync"/>, exécute son point d'entrée (<c>Main</c> ou
-    /// instructions de niveau supérieur, async compris) puis décharge l'assembly. Rien n'est rendu : la sortie du code
-    /// passe par <see cref="Execution.RunOptions.Log"/>, une exception du code est relevée telle quelle.
+    /// Compiles <paramref name="code"/> like <see cref="CompileAsync"/>, runs its entry point (<c>Main</c> or
+    /// top-level statements, async included), then unloads the assembly. Nothing is returned: the code's output
+    /// goes through <see cref="Execution.RunOptions.Log"/>, an exception from the code is rethrown as is.
     /// </summary>
     /// <remarks>
-    /// Le code ne peut pas être interrompu dans le processus : à l'annulation, la main est rendue tout de suite
-    /// (<see cref="CSharpRunAbandonedException"/>) et l'assembly n'est déchargée qu'à sa fin réelle.
+    /// The code cannot be interrupted in-process: on cancellation, control returns immediately
+    /// (<see cref="CSharpRunAbandonedException"/>) and the assembly is only unloaded when the code actually ends.
     /// </remarks>
-    /// <exception cref="CSharpCompilationException">Le code ne compile pas ; ses diagnostics sont dans l'exception.</exception>
+    /// <exception cref="CSharpCompilationException">The code does not compile; its diagnostics are in the exception.</exception>
     public async Task RunAsync(string code, CSharpCompileOptions? options = null, CancellationToken cancellationToken = default)
     {
         using var compiled = await CompileAsync(code, options, cancellationToken).ConfigureAwait(false);
@@ -115,7 +115,7 @@ public sealed class CSharpLanguageService : ICodeLanguageService
         await compiled.RunEntryPointAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
-    // Document créé sur le pool lui aussi : la première demande construit le projet (MEF, références).
+    // Document also created on the pool: the first request builds the project (MEF, references).
     private Task<T> OnThreadPoolAsync<T>(string code, Func<CSharpDocument, CancellationToken, Task<T>> request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(code);

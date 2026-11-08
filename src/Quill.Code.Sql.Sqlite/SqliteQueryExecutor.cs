@@ -6,8 +6,8 @@ using Quill.Code.Sql.Execution;
 namespace Quill.Code.Sql.Sqlite;
 
 /// <summary>
-/// Execution SQLite (Microsoft.Data.Sqlite) : le script part en une commande, le pilote enchaine ses instructions ;
-/// une erreur arrete les suivantes. Une seule base par fichier : la base demandee est ignoree (ATTACH dans le script).
+/// SQLite execution (Microsoft.Data.Sqlite): the script is sent as one command, the driver chains its statements;
+/// an error stops the following ones. A single database per file: the requested database is ignored (ATTACH in the script).
 /// </summary>
 public sealed class SqliteQueryExecutor : DbQueryExecutor
 {

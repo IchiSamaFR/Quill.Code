@@ -4,24 +4,24 @@ using System.Reflection;
 
 namespace Quill.Code.CSharp.Linq.Compilation;
 
-/// <summary>Modele compile et charge, reutilisable par toutes les requetes sur ce schema.</summary>
+/// <summary>Compiled and loaded model, reusable by all queries on this schema.</summary>
 internal sealed class LinqGeneratedModelAssembly
 {
     public required EfGeneratedModel Model { get; init; }
 
-    /// <summary>Moteur du modele : connexion du contexte EF.</summary>
+    /// <summary>Engine of the model: connection of the EF context.</summary>
     public required ILinqDatabaseProvider Provider { get; init; }
 
-    /// <summary>References de la plateforme, d'EF et du fournisseur, communes au modele et a ses requetes.</summary>
+    /// <summary>Platform, EF and provider references, shared by the model and its queries.</summary>
     public required IReadOnlyList<MetadataReference> PlatformReferences { get; init; }
 
     public required Assembly Assembly { get; init; }
 
     public required Type ContextType { get; init; }
 
-    /// <summary>Destination des Dump() de la requete en cours (propriete statique generee, propre a chaque execution).</summary>
+    /// <summary>Destination of the current query's Dump() calls (generated static property, specific to each execution).</summary>
     public required PropertyInfo DumpSinkProperty { get; init; }
 
-    /// <summary>Reference Roslyn vers l'image compilee, pour compiler les requetes contre elle.</summary>
+    /// <summary>Roslyn reference to the compiled image, to compile queries against it.</summary>
     public required MetadataReference Reference { get; init; }
 }

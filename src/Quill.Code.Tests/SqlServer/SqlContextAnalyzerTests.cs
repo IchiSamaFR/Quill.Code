@@ -2,7 +2,7 @@
 
 namespace Quill.Code.Tests.SqlServer;
 
-/// <summary>Le caractere | marque la position du curseur dans chaque requete.</summary>
+/// <summary>The | character marks the caret position in each query.</summary>
 public class SqlContextAnalyzerTests
 {
     [Theory]

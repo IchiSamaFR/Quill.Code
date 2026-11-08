@@ -1,18 +1,18 @@
 ﻿namespace Quill.Data.Sql.PostgreSql.Constants;
 
-/// <summary>Requêtes de lecture du catalogue dans pg_catalog (PostgreSQL 12 et suivants).</summary>
+/// <summary>Catalog queries on pg_catalog (PostgreSQL 12 and later).</summary>
 internal static class PostgreSqlQueries
 {
     internal const string Databases = """
         SELECT datname FROM pg_database WHERE datallowconn AND NOT datistemplate ORDER BY datname;
         """;
 
-    // Schemas du serveur (catalogue, TOAST, tables temporaires) exclus de toutes les lectures.
+    // Server schemas (catalog, TOAST, temporary tables) excluded from all reads.
     private const string UserSchemas = """
         n.nspname NOT IN ('pg_catalog', 'information_schema') AND n.nspname NOT LIKE 'pg\_toast%' AND n.nspname NOT LIKE 'pg\_temp\_%'
         """;
 
-    // r : table, p : table partitionnee (ses partitions sont masquees) ; v : vue, m : vue materialisee.
+    // r: table, p: partitioned table (its partitions are hidden); v: view, m: materialized view.
     internal const string Tables = $"""
         SELECT n.nspname, c.relname, obj_description(c.oid, 'pg_class')
         FROM pg_class c
@@ -29,7 +29,7 @@ internal static class PostgreSqlQueries
         ORDER BY n.nspname, c.relname;
         """;
 
-    // Procedures et fonctions (hors agregats) ; une surcharge = un seul nom.
+    // Procedures and functions (excluding aggregates); an overload = a single name.
     internal const string Procedures = $"""
         SELECT n.nspname, p.proname, MAX(obj_description(p.oid, 'pg_proc'))
         FROM pg_proc p
@@ -39,7 +39,7 @@ internal static class PostgreSqlQueries
         ORDER BY n.nspname, p.proname;
         """;
 
-    // Memes calculs de type, precision et echelle que information_schema.columns ; domaine : type de base.
+    // Same type, precision and scale computations as information_schema.columns; domain: base type.
     private const string ColumnTypes = """
         format_type(a.atttypid, a.atttypmod),
         COALESCE(bt.typname, t.typname),
@@ -70,7 +70,7 @@ internal static class PostgreSqlQueries
         ORDER BY a.attnum;
         """;
 
-    // Quatre jeux : base courante, tables et vues (rattachees par oid), procedures, colonnes.
+    // Four sets: current database, tables and views (linked by oid), procedures, columns.
     internal const string Snapshot = $"""
         SELECT current_database();
 

@@ -1,9 +1,9 @@
 ﻿namespace Quill.Code.Editing;
 
-/// <summary>Sélection dans un texte : <see cref="Anchor"/> reste fixe, <see cref="Active"/> suit le curseur.</summary>
+/// <summary>Selection in a text: <see cref="Anchor"/> stays fixed, <see cref="Active"/> follows the caret.</summary>
 public readonly record struct TextSelection(int Anchor, int Active)
 {
-    /// <summary>Curseur sans sélection.</summary>
+    /// <summary>Caret without selection.</summary>
     public static TextSelection Caret(int position) => new(position, position);
 
     public int Start => Math.Min(Anchor, Active);

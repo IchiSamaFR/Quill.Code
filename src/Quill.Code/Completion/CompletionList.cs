@@ -1,17 +1,17 @@
 ﻿namespace Quill.Code.Completion;
 
-/// <summary>Résultat d'une demande d'autocompletion.</summary>
-/// <param name="Items">Propositions, dans l'ordre de tri du fournisseur.</param>
-/// <param name="SpanStart">Début de la portion que la proposition validée remplacera (mot en cours de frappe).</param>
-/// <param name="SpanLength">Longueur de cette portion au moment de la demande.</param>
+/// <summary>Result of a completion request.</summary>
+/// <param name="Items">Suggestions, in the provider's sort order.</param>
+/// <param name="SpanStart">Start of the span the committed suggestion will replace (word being typed).</param>
+/// <param name="SpanLength">Length of that span at the time of the request.</param>
 /// <param name="IsSuggestionMode">
-/// Vrai quand l'utilisateur nomme quelque chose (déclaration) : aucune proposition ne doit être validée automatiquement.
+/// True when the user is naming something (declaration): no suggestion should be committed automatically.
 /// </param>
 public sealed record CompletionList(IReadOnlyList<CompletionItem> Items, int SpanStart, int SpanLength, bool IsSuggestionMode = false)
 {
-    /// <summary>Liste vide.</summary>
+    /// <summary>Empty list.</summary>
     public static CompletionList Empty { get; } = new([], 0, 0);
 
-    /// <summary>Fin de la portion remplacée.</summary>
+    /// <summary>End of the replaced span.</summary>
     public int SpanEnd => SpanStart + SpanLength;
 }

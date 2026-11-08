@@ -1,11 +1,11 @@
 ﻿namespace Quill.Code.Highlighting;
 
-/// <summary>Portion de texte colorée (positions en unités UTF-16).</summary>
-/// <param name="Start">Début de la portion.</param>
-/// <param name="Length">Longueur de la portion.</param>
-/// <param name="Color">Mise en forme ; null pour une règle sans couleur (texte reconnu mais laissé à la couleur par défaut).</param>
+/// <summary>Colored span of text (positions in UTF-16 units).</summary>
+/// <param name="Start">Start of the span.</param>
+/// <param name="Length">Length of the span.</param>
+/// <param name="Color">Formatting; null for a rule without color (text recognized but left in the default color).</param>
 public readonly record struct SyntaxToken(int Start, int Length, SyntaxColor? Color)
 {
-    /// <summary>Fin de la portion.</summary>
+    /// <summary>End of the span.</summary>
     public int End => Start + Length;
 }

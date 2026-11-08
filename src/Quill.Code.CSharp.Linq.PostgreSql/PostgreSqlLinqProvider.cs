@@ -6,14 +6,14 @@ using System.Reflection;
 namespace Quill.Code.CSharp.Linq.PostgreSql;
 
 /// <summary>
-/// Requetes LINQ sur PostgreSQL : Npgsql.EntityFrameworkCore.PostgreSQL, mapping par defaut du fournisseur.
-/// A garder en une instance par application (cache des DbContext compiles).
+/// LINQ queries on PostgreSQL: Npgsql.EntityFrameworkCore.PostgreSQL, the provider's default mapping.
+/// Keep one instance per application (cache of compiled DbContexts).
 /// </summary>
 public sealed class PostgreSqlLinqProvider : ILinqDatabaseProvider
 {
     private readonly string? _applicationName;
 
-    /// <summary>Fournisseur PostgreSQL ; <paramref name="applicationName"/> est vu du serveur (pg_stat_activity).</summary>
+    /// <summary>PostgreSQL provider; <paramref name="applicationName"/> is seen by the server (pg_stat_activity).</summary>
     public PostgreSqlLinqProvider(string? applicationName = null)
     {
         _applicationName = applicationName;
@@ -27,10 +27,10 @@ public sealed class PostgreSqlLinqProvider : ILinqDatabaseProvider
     {
         ArgumentNullException.ThrowIfNull(column);
 
-        // SqlType est le nom interne (pg_type.typname) : int4, varchar, timestamptz...
+        // SqlType is the internal name (pg_type.typname): int4, varchar, timestamptz...
         var sqlType = (string.IsNullOrEmpty(column.SqlType) ? column.DataType : column.SqlType).ToLowerInvariant();
 
-        // Tableaux (_int4), intervalles, reseau, geometrie : pas de mapping retenu.
+        // Arrays (_int4), ranges, network, geometry: no mapping kept.
         return sqlType switch
         {
             "int2" or "smallint" => "short",

@@ -3,18 +3,18 @@
 namespace Quill.Code.Highlighting;
 
 /// <summary>
-/// Découpe un texte en portions colorées selon une <see cref="SyntaxDefinition"/>. Travaille ligne par ligne :
-/// seul l'état « span multiligne ouvert » (<see cref="SyntaxLineState"/>) passe d'une ligne à la suivante.
+/// Splits a text into colored spans according to a <see cref="SyntaxDefinition"/>. Works line by line:
+/// only the "open multi-line span" state (<see cref="SyntaxLineState"/>) carries from one line to the next.
 /// </summary>
 /// <remarks>
-/// À chaque position, la correspondance la plus proche l'emporte ; à égalité, la règle déclarée en premier
-/// (comme AvalonEdit). Les portions rendues sont ordonnées et disjointes.
+/// At each position, the nearest match wins; on a tie, the rule declared first
+/// (like AvalonEdit). Returned spans are ordered and disjoint.
 /// </remarks>
 public static class SyntaxHighlighter
 {
     /// <summary>
-    /// Colore une ligne (sans son saut de ligne) ; <paramref name="state"/> est l'état de fin de la ligne précédente
-    /// (<see cref="SyntaxLineState.Initial"/> pour la première).
+    /// Colors one line (without its line break); <paramref name="state"/> is the end state of the previous line
+    /// (<see cref="SyntaxLineState.Initial"/> for the first one).
     /// </summary>
     public static IReadOnlyList<SyntaxToken> HighlightLine(SyntaxDefinition definition, string line, SyntaxLineState state, out SyntaxLineState endState)
     {
@@ -26,7 +26,7 @@ public static class SyntaxHighlighter
         endState = SyntaxLineState.Initial;
         var position = 0;
 
-        // Suite d'un span ouvert sur une ligne précédente.
+        // Continuation of a span opened on a previous line.
         if (state.OpenSpan >= 0 && state.OpenSpan < rules.Count)
         {
             var openSpan = rules[state.OpenSpan];
@@ -42,7 +42,7 @@ public static class SyntaxHighlighter
             position = spanEnd;
         }
 
-        // Prochaine correspondance de chaque règle : recalculée seulement quand on l'a dépassée.
+        // Next match of each rule: recomputed only once it has been passed.
         var nextMatches = new Match?[rules.Count];
 
         while (position < line.Length)
@@ -59,7 +59,7 @@ public static class SyntaxHighlighter
                     nextMatches[i] = match;
                 }
 
-                // Strictement plus tôt : à égalité, la règle déclarée en premier l'emporte.
+                // Strictly earlier: on a tie, the rule declared first wins.
                 if (match.Success && (best is null || match.Index < best.Index))
                 {
                     best = match;
@@ -78,7 +78,7 @@ public static class SyntaxHighlighter
                 var spanEnd = FindSpanEnd(rule, line, end);
                 if (spanEnd < 0)
                 {
-                    // Span sans fin sur cette ligne : jusqu'au bout, et au-delà s'il est multiligne.
+                    // Span without an end on this line: to the end, and beyond if it is multi-line.
                     Add(tokens, best.Index, line.Length - best.Index, rule.Color);
                     if (rule.IsMultiline && rule.End is not null)
                         endState = new SyntaxLineState(bestRule);
@@ -97,8 +97,8 @@ public static class SyntaxHighlighter
     }
 
     /// <summary>
-    /// Colore un texte entier (sauts de ligne \n ou \r\n) ; positions dans <paramref name="text"/>.
-    /// Un span multiligne donne une portion par ligne, les sauts de ligne restant hors des portions.
+    /// Colors a whole text (\n or \r\n line breaks); positions in <paramref name="text"/>.
+    /// A multi-line span yields one span per line, line breaks staying outside the spans.
     /// </summary>
     public static IReadOnlyList<SyntaxToken> Highlight(SyntaxDefinition definition, string text, CancellationToken cancellationToken = default)
     {
@@ -143,7 +143,7 @@ public static class SyntaxHighlighter
         return match.Success ? match.Index + match.Length : -1;
     }
 
-    // Une correspondance vide ne colore rien et bloquerait l'avancée : on cherche plus loin.
+    // An empty match colors nothing and would block progress: search further.
     private static Match FindNonEmptyMatch(Regex regex, string line, int start)
     {
         var match = regex.Match(line, start);

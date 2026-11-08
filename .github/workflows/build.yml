@@ -1,4 +1,4 @@
-﻿# Build et tests a chaque push / PR sur master (publication : release.yml, sur tag).
+﻿# Build and tests on each push / PR to master (publishing: release.yml, on tag).
 name: Build
 
 on:
@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # SDK 10 pour les tests ; runtime 8 car les librairies ciblent net8.0.
+      # SDK 10 for the tests; runtime 8 because the libraries target net8.0.
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |

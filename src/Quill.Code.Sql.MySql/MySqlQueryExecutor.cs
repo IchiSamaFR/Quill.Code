@@ -9,14 +9,14 @@ using Quill.Code.Sql.Execution;
 namespace Quill.Code.Sql.MySql;
 
 /// <summary>
-/// Execution MySQL / MariaDB (MySqlConnector) : le script part en une commande, le pilote enchaine ses instructions ;
-/// une erreur arrete donc les instructions suivantes. <c>DELIMITER</c> (commande du client mysql) n'est pas reconnu.
+/// MySQL / MariaDB execution (MySqlConnector): the script is sent as one command, the driver chains its statements;
+/// an error therefore stops the following statements. <c>DELIMITER</c> (mysql client command) is not recognized.
 /// </summary>
 public sealed class MySqlQueryExecutor : DbQueryExecutor
 {
     private readonly string? _applicationName;
 
-    /// <summary>Executeur MySQL ; <paramref name="applicationName"/> est vu du serveur (attribut de connexion program_name).</summary>
+    /// <summary>MySQL executor; <paramref name="applicationName"/> is seen by the server (program_name connection attribute).</summary>
     public MySqlQueryExecutor(string? applicationName = null)
     {
         _applicationName = applicationName;
@@ -27,7 +27,7 @@ public sealed class MySqlQueryExecutor : DbQueryExecutor
     {
         var builder = new MySqlConnectionStringBuilder(connectionString)
         {
-            // Variables de session (@total) des scripts : refusees par defaut comme parametres non fournis.
+            // Session variables (@total) of scripts: rejected by default as missing parameters.
             AllowUserVariables = true,
         };
         if (!string.IsNullOrWhiteSpace(_applicationName))
@@ -56,6 +56,6 @@ public sealed class MySqlQueryExecutor : DbQueryExecutor
     /// <inheritdoc/>
     protected override string FormatError(DbException exception)
         => exception is MySqlException mySql
-            ? string.Create(CultureInfo.InvariantCulture, $"Erreur {mySql.Number} ({mySql.SqlState}){Environment.NewLine}{mySql.Message}")
+            ? string.Create(CultureInfo.InvariantCulture, $"Error {mySql.Number} ({mySql.SqlState}){Environment.NewLine}{mySql.Message}")
             : base.FormatError(exception);
 }

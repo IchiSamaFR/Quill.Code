@@ -1,14 +1,14 @@
 ﻿namespace Quill.Data.Sql;
 
-/// <summary>Nature d'un objet de base de données.</summary>
+/// <summary>Kind of a database object.</summary>
 public enum SqlSchemaObjectKind
 {
     /// <summary>Table.</summary>
     Table,
 
-    /// <summary>Vue.</summary>
+    /// <summary>View.</summary>
     View,
 
-    /// <summary>Procédure stockée.</summary>
+    /// <summary>Stored procedure.</summary>
     Procedure,
 }

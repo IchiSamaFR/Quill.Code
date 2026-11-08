@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Data.Sql.PostgreSql</RootNamespace>
-		<Description>Lecture du catalogue PostgreSQL (pg_catalog) pour Quill.Data.Sql.</Description>
+		<Description>PostgreSQL catalog reading (pg_catalog) for Quill.Data.Sql.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

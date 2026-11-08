@@ -10,8 +10,8 @@ using Quill.Data.Sql;
 namespace Quill.Code.Tests.Linq;
 
 /// <summary>
-/// Le code genere est compile avec Roslyn puis instancie : le modele EF est construit
-/// (validation comprise) sans se connecter, ToQueryString n'ouvre pas de connexion.
+/// The generated code is compiled with Roslyn then instantiated: the EF model is built
+/// (validation included) without connecting, ToQueryString does not open a connection.
 /// </summary>
 public class EfModelGeneratorTests
 {
@@ -95,7 +95,7 @@ public class EfModelGeneratorTests
         Assert.Contains("[AspNetUsers]", users.ToQueryString(), StringComparison.Ordinal);
     }
 
-    // ---------- Construction ----------
+    // ---------- Building ----------
 
     private static IEntityType Entity(string className)
     {
@@ -137,7 +137,7 @@ public class EfModelGeneratorTests
         return (model, assembly.GetType($"{model.Namespace}.{model.ContextClassName}", throwOnError: true)!);
     }
 
-    /// <summary>Catalogue de test, partage avec <see cref="LinqCompilerTests"/>.</summary>
+    /// <summary>Test catalog, shared with <see cref="LinqCompilerTests"/>.</summary>
     internal static SqlDatabaseSchema SampleSnapshot() => new("RaveOnDb",
         [
             Table("dbo", "AspNetUsers",

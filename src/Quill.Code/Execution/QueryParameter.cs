@@ -1,4 +1,4 @@
 ﻿namespace Quill.Code.Execution;
 
-/// <summary>Parametre envoye avec une requete (null = NULL SQL), jamais concatene au texte.</summary>
+/// <summary>Parameter sent with a query (null = SQL NULL), never concatenated into the text.</summary>
 public sealed record QueryParameter(string Name, QueryParameterType Type, object? Value);

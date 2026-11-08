@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!-- EF Core 10 ne cible que net10.0. -->
+		<!-- EF Core 10 only targets net10.0. -->
 		<TargetFramework>net10.0</TargetFramework>
 		<RootNamespace>Quill.Code.CSharp.Linq</RootNamespace>
-		<Description>Requetes LINQ / Entity Framework Core pour Quill.Code, sans moteur : DbContext genere depuis la structure d'une base (Quill.Data.Sql), autocompletion, diagnostics et survol C# dans ce contexte, execution ; le moteur vient d'un ILinqDatabaseProvider (ex. Quill.Code.CSharp.Linq.SqlServer).</Description>
+		<Description>LINQ / Entity Framework Core queries for Quill.Code, engine-agnostic: DbContext generated from a database structure (Quill.Data.Sql), C# completion, diagnostics and hover in that context, execution; the engine comes from an ILinqDatabaseProvider (e.g. Quill.Code.CSharp.Linq.SqlServer).</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

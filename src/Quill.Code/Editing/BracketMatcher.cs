@@ -2,12 +2,12 @@
 
 namespace Quill.Code.Editing;
 
-/// <summary>Crochet associé à celui qui touche le curseur ; ceux des chaînes et des commentaires sont ignorés.</summary>
+/// <summary>Bracket matching the one touching the caret; those in strings and comments are ignored.</summary>
 public static class BracketMatcher
 {
     /// <summary>
-    /// Paire dont un crochet touche le curseur : comme Visual Studio, fermant juste avant le curseur, puis ouvrant
-    /// juste après. <paramref name="regions"/> vient de <see cref="SourceScanner.Classify"/> sur le même texte.
+    /// Pair with a bracket touching the caret: like Visual Studio, closing bracket just before the caret, then opening
+    /// bracket just after. <paramref name="regions"/> comes from <see cref="SourceScanner.Classify"/> on the same text.
     /// </summary>
     public static BracketPair? FindPair(string text, int caret, IReadOnlyList<SourceRegion> regions)
     {
@@ -31,7 +31,7 @@ public static class BracketMatcher
     public static BracketPair? FindPair(string text, int caret, SourceSyntax syntax)
         => FindPair(text, caret, SourceScanner.Classify(text, syntax));
 
-    /// <summary>Position du crochet associé à celui de <paramref name="index"/>, -1 si aucun.</summary>
+    /// <summary>Position of the bracket matching the one at <paramref name="index"/>, -1 if none.</summary>
     public static int FindMatch(string text, int index, IReadOnlyList<SourceRegion> regions)
     {
         ArgumentNullException.ThrowIfNull(text);

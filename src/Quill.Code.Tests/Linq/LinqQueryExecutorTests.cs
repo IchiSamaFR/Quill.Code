@@ -5,7 +5,7 @@ using Quill.Data.Sql;
 
 namespace Quill.Code.Tests.Linq;
 
-/// <summary>API publique, sans connexion : les requetes n'affichent que des valeurs calculees, rien n'est envoye au serveur.</summary>
+/// <summary>Public API, without a connection: queries only display computed values, nothing is sent to the server.</summary>
 public class LinqQueryExecutorTests
 {
     private const string ConnectionString = "Server=localhost;Database=RaveOnDb;Trusted_Connection=True;TrustServerCertificate=True";
@@ -25,8 +25,8 @@ public class LinqQueryExecutorTests
         Assert.Equal("42", Assert.Single(data[0].Rows).Cells[0]);
         Assert.Equal(2, data[1].Rows.Count);
         Assert.DoesNotContain(log, e => e.IsError);
-        Assert.Contains(log, e => e.Text.StartsWith("Contexte RaveOnDbContext", StringComparison.Ordinal));
-        Assert.Contains(log, e => e.Text == "Total : (1 ligne(s))");
+        Assert.Contains(log, e => e.Text.StartsWith("Context RaveOnDbContext", StringComparison.Ordinal));
+        Assert.Contains(log, e => e.Text == "Total: (1 row(s))");
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class LinqQueryExecutorTests
         var (log, _) = await RunAsync("throw new InvalidOperationException(\"boom\");");
 
         var error = Assert.Single(log, e => e.IsError);
-        Assert.Equal("InvalidOperationException : boom", error.Text);
+        Assert.Equal("InvalidOperationException: boom", error.Text);
         Assert.Equal(LogSource.Code, error.Source);
     }
 
@@ -56,7 +56,7 @@ public class LinqQueryExecutorTests
         var (log, _) = await RunAsync("Log.Information(\"a\");");
 
         Assert.Contains(log, e => e is { Text: "a", Source: LogSource.Code });
-        Assert.Contains(log, e => e.Text == "Aucun résultat : affichez les données avec .Dump().");
+        Assert.Contains(log, e => e.Text == "No result: display the data with .Dump().");
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class LinqQueryExecutorTests
     [Fact]
     public async Task LanguageService_UnreadableSchemaFallsBackToCSharp()
     {
-        var service = new LinqLanguageService(new LinqLanguageOptions { Provider = TestLinq.Provider, Schema = _ => throw new InvalidOperationException("Base injoignable.") });
+        var service = new LinqLanguageService(new LinqLanguageOptions { Provider = TestLinq.Provider, Schema = _ => throw new InvalidOperationException("Database unreachable.") });
 
         const string query = "var now = DateTime.";
         Assert.Contains((await service.GetCompletionsAsync(query, query.Length)).Items, i => i.InsertText == "Now");

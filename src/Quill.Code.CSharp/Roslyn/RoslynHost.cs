@@ -10,18 +10,18 @@ using Quill.Code.CSharp.Constants;
 namespace Quill.Code.CSharp.Roslyn;
 
 /// <summary>
-/// Hôte Roslyn de l'application : la composition MEF (une à deux secondes) n'est faite qu'une fois, à la première demande.
-/// Les projets sont des instantanés tirés de la solution vide : le workspace n'est jamais modifié, rien n'y reste.
+/// Roslyn host of the application: MEF composition (one to two seconds) is done only once, on first request.
+/// Projects are snapshots taken from the empty solution: the workspace is never modified, nothing stays in it.
 /// </summary>
 internal static class RoslynHost
 {
-    // Services de complétion, survol et signatures : dans les assemblies Features, absentes des valeurs par défaut selon l'hôte.
+    // Completion, hover and signature services: in the Features assemblies, missing from the defaults depending on the host.
     private static readonly Lazy<AdhocWorkspace> Workspace = new(() => new AdhocWorkspace(MefHostServices.Create(
         MefHostServices.DefaultAssemblies
             .Concat([typeof(RoslynCompletion.CompletionService).Assembly, Assembly.Load("Microsoft.CodeAnalysis.CSharp.Features")])
             .Distinct())));
 
-    /// <summary>Projet décrit par <paramref name="options"/> et document vide qui recevra le texte de l'éditeur.</summary>
+    /// <summary>Project described by <paramref name="options"/> and empty document that will receive the editor text.</summary>
     public static (Project Project, DocumentId DocumentId) CreateProject(CSharpLanguageOptions options)
     {
         var projectId = ProjectId.CreateNewId(options.Name);
@@ -45,7 +45,7 @@ internal static class RoslynHost
         return (withDocument.GetProject(projectId)!, documentId);
     }
 
-    // Encodage requis pour émettre les informations de débogage (PDB).
+    // Encoding required to emit debug information (PDB).
     private static (Solution Solution, DocumentId Id) AddDocument(Solution solution, ProjectId projectId, string name, string source)
     {
         var id = DocumentId.CreateNewId(projectId, name);

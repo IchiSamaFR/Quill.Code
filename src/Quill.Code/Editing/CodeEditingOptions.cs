@@ -1,26 +1,26 @@
 ﻿namespace Quill.Code.Editing;
 
-/// <summary>Réglages des commandes d'édition (<see cref="CodeEditing"/>).</summary>
+/// <summary>Settings for the editing commands (<see cref="CodeEditing"/>).</summary>
 public sealed record CodeEditingOptions
 {
-    /// <summary>Largeur d'un niveau d'indentation, en espaces.</summary>
+    /// <summary>Width of one indentation level, in spaces.</summary>
     public int IndentSize { get; init; } = 4;
 
-    /// <summary>Indentation par tabulations plutôt que par espaces.</summary>
+    /// <summary>Indent with tabs rather than spaces.</summary>
     public bool UseTabs { get; init; }
 
-    /// <summary>Saut de ligne inséré (« \n », « \r\n »). La lecture du texte accepte les deux.</summary>
+    /// <summary>Inserted line break ("\n", "\r\n"). Reading the text accepts both.</summary>
     public string NewLine { get; init; } = "\n";
 
-    /// <summary>Commentaires et chaînes du langage : les paires et crochets n'agissent que dans le code.</summary>
+    /// <summary>Comments and strings of the language: pairs and brackets only act in code.</summary>
     public SourceSyntax Syntax { get; init; } = SourceSyntax.CSharp;
 
-    /// <summary>« { » tapée en fin de ligne de code passe sur la ligne suivante avec sa « } » (style Allman).</summary>
+    /// <summary>"{" typed at the end of a code line moves to the next line along with its "}" (Allman style).</summary>
     public bool PlaceOpenBraceOnNewLine { get; init; }
 
-    /// <summary>Espace inséré après le préfixe en commentant (« // x »), retiré en décommentant.</summary>
+    /// <summary>Space inserted after the prefix when commenting ("// x"), removed when uncommenting.</summary>
     public bool InsertSpaceAfterLineComment { get; init; } = true;
 
-    /// <summary>Un niveau d'indentation.</summary>
+    /// <summary>One indentation level.</summary>
     public string IndentUnit => UseTabs ? "\t" : new string(' ', IndentSize);
 }

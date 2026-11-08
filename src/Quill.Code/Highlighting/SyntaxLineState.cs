@@ -1,19 +1,19 @@
 ﻿namespace Quill.Code.Highlighting;
 
 /// <summary>
-/// État transmis d'une ligne à la suivante : le span multiligne encore ouvert (commentaire /* */, chaîne verbatim…).
-/// Permet de ne recolorer que les lignes modifiées, puis les suivantes tant que l'état propagé change.
+/// State passed from one line to the next: the multi-line span still open (/* */ comment, verbatim string…).
+/// Allows recoloring only the modified lines, then the following ones as long as the propagated state changes.
 /// </summary>
 public readonly record struct SyntaxLineState
 {
     internal SyntaxLineState(int openSpan) => OpenSpan = openSpan;
 
-    /// <summary>Début de document : aucun span ouvert.</summary>
+    /// <summary>Start of document: no open span.</summary>
     public static SyntaxLineState Initial { get; } = new(-1);
 
-    /// <summary>Index de la règle du span ouvert, -1 si aucun.</summary>
+    /// <summary>Index of the open span's rule, -1 if none.</summary>
     internal int OpenSpan { get; }
 
-    /// <summary>Vrai si un span multiligne est ouvert.</summary>
+    /// <summary>True if a multi-line span is open.</summary>
     public bool IsInSpan => OpenSpan >= 0;
 }

@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Data.Sql</RootNamespace>
-		<Description>Structure d'une base SQL (bases, schemas, tables, vues, procedures, colonnes) et contrat de lecture du catalogue, sans aucune dependance.</Description>
+		<Description>Structure of a SQL database (databases, schemas, tables, views, procedures, columns) and catalog reading contract, with no dependency.</Description>
 		<IsAotCompatible>true</IsAotCompatible>
 	</PropertyGroup>
 

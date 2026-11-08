@@ -1,12 +1,12 @@
 ﻿namespace Quill.Code.Completion;
 
-/// <summary>Modification à appliquer au texte quand une proposition est validée.</summary>
-/// <param name="SpanStart">Début de la portion remplacée.</param>
-/// <param name="SpanLength">Longueur de la portion remplacée.</param>
-/// <param name="NewText">Texte inséré à la place.</param>
-/// <param name="NewCaretPosition">Position du curseur dans le nouveau texte ; fin de l'insertion si nulle.</param>
+/// <summary>Change to apply to the text when a suggestion is committed.</summary>
+/// <param name="SpanStart">Start of the replaced span.</param>
+/// <param name="SpanLength">Length of the replaced span.</param>
+/// <param name="NewText">Text inserted in its place.</param>
+/// <param name="NewCaretPosition">Caret position in the new text; end of the insertion if null.</param>
 public sealed record CompletionChange(int SpanStart, int SpanLength, string NewText, int? NewCaretPosition = null)
 {
-    /// <summary>Position du curseur après application de la modification.</summary>
+    /// <summary>Caret position after the change is applied.</summary>
     public int CaretPosition => NewCaretPosition ?? SpanStart + NewText.Length;
 }

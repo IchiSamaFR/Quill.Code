@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Quill.Code.Sql.SqlServer.Completion;
 
-/// <summary>Mots-clés, types et fonctions T-SQL proposés par l'autocomplétion.</summary>
+/// <summary>T-SQL keywords, types and functions suggested by completion.</summary>
 internal static partial class SqlKeywords
 {
     private static readonly string[] Keywords =
@@ -34,10 +34,10 @@ internal static partial class SqlKeywords
         "STRING_AGG", "NEWID", "SCOPE_IDENTITY",
     ];
 
-    // Seuls les mots-clés réservés imposent des crochets : une colonne Year ou Date s'écrit telle quelle.
+    // Only reserved keywords require brackets: a Year or Date column is written as is.
     private static readonly HashSet<string> Reserved = new(Keywords, StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Mots du langage en propositions (MAX est à la fois type et fonction).</summary>
+    /// <summary>Language words as suggestions (MAX is both a type and a function).</summary>
     public static IReadOnlyList<CompletionItem> Items { get; } =
     [
         .. Keywords.Select(w => new CompletionItem { Label = w, Kind = CompletionItemKind.Keyword }),
@@ -45,13 +45,13 @@ internal static partial class SqlKeywords
         .. Functions.Select(w => new CompletionItem { Label = w, Kind = CompletionItemKind.Function }),
     ];
 
-    /// <summary>Tous les mots du langage : un mot du document qui en fait partie n'est pas proposé une seconde fois.</summary>
+    /// <summary>All language words: a document word that is one of them is not suggested a second time.</summary>
     public static IReadOnlySet<string> Words { get; } = new HashSet<string>([.. Keywords, .. DataTypes, .. Functions], StringComparer.OrdinalIgnoreCase);
 
     [GeneratedRegex(@"^[\p{L}_][\p{L}\p{Nd}_@#$]*$", RegexOptions.CultureInvariant)]
     private static partial Regex RegularIdentifierRegex();
 
-    /// <summary>Crochets pour un nom irrégulier (espace, tiret…) ou réservé (Order, User).</summary>
+    /// <summary>Brackets for an irregular name (space, dash…) or a reserved one (Order, User).</summary>
     public static string Quote(string name)
         => RegularIdentifierRegex().IsMatch(name) && !Reserved.Contains(name)
             ? name

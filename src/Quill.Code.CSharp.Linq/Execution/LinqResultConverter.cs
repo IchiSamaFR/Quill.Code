@@ -8,20 +8,20 @@ using System.Reflection;
 
 namespace Quill.Code.CSharp.Linq.Execution;
 
-/// <summary>Valeurs affichees par Dump() converties en jeux de resultats (grille) : objets, scalaires, dictionnaires, requetes EF.</summary>
-[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Compilation en memoire, sans AOT : reflexion sur les resultats assumee.")]
+/// <summary>Values displayed by Dump() converted to result sets (grid): objects, scalars, dictionaries, EF queries.</summary>
+[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "In-memory compilation, no trimming: reflection on results is intended.")]
+[UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "In-memory compilation, no trimming: reflection on results is intended.")]
+[UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "In-memory compilation, no trimming: reflection on results is intended.")]
+[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "In-memory compilation, no trimming: reflection on results is intended.")]
+[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "In-memory compilation, no AOT: reflection on results is intended.")]
 internal static class LinqResultConverter
 {
     private static readonly MethodInfo QueryableTake = typeof(Queryable).GetMethods()
         .Single(m => m.Name == nameof(Queryable.Take) && m.GetParameters()[1].ParameterType == typeof(int));
 
     /// <summary>
-    /// Jeu de resultats d'un Dump(valeur, titre), capture tout de suite : il montre la valeur a cet instant, meme si le
-    /// script la modifie ensuite. Une requete IQueryable est plafonnee cote serveur ; son SQL est rendu a part.
+    /// Result set of a Dump(value, title), captured immediately: it shows the value at that moment, even if the
+    /// script modifies it afterwards. An IQueryable query is limited on the server side; its SQL is returned separately.
     /// </summary>
     public static (QueryResultSet ResultSet, string? Sql) Capture(object? value, int index, string? title, int maxRows, CancellationToken cancellationToken)
     {
@@ -32,7 +32,7 @@ internal static class LinqResultConverter
         {
             sql = TryGetSql(queryable);
 
-            // Plafond applique cote serveur (TOP), une ligne de plus pour savoir s'il a ete atteint.
+            // Limit applied on the server side (TOP), one extra row to know whether it was reached.
             value = QueryableTake.MakeGenericMethod(queryable.ElementType).Invoke(null, [queryable, maxRows + 1]);
         }
 
@@ -47,16 +47,16 @@ internal static class LinqResultConverter
         }
         catch (Exception ex) when (ex is InvalidOperationException or NotSupportedException)
         {
-            // Requete evaluee cote client (LINQ to Objects) : pas de SQL a montrer.
+            // Query evaluated on the client (LINQ to Objects): no SQL to show.
             return null;
         }
     }
 
-    // ---------- Conversion en grille ----------
+    // ---------- Conversion to grid ----------
 
     private static QueryResultSet ToResultSet(object? value, int index, string? title, int maxRows, CancellationToken cancellationToken)
     {
-        // Une valeur seule (Count(), First()...) s'affiche comme une ligne d'une colonne.
+        // A single value (Count(), First()...) is displayed as a one-column row.
         if (value is null or string || value is not IEnumerable items || IsScalar(value.GetType()))
             return Build(ElementTypeOf(value?.GetType()), [value], isTruncated: false, index, title);
 
@@ -105,7 +105,7 @@ internal static class LinqResultConverter
         return new QueryResultSet(index, columns, rows, isTruncated, title);
     }
 
-    // Colonnes dynamiques : union ordonnee des cles de toutes les lignes (une cle absente = cellule vide).
+    // Dynamic columns: ordered union of the keys of all rows (a missing key = empty cell).
     private static QueryResultSet BuildFromDictionaries(IReadOnlyList<object?> items, bool isTruncated, int index, string? title)
     {
         var data = items.Select(i => (i is null ? Enumerable.Empty<KeyValuePair<string, object?>>() : AsPairs(i)!).ToList()).ToList();
@@ -149,7 +149,7 @@ internal static class LinqResultConverter
             || underlying == typeof(TimeOnly) || underlying == typeof(TimeSpan) || underlying == typeof(Guid);
     }
 
-    /// <summary>Nom C# court : int?, string, List&lt;Commande&gt;...</summary>
+    /// <summary>Short C# name: int?, string, List&lt;Commande&gt;...</summary>
     private static string FriendlyName(Type type)
     {
         if (Nullable.GetUnderlyingType(type) is { } underlying)
@@ -157,7 +157,7 @@ internal static class LinqResultConverter
 
         if (type.IsGenericType)
         {
-            // Un type imbrique dans un generique (Dictionary<,>.KeyCollection) n'a pas de backtick.
+            // A type nested in a generic (Dictionary<,>.KeyCollection) has no backtick.
             var tick = type.Name.IndexOf('`', StringComparison.Ordinal);
             var name = tick >= 0 ? type.Name[..tick] : type.Name;
             return $"{name}<{string.Join(", ", type.GetGenericArguments().Select(FriendlyName))}>";
@@ -180,7 +180,7 @@ internal static class LinqResultConverter
         };
     }
 
-    /// <summary>Memes conventions d'affichage que l'execution SQL.</summary>
+    /// <summary>Same display conventions as the SQL execution.</summary>
     private static string? Format(object? value) => value switch
     {
         null => null,
@@ -191,8 +191,8 @@ internal static class LinqResultConverter
         DateOnly d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
         byte[] bytes => "0x" + Convert.ToHexString(bytes, 0, Math.Min(bytes.Length, LinqExecutionConstants.MaxBinaryBytes)) + (bytes.Length > LinqExecutionConstants.MaxBinaryBytes ? "…" : string.Empty),
         IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
-        // Collection imbriquee (Select(u => u.Roles)...) : on en donne la taille plutot que le nom du type.
-        IEnumerable e => $"({e.Cast<object?>().Count()} élément(s))",
+        // Nested collection (Select(u => u.Roles)...): its size is given rather than the type name.
+        IEnumerable e => $"({e.Cast<object?>().Count()} item(s))",
         _ => value.ToString(),
     };
 }

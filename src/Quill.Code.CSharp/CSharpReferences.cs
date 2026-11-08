@@ -4,13 +4,13 @@ using System.Collections.Immutable;
 
 namespace Quill.Code.CSharp;
 
-/// <summary>Construction des références de métadonnées d'un projet.</summary>
+/// <summary>Builds the metadata references of a project.</summary>
 public static class CSharpReferences
 {
-    // Une référence par fichier, réutilisée : Roslyn ne recompile pas si les références sont les mêmes instances.
+    // One reference per file, reused: Roslyn does not recompile if the references are the same instances.
     private static readonly ConcurrentDictionary<string, MetadataReference> FileReferences = new(StringComparer.OrdinalIgnoreCase);
 
-    /// <summary>Vrai pour une assembly du framework .NET (exclut celles de l'application, qui pollueraient la complétion).</summary>
+    /// <summary>True for a .NET framework assembly (excludes the application's own, which would pollute completion).</summary>
     public static bool IsFrameworkAssembly(string fileName)
     {
         ArgumentNullException.ThrowIfNull(fileName);
@@ -23,7 +23,7 @@ public static class CSharpReferences
             || fileName.Equals("Microsoft.Win32.Primitives.dll", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>Chemins des assemblies du runtime courant (TRUSTED_PLATFORM_ASSEMBLIES, à défaut celles déjà chargées).</summary>
+    /// <summary>Paths of the current runtime's assemblies (TRUSTED_PLATFORM_ASSEMBLIES, otherwise those already loaded).</summary>
     public static IReadOnlyList<string> GetTrustedPlatformAssemblyPaths()
         => (AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string)?.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries)
             ?? AppDomain.CurrentDomain.GetAssemblies()
@@ -32,8 +32,8 @@ public static class CSharpReferences
                 .ToArray();
 
     /// <summary>
-    /// Références des assemblies du runtime retenues par <paramref name="include"/> (nom de fichier),
-    /// <see cref="IsFrameworkAssembly"/> par défaut. Coûteux : à garder en cache par l'appelant.
+    /// References of the runtime assemblies selected by <paramref name="include"/> (file name),
+    /// <see cref="IsFrameworkAssembly"/> by default. Expensive: the caller should cache them.
     /// </summary>
     public static ImmutableArray<MetadataReference> FromTrustedPlatformAssemblies(Func<string, bool>? include = null)
     {
@@ -47,8 +47,8 @@ public static class CSharpReferences
     }
 
     /// <summary>
-    /// Référence d'une assembly lue en mémoire, mise en cache par chemin. Un fichier mappé resterait verrouillé
-    /// tant que l'application tourne (impossible de supprimer un package du cache).
+    /// Reference to an assembly read into memory, cached by path. A mapped file would stay locked
+    /// while the application runs (impossible to delete a package from the cache).
     /// </summary>
     public static MetadataReference FromFile(string path)
     {

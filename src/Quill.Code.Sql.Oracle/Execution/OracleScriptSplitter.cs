@@ -4,9 +4,9 @@ using Quill.Code.Sql.Oracle.Constants;
 namespace Quill.Code.Sql.Oracle.Execution;
 
 /// <summary>
-/// Decoupage d'un script Oracle a la maniere de SQL*Plus : une instruction SQL se termine par « ; » (retire : Oracle le refuse),
-/// un bloc PL/SQL (DECLARE, BEGIN, CREATE PROCEDURE...) par une ligne « / ». Chaines, identifiants entre guillemets,
-/// q'[...]' et commentaires sont respectes.
+/// Splits an Oracle script the way SQL*Plus does: a SQL statement ends with ";" (removed: Oracle rejects it),
+/// a PL/SQL block (DECLARE, BEGIN, CREATE PROCEDURE...) with a "/" line. Strings, quoted identifiers,
+/// q'[...]' and comments are respected.
 /// </summary>
 internal static class OracleScriptSplitter
 {
@@ -35,7 +35,7 @@ internal static class OracleScriptSplitter
         return batches;
     }
 
-    /// <summary>Fin de l'instruction commencee en <paramref name="start"/> (terminateur exclu) ; <paramref name="next"/> : suite du script.</summary>
+    /// <summary>End of the statement started at <paramref name="start"/> (terminator excluded); <paramref name="next"/>: rest of the script.</summary>
     private static int FindEnd(string s, int start, bool isBlock, ref int line, out int next)
     {
         var i = start;
@@ -80,7 +80,7 @@ internal static class OracleScriptSplitter
         return s.Length;
     }
 
-    /// <summary>Saute blancs, commentaires et lignes « / » isolees entre deux instructions.</summary>
+    /// <summary>Skips whitespace, comments and lone "/" lines between two statements.</summary>
     private static int SkipTrivia(string s, int i, ref int line)
     {
         while (i < s.Length)
@@ -114,7 +114,7 @@ internal static class OracleScriptSplitter
         return i;
     }
 
-    /// <summary>Vrai si l'instruction est un bloc PL/SQL (DECLARE, BEGIN, CREATE [OR REPLACE] PROCEDURE...).</summary>
+    /// <summary>True if the statement is a PL/SQL block (DECLARE, BEGIN, CREATE [OR REPLACE] PROCEDURE...).</summary>
     private static bool IsBlock(string s, int start)
     {
         var words = ReadLeadingWords(s, start);
@@ -157,7 +157,7 @@ internal static class OracleScriptSplitter
         return words;
     }
 
-    /// <summary>Ligne faite d'un seul « / » (blancs autorises) ; <paramref name="lineEnd"/> : debut de la ligne suivante.</summary>
+    /// <summary>Line made of a single "/" (whitespace allowed); <paramref name="lineEnd"/>: start of the next line.</summary>
     private static bool IsSlashLine(string s, int slash, bool requireLineStart, out int lineEnd)
     {
         lineEnd = slash;
@@ -194,7 +194,7 @@ internal static class OracleScriptSplitter
         {
             if (s[j] == quote)
             {
-                // Guillemet double : echappement, la chaine continue.
+                // Doubled quote: escape, the string goes on.
                 if (At(s, j + 1) == quote)
                 {
                     j += 2;
@@ -212,7 +212,7 @@ internal static class OracleScriptSplitter
         return s.Length;
     }
 
-    /// <summary>q'X...X' (ou Nq'...') : chaine dont le delimiteur est choisi, sans echappement.</summary>
+    /// <summary>q'X...X' (or Nq'...'): string with a chosen delimiter, without escaping.</summary>
     private static bool IsQQuoteStart(string s, int i)
     {
         if (At(s, i + 1) != '\'' || i + 2 >= s.Length)

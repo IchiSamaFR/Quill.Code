@@ -13,17 +13,17 @@ using System.Globalization;
 namespace Quill.Code.CSharp.Linq;
 
 /// <summary>
-/// Execution LINQ sur la base d'un <see cref="ILinqDatabaseProvider"/>, sur le modele de l'execution SQL de <c>Quill.Code.Sql.SqlServer</c> : <see cref="RunAsync"/>
-/// ne rend rien et remet tout au fil de l'eau (chaque <c>Dump(valeur, titre)</c> par Data, SQL genere, <c>Log.*</c> et
-/// erreurs par Log), <see cref="ReadAsync"/> rend un jeu et leve ses erreurs. La requete est compilee contre le
-/// DbContext genere depuis la structure de la base, dans le projet meme de <see cref="LinqLanguageService"/>.
-/// Un contexte EF est cree pour chaque appel.
+/// LINQ execution on the database of an <see cref="ILinqDatabaseProvider"/>, modeled on the SQL execution of <c>Quill.Code.Sql.SqlServer</c>: <see cref="RunAsync"/>
+/// returns nothing and hands everything over as it comes (each <c>Dump(value, title)</c> through Data, generated SQL, <c>Log.*</c> and
+/// errors through Log), <see cref="ReadAsync"/> returns a set and throws its errors. The query is compiled against the
+/// DbContext generated from the database structure, in the very project of <see cref="LinqLanguageService"/>.
+/// An EF context is created for each call.
 /// </summary>
 public sealed class LinqQueryExecutor
 {
     private readonly ILinqDatabaseProvider _provider;
 
-    /// <summary>Executeur LINQ sur le moteur de <paramref name="provider"/> (meme instance que l'editeur : meme DbContext compile).</summary>
+    /// <summary>LINQ executor on the engine of <paramref name="provider"/> (same instance as the editor: same compiled DbContext).</summary>
     public LinqQueryExecutor(ILinqDatabaseProvider provider)
     {
         ArgumentNullException.ThrowIfNull(provider);
@@ -31,19 +31,19 @@ public sealed class LinqQueryExecutor
     }
 
     /// <summary>
-    /// Execute la requete sans rien rendre : tout est remis au fil de l'eau par <paramref name="options"/>. Une erreur de
-    /// compilation ou une exception du script ne leve pas d'exception : elle est remise par <see cref="RunOptions.Log"/>
-    /// au niveau Error.
+    /// Runs the query without returning anything: everything is handed over as it comes through <paramref name="options"/>. A
+    /// compilation error or a script exception does not throw: it is reported through <see cref="RunOptions.Log"/>
+    /// at Error level.
     /// </summary>
-    /// <param name="schema">Structure de la base de <paramref name="connectionString"/> ; une meme instance donne le meme DbContext compile.</param>
+    /// <param name="schema">Structure of the database of <paramref name="connectionString"/>; the same instance gives the same compiled DbContext.</param>
     /// <param name="options">
-    /// <see cref="RunOptions.Log"/> : contexte, SQL genere et lignes lues (Information, Host), <c>Log.*</c> du script (Code),
-    /// erreurs (Error, Code pour la requete, Host pour le code genere) ;
-    /// <see cref="DataRunOptions.Data"/> : chaque Dump, converti en jeu de resultats des son appel.
+    /// <see cref="RunOptions.Log"/>: context, generated SQL and rows read (Information, Host), the script's <c>Log.*</c> (Code),
+    /// errors (Error, Code for the query, Host for the generated code);
+    /// <see cref="DataRunOptions.Data"/>: each Dump, converted to a result set as soon as it is called.
     /// </param>
     /// <exception cref="OperationCanceledException">
-    /// Execution annulee ; <see cref="CSharpRunAbandonedException"/> quand le script, qui ne peut pas etre interrompu,
-    /// se termine en arriere-plan (il garde son contexte EF jusque-la).
+    /// Execution canceled; <see cref="CSharpRunAbandonedException"/> when the script, which cannot be interrupted,
+    /// finishes in the background (it keeps its EF context until then).
     /// </exception>
     public async Task RunAsync(string connectionString, SqlDatabaseSchema schema, string script, DataRunOptions? options = null, CancellationToken cancellationToken = default)
     {
@@ -57,7 +57,7 @@ public sealed class LinqQueryExecutor
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException)
         {
-            log?.Invoke(new LogEntry(LogLevel.Error, $"Échec : {ex.Message}"));
+            log?.Invoke(new LogEntry(LogLevel.Error, $"Failure: {ex.Message}"));
             return;
         }
 
@@ -66,7 +66,7 @@ public sealed class LinqQueryExecutor
         {
             var model = await LinqContexts.GetModelAsync(_provider, schema, cancellationToken).ConfigureAwait(false);
             log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture,
-                $"Contexte {model.Model.ContextClassName} ({LinqQueryConstants.ContextAlias}) : {model.Model.EntityClassNames.Count} table(s) et vue(s).")));
+                $"Context {model.Model.ContextClassName} ({LinqQueryConstants.ContextAlias}): {model.Model.EntityClassNames.Count} table(s) and view(s).")));
 
             globals = await LinqContexts.GetParametersAsync(model, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
@@ -103,7 +103,7 @@ public sealed class LinqQueryExecutor
         }
         catch (CSharpRunAbandonedException)
         {
-            log?.Invoke(new LogEntry(LogLevel.Error, "Le code LINQ ne peut pas être interrompu : il se termine en arrière-plan et garde sa connexion ouverte jusque-là."));
+            log?.Invoke(new LogEntry(LogLevel.Error, "The LINQ code cannot be interrupted: it finishes in the background and keeps its connection open until then."));
             throw;
         }
         catch (LinqCompilationException ex)
@@ -113,7 +113,7 @@ public sealed class LinqQueryExecutor
         }
         catch (DbException ex) when (cancellationToken.IsCancellationRequested)
         {
-            // Comme SQL Server : l'annulation d'une commande en cours remonte sous forme d'erreur du pilote.
+            // Like SQL Server: canceling a running command surfaces as a driver error.
             throw new OperationCanceledException(ex.Message, ex, cancellationToken);
         }
         catch (DbException ex)
@@ -121,11 +121,11 @@ public sealed class LinqQueryExecutor
             log?.Invoke(new LogEntry(LogLevel.Error, ex.Message, LogSource.Code));
             return;
         }
-#pragma warning disable CA1031 // Le script est du code de l'utilisateur : toute exception (traduction EF, null, division...) est un resultat.
+#pragma warning disable CA1031 // The script is user code: any exception (EF translation, null, division...) is a result.
         catch (Exception ex) when (ex is not OperationCanceledException)
 #pragma warning restore CA1031
         {
-            log?.Invoke(new LogEntry(LogLevel.Error, $"{ex.GetType().Name} : {ex.Message}", LogSource.Code));
+            log?.Invoke(new LogEntry(LogLevel.Error, $"{ex.GetType().Name}: {ex.Message}", LogSource.Code));
             return;
         }
 
@@ -135,22 +135,22 @@ public sealed class LinqQueryExecutor
 
         foreach (var resultSet in dumped)
         {
-            // Plusieurs jeux : chaque message dit a quel onglet il se rapporte.
-            var prefix = dumped.Length > 1 ? $"{resultSet.Title} : " : string.Empty;
-            log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"{prefix}({resultSet.Rows.Count} ligne(s))")));
+            // Several sets: each message says which tab it relates to.
+            var prefix = dumped.Length > 1 ? $"{resultSet.Title}: " : string.Empty;
+            log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"{prefix}({resultSet.Rows.Count} row(s))")));
         }
 
         if (dumped.Length == 0)
-            log?.Invoke(new LogEntry(LogLevel.Information, "Aucun résultat : affichez les données avec .Dump()."));
+            log?.Invoke(new LogEntry(LogLevel.Information, "No result: display the data with .Dump()."));
     }
 
     /// <summary>
-    /// Jeu du dernier Dump d'une requete parametree (au plus <paramref name="maxRows"/> lignes) ;
-    /// <paramref name="database"/> null = base de la chaine de connexion. Une erreur leve une exception.
+    /// Set of the last Dump of a parameterized query (at most <paramref name="maxRows"/> rows);
+    /// <paramref name="database"/> null = database of the connection string. An error throws an exception.
     /// </summary>
-    /// <param name="schema">Structure de la base interrogee ; une meme instance donne le meme DbContext compile.</param>
-    /// <param name="parameters">Valeurs utilisables par leur nom (sans @), envoyees par EF en parametres SQL.</param>
-    /// <exception cref="InvalidOperationException">La requete ne compile pas, une valeur ne convient pas a son type, ou rien n'est affiche.</exception>
+    /// <param name="schema">Structure of the queried database; the same instance gives the same compiled DbContext.</param>
+    /// <param name="parameters">Values usable by name (without @), sent by EF as SQL parameters.</param>
+    /// <exception cref="InvalidOperationException">The query does not compile, a value does not fit its type, or nothing is displayed.</exception>
     public async Task<QueryResultSet> ReadAsync(string connectionString, string? database, SqlDatabaseSchema schema, string query, IReadOnlyList<QueryParameter> parameters, int maxRows, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -175,18 +175,18 @@ public sealed class LinqQueryExecutor
             throw new InvalidOperationException(ex.Message, ex);
         }
 
-        // Une lecture n'affiche qu'un jeu : le dernier Dump().
+        // A read only displays one set: the last Dump().
         return resultSets.Count > 0
             ? resultSets[^1]
-            : throw new InvalidOperationException("Aucun résultat : le script doit afficher les données avec .Dump().");
+            : throw new InvalidOperationException("No result: the script must display the data with .Dump().");
     }
 
     /// <summary>
-    /// Execution par Quill : l'annulation rend la main tout de suite, mais le code de l'utilisateur ne peut pas etre
-    /// interrompu dans le processus (boucle infinie...) ; il se termine en arriere-plan
-    /// (<see cref="CSharpRunAbandonedException"/>) et son assembly n'est dechargee qu'a sa fin reelle.
+    /// Execution through Quill: cancellation returns control immediately, but the user's code cannot be
+    /// interrupted in-process (infinite loop...); it finishes in the background
+    /// (<see cref="CSharpRunAbandonedException"/>) and its assembly is only unloaded when it actually ends.
     /// </summary>
-    /// <param name="values">Valeurs des parametres, posees dans QueryGlobals ; null : aucun.</param>
+    /// <param name="values">Parameter values, set in QueryGlobals; null: none.</param>
     private static async Task RunScriptAsync(LinqParametersAssembly globals, string query, string connectionString, DataRunOptions options, int maxRows, IReadOnlyList<LinqParameter>? values, CancellationToken cancellationToken)
     {
         var context = LinqCompiler.CreateContext(globals.Model!, connectionString);
@@ -198,7 +198,7 @@ public sealed class LinqQueryExecutor
         }
         catch (CSharpRunAbandonedException)
         {
-            // Le script tourne encore sur ce contexte : il le garde (et sa connexion) jusqu'a sa fin.
+            // The script is still running on this context: it keeps it (and its connection) until it ends.
             isAbandoned = true;
             throw;
         }
@@ -219,7 +219,7 @@ public sealed class LinqQueryExecutor
             log(new LogEntry(LogLevel.Error, error));
     }
 
-    /// <summary>Sortie du script, bornee ; le script peut encore ecrire en arriere-plan apres une annulation.</summary>
+    /// <summary>Script output, bounded; the script may still write in the background after a cancellation.</summary>
     private sealed class LogOutput
     {
         private readonly Lock _lock = new();
@@ -244,7 +244,7 @@ public sealed class LinqQueryExecutor
                 if (_isTruncated)
                     return;
 
-                // Le saut de ligne compte : une boucle de messages vides reste bornee.
+                // The line break counts: a loop of empty messages stays bounded.
                 var room = LinqExecutionConstants.MaxLogLength - _length - 1;
                 if (text.Length > room)
                 {
@@ -255,10 +255,10 @@ public sealed class LinqQueryExecutor
                 _length += text.Length + 1;
             }
 
-            // Hors verrou : le destinataire ne doit pas bloquer les autres ecritures du script.
+            // Outside the lock: the receiver must not block the script's other writes.
             _log(entry with { Text = text.ReplaceLineEndings() });
             if (truncatesNow)
-                _log(new LogEntry(LogLevel.Error, string.Format(CultureInfo.CurrentCulture, "Sortie Log tronquée à {0:N0} caractères.", LinqExecutionConstants.MaxLogLength)));
+                _log(new LogEntry(LogLevel.Error, string.Format(CultureInfo.CurrentCulture, "Log output truncated to {0:N0} characters.", LinqExecutionConstants.MaxLogLength)));
         }
     }
 }

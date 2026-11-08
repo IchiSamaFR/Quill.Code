@@ -1,9 +1,9 @@
 ﻿namespace Quill.Code.Editing;
 
-/// <summary>Règles de commentaires et de chaînes d'un langage, pour distinguer le code du reste (<see cref="SourceScanner"/>).</summary>
+/// <summary>Comment and string rules of a language, to tell code apart from the rest (<see cref="SourceScanner"/>).</summary>
 public sealed record SourceSyntax
 {
-    /// <summary>C# : // et /* */, "..." et '...' avec \, @"..." et $@"..." avec "" doublé, """...""" brut.</summary>
+    /// <summary>C#: // and /* */, "..." and '...' with \, @"..." and $@"..." with doubled "", raw """...""".</summary>
     public static SourceSyntax CSharp { get; } = new()
     {
         LineComment = "//",
@@ -13,34 +13,34 @@ public sealed record SourceSyntax
         StringsEndAtLineEnd = true,
     };
 
-    /// <summary>T-SQL : -- et /* */, '...' et "..." avec le délimiteur doublé.</summary>
+    /// <summary>T-SQL: -- and /* */, '...' and "..." with doubled delimiter.</summary>
     public static SourceSyntax Sql { get; } = new()
     {
         LineComment = "--",
         DoubledQuoteEscapes = true,
     };
 
-    /// <summary>Préfixe de commentaire de ligne, null si le langage n'en a pas.</summary>
+    /// <summary>Line comment prefix, null if the language has none.</summary>
     public string? LineComment { get; init; }
 
-    /// <summary>Début de commentaire de bloc, null si le langage n'en a pas.</summary>
+    /// <summary>Block comment start, null if the language has none.</summary>
     public string? BlockCommentStart { get; init; } = "/*";
 
-    /// <summary>Fin de commentaire de bloc.</summary>
+    /// <summary>Block comment end.</summary>
     public string? BlockCommentEnd { get; init; } = "*/";
 
-    /// <summary>\ échappe le caractère suivant dans une chaîne.</summary>
+    /// <summary>\ escapes the next character in a string.</summary>
     public bool BackslashEscapes { get; init; }
 
-    /// <summary>Le délimiteur doublé ('' ou "") est un caractère de la chaîne.</summary>
+    /// <summary>The doubled delimiter ('' or "") is a character of the string.</summary>
     public bool DoubledQuoteEscapes { get; init; }
 
-    /// <summary>Chaînes verbatim C# (@"...", $@"...") : pas d'échappement par \, "" doublé, plusieurs lignes.</summary>
+    /// <summary>C# verbatim strings (@"...", $@"..."): no \ escaping, doubled "", multi-line.</summary>
     public bool VerbatimStrings { get; init; }
 
-    /// <summary>Chaînes brutes C# ("""...""") : fermées par autant de guillemets qu'à l'ouverture.</summary>
+    /// <summary>C# raw strings ("""..."""): closed by as many quotes as at the opening.</summary>
     public bool RawStrings { get; init; }
 
-    /// <summary>Une chaîne non fermée s'arrête en fin de ligne (sauf verbatim et brute).</summary>
+    /// <summary>An unterminated string stops at the end of the line (except verbatim and raw).</summary>
     public bool StringsEndAtLineEnd { get; init; }
 }

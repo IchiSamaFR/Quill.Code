@@ -3,7 +3,7 @@ using Quill.Code.Analysis;
 
 namespace Quill.Code.Tests.Linq;
 
-/// <summary>Le caractere | marque la position (souris ou curseur) ; Roslyn analyse dans le contexte genere.</summary>
+/// <summary>The | character marks the position (mouse or caret); Roslyn analyzes in the generated context.</summary>
 public class LinqAnalysisTests
 {
     private static Lazy<LinqGeneratedModelAssembly> Model => TestLinq.Model;
@@ -36,7 +36,7 @@ public class LinqAnalysisTests
         var hover = await HoverAsync(TestLinq.Statements("var us|ers = Db.AspNetUsers.Where(u => u.EmailConfirmed);\nusers.Dump();"));
 
         Assert.NotNull(hover);
-        // Contexte nullable actif : un var est annote (IQueryable<AspNetUsers>?).
+        // Nullable context enabled: a var is annotated (IQueryable<AspNetUsers>?).
         Assert.Matches(@"IQueryable<AspNetUsers>\?? users", hover.Signature);
     }
 

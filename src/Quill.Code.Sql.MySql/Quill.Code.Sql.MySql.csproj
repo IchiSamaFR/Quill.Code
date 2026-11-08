@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Code.Sql.MySql</RootNamespace>
-		<Description>Execution SQL sur MySQL / MariaDB pour Quill.Code (MySqlConnector), sur le contrat ISqlQueryExecutor.</Description>
+		<Description>SQL execution on MySQL / MariaDB for Quill.Code (MySqlConnector), on the ISqlQueryExecutor contract.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

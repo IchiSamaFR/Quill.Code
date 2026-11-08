@@ -3,17 +3,17 @@
 namespace Quill.Code.Editing;
 
 /// <summary>
-/// Commandes d'édition à la Visual Studio, sur du texte brut : chacune lit le texte et la sélection, puis rend les
-/// remplacements et la nouvelle sélection (<see cref="EditResult"/>) que l'éditeur applique en une étape d'annulation.
+/// Visual Studio-style editing commands on raw text: each reads the text and the selection, then returns the
+/// replacements and the new selection (<see cref="EditResult"/>) that the editor applies as a single undo step.
 /// </summary>
-/// <remarks>Un résultat null signifie : rien de particulier, la touche garde son effet normal.</remarks>
+/// <remarks>A null result means: nothing special, the key keeps its normal effect.</remarks>
 public static class CodeEditing
 {
-    #region Saisie
+    #region Typing
 
     /// <summary>
-    /// Entrée : reprend l'indentation de la ligne, ajoute un niveau après « { », et entre « { » et « } » ouvre le bloc
-    /// sur trois lignes. Les blancs qui suivent le curseur ne deviennent pas une indentation parasite.
+    /// Enter: keeps the line's indentation, adds a level after "{", and between "{" and "}" opens the block
+    /// over three lines. Whitespace after the caret does not become stray indentation.
     /// </summary>
     public static EditResult InsertNewLine(string text, TextSelection selection, CodeEditingOptions options)
     {
@@ -44,7 +44,7 @@ public static class CodeEditing
         return EditResult.Replace(start, after - start, inserted, TextSelection.Caret(caret));
     }
 
-    /// <summary>Ctrl+Entrée : ligne vide au-dessus ; Ctrl+Maj+Entrée : en dessous. Même indentation, ligne courante intacte.</summary>
+    /// <summary>Ctrl+Enter: empty line above; Ctrl+Shift+Enter: below. Same indentation, current line untouched.</summary>
     public static EditResult OpenLine(string text, TextSelection selection, bool above, CodeEditingOptions options)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -60,11 +60,11 @@ public static class CodeEditing
     }
 
     /// <summary>
-    /// Caractère tapé, avant son insertion : paires ( [ { " ' fermées automatiquement, fermant déjà présent sauté,
-    /// sélection entourée, « } » désindentée sur une ligne vide, « { » sur sa propre ligne (option). Rien dans les
-    /// chaînes ni les commentaires.
+    /// Typed character, before insertion: ( [ { " ' pairs closed automatically, existing closing character skipped,
+    /// selection wrapped, "}" unindented on an empty line, "{" on its own line (option). Nothing in
+    /// strings or comments.
     /// </summary>
-    /// <returns>Null : le caractère s'insère normalement.</returns>
+    /// <returns>Null: the character is inserted normally.</returns>
     public static EditResult? TypeCharacter(string text, TextSelection selection, char typed, CodeEditingOptions options)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -75,7 +75,7 @@ public static class CodeEditing
         var closing = ClosingOf(typed);
         var region = SourceScanner.RegionAt(text, start, options.Syntax);
 
-        // Sélection entourée par la paire : elle reste sur le texte entouré.
+        // Selection wrapped by the pair: it stays on the wrapped text.
         if (!selection.IsEmpty)
         {
             return region == SourceRegion.Code && closing is char wrap
@@ -87,7 +87,7 @@ public static class CodeEditing
         var previous = start > 0 ? text[start - 1] : '\0';
         var isQuote = typed is '"' or '\'';
 
-        // Fermant déjà là (inséré par la paire) : on passe simplement par-dessus.
+        // Closing character already there (inserted by the pair): simply step over it.
         if (next == typed && (isQuote ? region == SourceRegion.String : region == SourceRegion.Code && typed is ')' or ']' or '}'))
             return EditResult.Move(TextSelection.Caret(start + 1));
 
@@ -105,7 +105,7 @@ public static class CodeEditing
         if (typed == '{' && options.PlaceOpenBraceOnNewLine && PlaceBraceOnNewLine(text, start, lineStart, options) is { } allman)
             return allman;
 
-        // Pas de paire collée à un mot (it's, l'apostrophe) ni avant du texte.
+        // No pair stuck to a word (it's, l'apostrophe) nor before text.
         if (isQuote && IsIdentifierPart(previous))
             return null;
 
@@ -115,7 +115,7 @@ public static class CodeEditing
         return EditResult.Replace(start, 0, $"{typed}{close}", TextSelection.Caret(start + 1));
     }
 
-    /// <summary>Retour arrière : une paire vide d'un coup ; dans les espaces de tête, un niveau d'indentation entier.</summary>
+    /// <summary>Backspace: an empty pair at once; in leading whitespace, a whole indentation level.</summary>
     public static EditResult? DeleteBackward(string text, TextSelection selection, CodeEditingOptions options)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -145,7 +145,7 @@ public static class CodeEditing
 
     #region Indentation
 
-    /// <summary>Tab : indente les lignes d'une sélection multiligne, sinon insère une indentation jusqu'au taquet suivant.</summary>
+    /// <summary>Tab: indents the lines of a multi-line selection, otherwise inserts indentation up to the next tab stop.</summary>
     public static EditResult InsertTab(string text, TextSelection selection, CodeEditingOptions options)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -166,10 +166,10 @@ public static class CodeEditing
     }
 
     /// <summary>
-    /// Tab / Maj+Tab sur des lignes : ajoute ou retire un niveau d'indentation à chaque ligne non vide.
-    /// Une sélection multiligne couvre ensuite les lignes entières.
+    /// Tab / Shift+Tab on lines: adds or removes one indentation level on each non-empty line.
+    /// A multi-line selection then covers whole lines.
     /// </summary>
-    /// <returns>Null si rien ne change.</returns>
+    /// <returns>Null if nothing changes.</returns>
     public static EditResult? IndentLines(string text, TextSelection selection, bool outdent, CodeEditingOptions options)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -210,12 +210,12 @@ public static class CodeEditing
 
     #endregion
 
-    #region Lignes
+    #region Lines
 
     /// <summary>
-    /// Ctrl+K, Ctrl+C / Ctrl+K, Ctrl+U : préfixe de commentaire posé à l'indentation minimale des lignes non vides, ou retiré.
+    /// Ctrl+K, Ctrl+C / Ctrl+K, Ctrl+U: comment prefix placed at the minimum indentation of non-empty lines, or removed.
     /// </summary>
-    /// <returns>Null si le langage n'a pas de commentaire de ligne ou si rien ne change.</returns>
+    /// <returns>Null if the language has no line comment or if nothing changes.</returns>
     public static EditResult? ToggleLineComment(string text, TextSelection selection, bool comment, CodeEditingOptions options)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -261,7 +261,7 @@ public static class CodeEditing
         return new EditResult(edits, new TextSelection(MapOffset(selection.Anchor, edits), MapOffset(selection.Active, edits)));
     }
 
-    /// <summary>Ctrl+D : duplique la sélection juste après elle (la copie est sélectionnée), ou la ligne courante en dessous.</summary>
+    /// <summary>Ctrl+D: duplicates the selection right after it (the copy is selected), or the current line below.</summary>
     public static EditResult DuplicateSelectionOrLine(string text, TextSelection selection, CodeEditingOptions options)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -279,7 +279,7 @@ public static class CodeEditing
         return EditResult.Replace(lineEnd, 0, options.NewLine + line, TextSelection.Caret(selection.Active + options.NewLine.Length + line.Length));
     }
 
-    /// <summary>Ctrl+Maj+K : supprime les lignes de la sélection (ou la ligne courante).</summary>
+    /// <summary>Ctrl+Shift+K: deletes the selected lines (or the current line).</summary>
     public static EditResult DeleteLines(string text, TextSelection selection)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -289,7 +289,7 @@ public static class CodeEditing
         if (last < text.Length)
             return EditResult.Replace(first, NextLineStart(text, last) - first, string.Empty, TextSelection.Caret(first));
 
-        // Dernière ligne : c'est le saut de ligne qui la précède qui part, pour ne pas laisser de ligne vide.
+        // Last line: the line break before it is what goes, so as not to leave an empty line.
         if (first > 0)
         {
             var previousEnd = PreviousLineEnd(text, first);
@@ -299,8 +299,8 @@ public static class CodeEditing
         return EditResult.Replace(0, text.Length, string.Empty, TextSelection.Caret(0));
     }
 
-    /// <summary>Alt+Haut / Alt+Bas : échange les lignes de la sélection avec la ligne voisine.</summary>
-    /// <returns>Null en haut ou en bas du texte.</returns>
+    /// <summary>Alt+Up / Alt+Down: swaps the selected lines with the neighboring line.</summary>
+    /// <returns>Null at the top or bottom of the text.</returns>
     public static EditResult? MoveLines(string text, TextSelection selection, bool up)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -336,7 +336,7 @@ public static class CodeEditing
             new TextSelection(selection.Anchor + delta, selection.Active + delta));
     }
 
-    /// <summary>Début : premier caractère non blanc de la ligne, puis début de ligne s'il y est déjà.</summary>
+    /// <summary>Home: first non-whitespace character of the line, then start of line if already there.</summary>
     public static int SmartHomePosition(string text, int caret)
     {
         ArgumentNullException.ThrowIfNull(text);
@@ -348,7 +348,7 @@ public static class CodeEditing
 
     #endregion
 
-    /// <summary>Caractère fermant de la paire ouverte par <paramref name="c"/>, null si ce n'est pas un ouvrant.</summary>
+    /// <summary>Closing character of the pair opened by <paramref name="c"/>, null if it is not an opening character.</summary>
     public static char? ClosingOf(char c) => c switch
     {
         '(' => ')',
@@ -359,7 +359,7 @@ public static class CodeEditing
         _ => null,
     };
 
-    /// <summary>« } » tapée sur une ligne vide : la ligne perd un niveau d'indentation.</summary>
+    /// <summary>"}" typed on an empty line: the line loses one indentation level.</summary>
     private static EditResult? OutdentClosingBrace(string text, int start, int lineStart, CodeEditingOptions options)
     {
         var indent = start - lineStart;
@@ -376,14 +376,14 @@ public static class CodeEditing
         return EditResult.Replace(start - count, count, "}", TextSelection.Caret(start - count + 1));
     }
 
-    /// <summary>Style Allman : « { » en fin de ligne de code passe sur la ligne suivante avec sa « } ».</summary>
+    /// <summary>Allman style: "{" at the end of a code line moves to the next line along with its "}".</summary>
     private static EditResult? PlaceBraceOnNewLine(string text, int start, int lineStart, CodeEditingOptions options)
     {
         var lineEnd = LineEnd(text, start);
         if (text.AsSpan(lineStart, start - lineStart).IsWhiteSpace() || !text.AsSpan(start, lineEnd - start).IsWhiteSpace())
             return null;
 
-        // Les blancs en fin de ligne de code partent avec le passage à la ligne.
+        // Trailing whitespace on a code line goes away with the line break.
         var codeEnd = lineStart + text.AsSpan(lineStart, start - lineStart).TrimEnd().Length;
         var indent = text.Substring(lineStart, LeadingWhitespaceLength(text, lineStart, start));
         var inserted = options.NewLine + indent + "{}";
@@ -393,7 +393,7 @@ public static class CodeEditing
 
     private static bool IsIdentifierPart(char c) => char.IsLetterOrDigit(c) || c == '_';
 
-    /// <summary>Position après des remplacements exprimés dans les coordonnées d'origine (ordonnés, sans chevauchement).</summary>
+    /// <summary>Position after replacements expressed in the original coordinates (ordered, non-overlapping).</summary>
     private static int MapOffset(int offset, IEnumerable<TextEdit> edits)
     {
         var shift = 0;

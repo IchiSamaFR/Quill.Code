@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Code.CSharp</RootNamespace>
-		<Description>Langage C# pour Quill.Code : autocompletion, diagnostics, survol et aide a la signature fournis par Roslyn.</Description>
+		<Description>C# language for Quill.Code: completion, diagnostics, hover and signature help provided by Roslyn.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

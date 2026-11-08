@@ -9,12 +9,12 @@ using Quill.Code.Sql.SqlServer.Constants;
 namespace Quill.Code.Sql.SqlServer.Analysis;
 
 /// <summary>
-/// Survol T-SQL : type d'une colonne, colonnes d'une table ou d'un alias, objet, schéma ou base (catalogue de l'hôte),
-/// type d'une variable déclarée dans le texte ou fournie par l'hôte.
+/// T-SQL hover: type of a column, columns of a table or alias, object, schema or database (host catalog),
+/// type of a variable declared in the text or provided by the host.
 /// </summary>
 internal sealed class SqlHoverService : ICodeHover
 {
-    /// <summary>Mots qui terminent une instruction DECLARE.</summary>
+    /// <summary>Words ending a DECLARE statement.</summary>
     private static readonly HashSet<string> StatementWords = new(StringComparer.OrdinalIgnoreCase)
     {
         "SELECT", "SET", "DECLARE", "INSERT", "UPDATE", "DELETE", "MERGE", "IF", "WHILE", "BEGIN", "END",
@@ -35,10 +35,10 @@ internal sealed class SqlHoverService : ICodeHover
     {
         ArgumentNullException.ThrowIfNull(code);
 
-        // Commentaires écartés : rien à expliquer dedans, et ils casseraient le qualificatif (a./*x*/b).
+        // Comments skipped: nothing to explain inside, and they would break the qualifier (a./*x*/b).
         var tokens = SqlLexer.Tokenize(code).Where(t => !t.IsComment).ToArray();
 
-        // Le caractère survolé, ou celui qui le précède (souris posée juste après la fin du nom).
+        // The hovered character, or the one before it (mouse placed right after the end of the name).
         var index = Array.FindIndex(tokens, t => t.Start <= position && position < t.End);
         if (index < 0)
             index = Array.FindIndex(tokens, t => t.Start < position && position == t.End);
@@ -59,7 +59,7 @@ internal sealed class SqlHoverService : ICodeHover
         return described is { } hover ? new HoverInfo(token.Start, token.Length, hover.Signature, hover.Description) : null;
     }
 
-    /// <summary>Parties avant le nom : ["u"] pour u.Name, ["dbo", "Users"] pour dbo.Users.Name.</summary>
+    /// <summary>Parts before the name: ["u"] for u.Name, ["dbo", "Users"] for dbo.Users.Name.</summary>
     private static List<string> ReadQualifier(string text, SqlToken[] tokens, int index)
     {
         List<string> parts = [];
@@ -69,7 +69,7 @@ internal sealed class SqlHoverService : ICodeHover
         return parts;
     }
 
-    // ---------- Noms du catalogue ----------
+    // ---------- Catalog names ----------
 
     private async Task<(string Signature, string? Description)?> DescribeNameAsync(SqlContext scope, List<string> qualifier, string name, CancellationToken cancellationToken)
     {
@@ -77,7 +77,7 @@ internal sealed class SqlHoverService : ICodeHover
         {
             case 0:
                 {
-                    // Alias ou table du FROM, puis colonne d'une table du lot, puis objet, schéma ou base.
+                    // Alias or table of the FROM, then column of a table of the batch, then object, schema or database.
                     if (scope.FindTable(name) is { } reference && await _catalog.FindAsync(scope, reference, cancellationToken).ConfigureAwait(false) is { } referenced)
                         return DescribeObject(referenced, reference.Alias);
 
@@ -98,9 +98,9 @@ internal sealed class SqlHoverService : ICodeHover
                         return DescribeObject(direct, null);
 
                     if (current is not null && current.HasSchema(name))
-                        return ($"(schéma) {name}", $"Base {current.Name}");
+                        return ($"(schema) {name}", $"Database {current.Name}");
 
-                    return await _catalog.IsDatabaseAsync(name, cancellationToken).ConfigureAwait(false) ? ($"(base de données) {name}", null) : null;
+                    return await _catalog.IsDatabaseAsync(name, cancellationToken).ConfigureAwait(false) ? ($"(database) {name}", null) : null;
                 }
 
             case 1:
@@ -118,7 +118,7 @@ internal sealed class SqlHoverService : ICodeHover
 
                     if (await _catalog.IsDatabaseAsync(owner, cancellationToken).ConfigureAwait(false)
                         && (await _catalog.GetDatabaseAsync(owner, cancellationToken).ConfigureAwait(false))?.HasSchema(name) == true)
-                        return ($"(schéma) {owner}.{name}", $"Base {owner}");
+                        return ($"(schema) {owner}.{name}", $"Database {owner}");
 
                     return null;
                 }
@@ -153,27 +153,27 @@ internal sealed class SqlHoverService : ICodeHover
     private static (string, string?)? ColumnOf(SqlSchemaObject table, string name)
         => FindColumn(table, name) is { } column ? DescribeColumn(table, column, []) : null;
 
-    // ---------- Textes ----------
+    // ---------- Texts ----------
 
-    /// <summary>Ex. « (colonne) Name nvarchar(50) NOT NULL », puis la table (et les autres tables du lot qui l'ont aussi).</summary>
+    /// <summary>E.g. "(column) Name nvarchar(50) NOT NULL", then the table (and the other tables of the batch that also have it).</summary>
     private static (string, string?) DescribeColumn(SqlSchemaObject table, SqlColumn column, IReadOnlyList<string> alsoIn)
     {
         var description = new StringBuilder(table.QualifiedName);
         if (column.IsPrimaryKey)
-            description.Append(" · clé primaire");
+            description.Append(" · primary key");
         if (alsoIn.Count > 0)
-            description.Append("\nAussi dans : ").AppendJoin(", ", alsoIn);
+            description.Append("\nAlso in: ").AppendJoin(", ", alsoIn);
 
-        return ($"(colonne) {column.Name} {column.DataType} {(column.IsNullable ? "NULL" : "NOT NULL")}", description.ToString());
+        return ($"(column) {column.Name} {column.DataType} {(column.IsNullable ? "NULL" : "NOT NULL")}", description.ToString());
     }
 
-    /// <summary>Ex. « (table) dbo.Users », puis ses premières colonnes avec leur type.</summary>
+    /// <summary>E.g. "(table) dbo.Users", then its first columns with their type.</summary>
     private static (string, string?) DescribeObject(SqlSchemaObject source, string? alias)
     {
         var kind = source.Kind switch
         {
-            SqlSchemaObjectKind.View => "vue",
-            SqlSchemaObjectKind.Procedure => "procédure",
+            SqlSchemaObjectKind.View => "view",
+            SqlSchemaObjectKind.Procedure => "procedure",
             _ => "table",
         };
 
@@ -186,10 +186,10 @@ internal sealed class SqlHoverService : ICodeHover
 
         var description = string.Join('\n', source.Columns
             .Take(SqlAnalysisConstants.HoverMaxListedColumns)
-            .Select(c => $"{c.Name} {c.DataType}{(c.IsPrimaryKey ? " · clé" : string.Empty)}"));
+            .Select(c => $"{c.Name} {c.DataType}{(c.IsPrimaryKey ? " · key" : string.Empty)}"));
 
         if (source.Columns.Count > SqlAnalysisConstants.HoverMaxListedColumns)
-            description += $"\n… et {source.Columns.Count - SqlAnalysisConstants.HoverMaxListedColumns} autre(s)";
+            description += $"\n… and {source.Columns.Count - SqlAnalysisConstants.HoverMaxListedColumns} more";
 
         return (signature, description);
     }
@@ -202,14 +202,14 @@ internal sealed class SqlHoverService : ICodeHover
 
         var variable = _options.Variables.FirstOrDefault(v => string.Equals(v.Reference, "@" + name.TrimStart('@'), StringComparison.OrdinalIgnoreCase));
         if (variable is not null)
-            return new HoverInfo(token.Start, token.Length, $"(paramètre) {name} {variable.Type}", variable.Description);
+            return new HoverInfo(token.Start, token.Length, $"(parameter) {name} {variable.Type}", variable.Description);
 
         return FindDeclaredType(text, tokens, name) is { } type
             ? new HoverInfo(token.Start, token.Length, $"(variable) {name} {type}", null)
             : null;
     }
 
-    /// <summary>Type donné par un DECLARE @a int, @b nvarchar(50) = 'x' du texte ; null si la variable n'y est pas déclarée.</summary>
+    /// <summary>Type given by a DECLARE @a int, @b nvarchar(50) = 'x' in the text; null if the variable is not declared there.</summary>
     private static string? FindDeclaredType(string text, SqlToken[] tokens, string name)
     {
         for (var i = 0; i < tokens.Length; i++)
@@ -244,7 +244,7 @@ internal sealed class SqlHoverService : ICodeHover
                 if (string.Equals(variable, name, StringComparison.OrdinalIgnoreCase))
                     return isTable ? "TABLE" : string.Join(' ', text[typeStart..typeEnd].Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
-                // Valeur initiale éventuelle, jusqu'à la virgule qui annonce la variable suivante.
+                // Optional initial value, up to the comma announcing the next variable.
                 j = SkipToNextVariable(text, tokens, j);
             }
         }
@@ -252,7 +252,7 @@ internal sealed class SqlHoverService : ICodeHover
         return null;
     }
 
-    /// <summary>Index de la variable suivante du même DECLARE, ou au-delà de la fin si l'instruction s'arrête.</summary>
+    /// <summary>Index of the next variable of the same DECLARE, or past the end if the statement stops.</summary>
     private static int SkipToNextVariable(string text, SqlToken[] tokens, int index)
     {
         var depth = 0;

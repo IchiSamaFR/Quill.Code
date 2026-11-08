@@ -5,8 +5,8 @@ using Quill.Data.Sql.Sqlite.Constants;
 namespace Quill.Data.Sql.Sqlite;
 
 /// <summary>
-/// Catalogue SQLite lu dans sqlite_master et les pragmas. Les bases sont celles de la connexion (main et bases attachees),
-/// chacune son propre schema : <see cref="SqlSchemaObject.Schema"/> porte le nom de la base. Pas de procedures.
+/// SQLite catalog read from sqlite_master and the pragmas. Databases are those of the connection (main and attached databases),
+/// each its own schema: <see cref="SqlSchemaObject.Schema"/> holds the database name. No procedures.
 /// </summary>
 public sealed class SqliteSchemaReader : ISqlSchemaReader
 {
@@ -91,7 +91,7 @@ public sealed class SqliteSchemaReader : ISqlSchemaReader
             if (objects.Count == 0 || objects[^1].Name != name)
                 objects.Add((name, reader.GetString(1) == SqliteConstants.ViewType ? SqlSchemaObjectKind.View : SqlSchemaObjectKind.Table, []));
 
-            // Ligne sans colonne : objet dont pragma_table_xinfo ne rend rien.
+            // Row without a column: object for which pragma_table_xinfo returns nothing.
             if (reader.IsDBNull(2) || reader.GetInt32Value(6) == SqliteConstants.HiddenColumn)
                 continue;
 
@@ -120,7 +120,7 @@ public sealed class SqliteSchemaReader : ISqlSchemaReader
         };
     }
 
-    /// <summary>Seule colonne d'une cle primaire, de type INTEGER : alias de rowid, numerote par SQLite comme une identity.</summary>
+    /// <summary>Only column of a primary key, of type INTEGER: alias of rowid, numbered by SQLite like an identity.</summary>
     private static List<SqlColumn> MarkRowIdAlias(List<SqlColumn> columns)
     {
         var keys = columns.Where(c => c.IsPrimaryKey).Take(2).ToList();
@@ -132,7 +132,7 @@ public sealed class SqliteSchemaReader : ISqlSchemaReader
         return columns;
     }
 
-    /// <summary>Precision et echelle d'un type declare comme DECIMAL(10,2) ; 0 si absentes.</summary>
+    /// <summary>Precision and scale of a type declared as DECIMAL(10,2); 0 if missing.</summary>
     private static (byte Precision, byte Scale) ReadPrecision(string dataType)
     {
         var open = dataType.IndexOf('(', StringComparison.Ordinal);
@@ -147,7 +147,7 @@ public sealed class SqliteSchemaReader : ISqlSchemaReader
     private static byte ParseByte(string text)
         => byte.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) ? value : (byte)0;
 
-    /// <summary>Insere le nom de base, entre guillemets doubles echappes, dans une requete du catalogue.</summary>
+    /// <summary>Inserts the database name, in escaped double quotes, into a catalog query.</summary>
     private static string WithDatabase(string query, string database)
         => string.Format(CultureInfo.InvariantCulture, query, $"\"{database.Replace("\"", "\"\"", StringComparison.Ordinal)}\"");
 

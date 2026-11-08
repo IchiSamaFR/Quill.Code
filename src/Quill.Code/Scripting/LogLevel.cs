@@ -1,30 +1,30 @@
 ﻿namespace Quill.Code.Scripting;
 
 /// <summary>
-/// Gravité d'un message écrit pendant une exécution (<c>Log</c> d'un script, PRINT et erreurs SQL...) : mêmes noms et
-/// valeurs que <c>Microsoft.Extensions.Logging.LogLevel</c>. La provenance est portée à part (<see cref="LogSource"/>).
-/// Ses noms et son ordre forment aussi l'enum <c>LogLevel</c> généré dans les scripts.
+/// Severity of a message written during an execution (a script's <c>Log</c>, SQL PRINT and errors...): same names and
+/// values as <c>Microsoft.Extensions.Logging.LogLevel</c>. The origin is carried separately (<see cref="LogSource"/>).
+/// Its names and order also form the <c>LogLevel</c> enum generated in scripts.
 /// </summary>
 public enum LogLevel
 {
-    /// <summary>Messages les plus détaillés.</summary>
+    /// <summary>Most detailed messages.</summary>
     Trace,
 
-    /// <summary>Investigation pendant la mise au point.</summary>
+    /// <summary>Investigation during debugging.</summary>
     Debug,
 
-    /// <summary>Déroulement général du script.</summary>
+    /// <summary>General flow of the script.</summary>
     Information,
 
-    /// <summary>Événement anormal ou inattendu qui n'arrête pas le script.</summary>
+    /// <summary>Abnormal or unexpected event that does not stop the script.</summary>
     Warning,
 
-    /// <summary>Échec de l'opération en cours.</summary>
+    /// <summary>Failure of the current operation.</summary>
     Error,
 
-    /// <summary>Échec grave qui demande une attention immédiate.</summary>
+    /// <summary>Serious failure requiring immediate attention.</summary>
     Critical,
 
-    /// <summary>N'écrit rien.</summary>
+    /// <summary>Writes nothing.</summary>
     None,
 }

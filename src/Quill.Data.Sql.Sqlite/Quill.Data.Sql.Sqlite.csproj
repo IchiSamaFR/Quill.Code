@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Data.Sql.Sqlite</RootNamespace>
-		<Description>Lecture du catalogue SQLite (sqlite_master, pragmas) pour Quill.Data.Sql.</Description>
+		<Description>SQLite catalog reading (sqlite_master, pragmas) for Quill.Data.Sql.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

@@ -2,24 +2,24 @@
 
 namespace Quill.Code.Sql.Execution;
 
-/// <summary>Execution de SQL sur un moteur, a partir d'une chaine de connexion. Une implementation par moteur.</summary>
+/// <summary>Executes SQL on an engine, from a connection string. One implementation per engine.</summary>
 public interface ISqlQueryExecutor
 {
     /// <summary>
-    /// Execute le script, sans rien rendre : tout est remis au fil de l'eau par <paramref name="options"/>.
-    /// Un lot en echec (lot GO sous SQL Server, instruction sous Oracle) n'arrete pas les suivants et ne leve pas
-    /// d'exception : l'erreur est remise par <see cref="RunOptions.Log"/> au niveau Error.
+    /// Runs the script without returning anything: everything is handed over as it comes through <paramref name="options"/>.
+    /// A failed batch (GO batch on SQL Server, statement on Oracle) does not stop the following ones and does not throw:
+    /// the error is reported through <see cref="RunOptions.Log"/> at Error level.
     /// </summary>
     /// <param name="options">
-    /// <see cref="RunOptions.Log"/> : messages du serveur (Information, Code), lignes affectees (Information, Host), erreurs (Error, Code d'un lot, Host sinon) ;
-    /// <see cref="DataRunOptions.Data"/> : chaque jeu de resultats des qu'il est lu.
+    /// <see cref="RunOptions.Log"/>: server messages (Information, Code), affected rows (Information, Host), errors (Error, Code for a batch, Host otherwise);
+    /// <see cref="DataRunOptions.Data"/>: each result set as soon as it is read.
     /// </param>
-    /// <exception cref="OperationCanceledException">Execution annulee.</exception>
+    /// <exception cref="OperationCanceledException">Execution canceled.</exception>
     Task RunAsync(string connectionString, string script, DataRunOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Premier jeu de resultats d'une requete parametree (au plus <paramref name="maxRows"/> lignes) ;
-    /// <paramref name="database"/> null = base de la chaine de connexion. Une erreur leve une exception.
+    /// First result set of a parameterized query (at most <paramref name="maxRows"/> rows);
+    /// <paramref name="database"/> null = database of the connection string. An error throws an exception.
     /// </summary>
     Task<QueryResultSet> ReadAsync(string connectionString, string? database, string query, IReadOnlyList<QueryParameter> parameters, int maxRows, CancellationToken cancellationToken = default);
 }

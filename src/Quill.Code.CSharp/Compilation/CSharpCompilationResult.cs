@@ -7,8 +7,8 @@ using System.Runtime.Loader;
 namespace Quill.Code.CSharp.Compilation;
 
 /// <summary>
-/// Code compilé et chargé dans un contexte déchargeable, ou les erreurs de compilation ; <see cref="RunAsync{T}"/>
-/// l'exécute. <see cref="Dispose"/> décharge l'assembly, à la fin réelle d'une exécution abandonnée.
+/// Code compiled and loaded into a collectible context, or the compilation errors; <see cref="RunAsync{T}"/>
+/// runs it. <see cref="Dispose"/> unloads the assembly, when an abandoned execution actually ends.
 /// </summary>
 public sealed class CSharpCompilationResult : IDisposable
 {
@@ -25,38 +25,38 @@ public sealed class CSharpCompilationResult : IDisposable
         _reference = image is null ? null : new(() => MetadataReference.CreateFromImage(image));
     }
 
-    /// <summary>Erreurs et avertissements, aux positions du texte de l'éditeur.</summary>
+    /// <summary>Errors and warnings, at editor text positions.</summary>
     public IReadOnlyList<CodeDiagnostic> Diagnostics { get; }
 
-    /// <summary>Erreurs seules.</summary>
+    /// <summary>Errors only.</summary>
     public IReadOnlyList<CodeDiagnostic> Errors => Diagnostics.Where(d => d.IsError).ToArray();
 
-    /// <summary>Assembly chargée, null en cas d'erreur de compilation.</summary>
+    /// <summary>Loaded assembly, null on compilation error.</summary>
     public Assembly? Assembly { get; }
 
     public bool Success => Assembly is not null;
 
     /// <summary>
-    /// Référence Roslyn vers l'assembly émise, pour compiler un autre projet contre elle
-    /// (ex. modèle référencé par l'éditeur) ; null en cas d'erreur de compilation.
+    /// Roslyn reference to the emitted assembly, to compile another project against it
+    /// (e.g. model referenced by the editor); null on compilation error.
     /// </summary>
     public MetadataReference? Reference => _reference?.Value;
 
     /// <summary>
-    /// Exécute <paramref name="run"/> sur l'assembly, hors du thread appelant, avec <c>Script.CancellationToken</c>
-    /// (runtime des scripts) fixé à <paramref name="cancellationToken"/>. Une exception du code compilé est relevée
-    /// telle quelle, sans <see cref="TargetInvocationException"/>.
+    /// Runs <paramref name="run"/> on the assembly, off the calling thread, with <c>Script.CancellationToken</c>
+    /// (script runtime) set to <paramref name="cancellationToken"/>. An exception from the compiled code is rethrown
+    /// as is, without <see cref="TargetInvocationException"/>.
     /// </summary>
     /// <remarks>
-    /// Le code ne peut pas être interrompu dans le processus : à l'annulation, la main est rendue tout de suite
-    /// (<see cref="CSharpRunAbandonedException"/>) et il se termine en arrière-plan ; <see cref="Dispose"/> attend
-    /// alors sa fin réelle pour décharger l'assembly.
+    /// The code cannot be interrupted in-process: on cancellation, control returns immediately
+    /// (<see cref="CSharpRunAbandonedException"/>) and it finishes in the background; <see cref="Dispose"/> then waits
+    /// for it to actually end before unloading the assembly.
     /// </remarks>
-    /// <exception cref="InvalidOperationException">Compilation en échec : rien à exécuter.</exception>
+    /// <exception cref="InvalidOperationException">Failed compilation: nothing to run.</exception>
     public Task<T> RunAsync<T>(Func<Assembly, T> run, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(run);
-        var assembly = Assembly ?? throw new InvalidOperationException("La compilation a échoué : rien à exécuter.");
+        var assembly = Assembly ?? throw new InvalidOperationException("Compilation failed: nothing to run.");
         cancellationToken.ThrowIfCancellationRequested();
 
         var task = Task.Run(() =>
@@ -78,14 +78,14 @@ public sealed class CSharpCompilationResult : IDisposable
     }
 
     /// <summary>
-    /// Exécute le point d'entrée (<c>Main</c> ou instructions de niveau supérieur, async compris) comme
-    /// <see cref="RunAsync{T}"/> ; rend son code de sortie, null s'il n'en a pas.
+    /// Runs the entry point (<c>Main</c> or top-level statements, async included) like
+    /// <see cref="RunAsync{T}"/>; returns its exit code, null if it has none.
     /// </summary>
     public async Task<int?> RunEntryPointAsync(string[]? args = null, CancellationToken cancellationToken = default)
     {
         var result = await RunAsync(assembly =>
         {
-            var entryPoint = assembly.EntryPoint ?? throw new InvalidOperationException("Le code compilé n'a pas de point d'entrée.");
+            var entryPoint = assembly.EntryPoint ?? throw new InvalidOperationException("The compiled code has no entry point.");
             return entryPoint.Invoke(null, entryPoint.GetParameters().Length == 0 ? null : new object?[] { args ?? Array.Empty<string>() });
         }, cancellationToken).ConfigureAwait(false);
 
@@ -93,9 +93,9 @@ public sealed class CSharpCompilationResult : IDisposable
     }
 
     /// <summary>
-    /// L'assembly est libérée par le GC dès que plus rien ne référence ses types ; sans effet si elle a été chargée
-    /// avec <see cref="CSharpCompileOptions.Collectible"/> à faux. Après une exécution abandonnée, le déchargement
-    /// attend sa fin réelle.
+    /// The assembly is released by the GC as soon as nothing references its types anymore; no effect if it was loaded
+    /// with <see cref="CSharpCompileOptions.Collectible"/> set to false. After an abandoned execution, unloading
+    /// waits for it to actually end.
     /// </summary>
     public void Dispose()
     {
@@ -116,7 +116,7 @@ public sealed class CSharpCompilationResult : IDisposable
         }
         catch (OperationCanceledException) when (!run.IsCompleted)
         {
-            // Exception éventuelle observée ici : le résultat n'intéresse plus personne.
+            // Possible exception observed here: nobody cares about the result anymore.
             _ = run.ContinueWith(static t => _ = t.Exception, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             throw new CSharpRunAbandonedException(cancellationToken);
         }

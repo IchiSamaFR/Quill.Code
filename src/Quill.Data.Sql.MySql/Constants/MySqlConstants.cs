@@ -2,12 +2,12 @@
 
 namespace Quill.Data.Sql.MySql.Constants;
 
-/// <summary>Constantes de connexion et du catalogue MySQL.</summary>
+/// <summary>MySQL connection and catalog constants.</summary>
 internal static class MySqlConstants
 {
     internal const int ConnectTimeoutSeconds = 8;
 
-    /// <summary>Bases du serveur lui-meme.</summary>
+    /// <summary>The server's own databases.</summary>
     internal static readonly FrozenSet<string> SystemDatabases = new[] { "mysql", "information_schema", "performance_schema", "sys" }.ToFrozenSet(StringComparer.OrdinalIgnoreCase);
 
     internal const string TableType = "BASE TABLE";

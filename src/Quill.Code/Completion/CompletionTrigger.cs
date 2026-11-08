@@ -1,14 +1,14 @@
 ﻿namespace Quill.Code.Completion;
 
-/// <summary>Origine de l'ouverture de l'autocompletion.</summary>
+/// <summary>What triggered the completion list.</summary>
 public enum CompletionTrigger
 {
-    /// <summary>Frappe d'un caractère d'identifiant.</summary>
+    /// <summary>Typing an identifier character.</summary>
     Typing,
 
-    /// <summary>Demande explicite (Ctrl+Espace).</summary>
+    /// <summary>Explicit request (Ctrl+Space).</summary>
     Explicit,
 
-    /// <summary>Frappe d'un point (objet.membre, schema.table).</summary>
+    /// <summary>Typing a dot (object.member, schema.table).</summary>
     MemberAccess,
 }

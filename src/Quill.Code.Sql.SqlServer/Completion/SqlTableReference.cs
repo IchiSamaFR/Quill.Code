@@ -1,13 +1,13 @@
 ﻿namespace Quill.Code.Sql.SqlServer.Completion;
 
-/// <summary>Table (ou source) citée par une requête.</summary>
-/// <param name="Database">Base, si le nom est qualifié sur trois parties.</param>
-/// <param name="Schema">Schéma, si le nom est qualifié.</param>
-/// <param name="Name">Nom de la table.</param>
-/// <param name="Alias">Alias déclaré, sinon null.</param>
-/// <param name="Offset">Position de la référence dans le texte.</param>
+/// <summary>Table (or source) referenced by a query.</summary>
+/// <param name="Database">Database, if the name is qualified with three parts.</param>
+/// <param name="Schema">Schema, if the name is qualified.</param>
+/// <param name="Name">Name of the table.</param>
+/// <param name="Alias">Declared alias, otherwise null.</param>
+/// <param name="Offset">Position of the reference in the text.</param>
 public sealed record SqlTableReference(string? Database, string? Schema, string Name, string? Alias, int Offset)
 {
-    /// <summary>Nom sous lequel la requête désigne la table : l'alias s'il existe.</summary>
+    /// <summary>Name under which the query designates the table: the alias if there is one.</summary>
     public string ExposedName => Alias ?? Name;
 }

@@ -1,6 +1,6 @@
 ﻿namespace Quill.Code.Editing;
 
-/// <summary>Nature d'un caractère du source : les crochets et les paires ne comptent que dans le code.</summary>
+/// <summary>Kind of a source character: brackets and pairs only count in code.</summary>
 public enum SourceRegion : byte
 {
     Code = 0,
@@ -9,6 +9,6 @@ public enum SourceRegion : byte
 
     BlockComment,
 
-    /// <summary>Chaîne ou caractère ('...', "...", @"...", """...""").</summary>
+    /// <summary>String or character ('...', "...", @"...", """...""").</summary>
     String,
 }

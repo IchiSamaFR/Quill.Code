@@ -9,10 +9,10 @@ using Quill.Data.Sql;
 namespace Quill.Code.CSharp.Linq;
 
 /// <summary>
-/// Services d'editeur d'une requete LINQ : <see cref="CSharpLanguageService"/> analysant le texte contre le DbContext
-/// genere depuis la structure de la base (<c>Db.</c> → tables, <c>u.</c> → colonnes, <c>.Wh</c> → Where), les
-/// parametres etant des variables. Le service C# est celui de <see cref="LinqQueryExecutor"/> : ce qui est souligne
-/// est ce qui echoue a l'execution.
+/// Editor services for a LINQ query: <see cref="CSharpLanguageService"/> analyzing the text against the DbContext
+/// generated from the database structure (<c>Db.</c> → tables, <c>u.</c> → columns, <c>.Wh</c> → Where), the
+/// parameters being variables. The C# service is the one of <see cref="LinqQueryExecutor"/>: what is underlined
+/// is what fails at execution.
 /// </summary>
 public sealed class LinqLanguageService : ICodeLanguageService
 {
@@ -20,13 +20,13 @@ public sealed class LinqLanguageService : ICodeLanguageService
     private readonly Func<CancellationToken, Task<SqlDatabaseSchema?>>? _schema;
     private readonly IReadOnlyList<LinqParameter> _parameters;
 
-    /// <summary>Service d'un editeur ; <paramref name="options"/> null : C# seul, sans parametre.</summary>
+    /// <summary>Service of an editor; <paramref name="options"/> null: C# only, no parameters.</summary>
     public LinqLanguageService(LinqLanguageOptions? options = null)
     {
         _provider = options?.Provider;
         _schema = options?.Schema;
 
-        // Sans les valeurs : le service Roslyn reste le meme d'une valeur a l'autre.
+        // Without the values: the Roslyn service stays the same from one value to another.
         _parameters = [.. (options?.Parameters ?? []).Select(p => LinqParameter.From(p) with { Value = null })];
     }
 
@@ -41,7 +41,7 @@ public sealed class LinqLanguageService : ICodeLanguageService
     public async Task<CompletionChange> GetChangeAsync(string code, CompletionItem item, CancellationToken cancellationToken = default)
         => await (await GetServiceAsync(cancellationToken).ConfigureAwait(false)).GetChangeAsync(code, item, cancellationToken).ConfigureAwait(false);
 
-    /// <summary>Les informations (suggestions) ne sont pas soulignees, ni l'absence d'instruction (signalee a l'execution).</summary>
+    /// <summary>Information items (suggestions) are not underlined, nor is a missing statement (reported at execution).</summary>
     public async Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(string code, CancellationToken cancellationToken = default)
     {
         var diagnostics = await (await GetServiceAsync(cancellationToken).ConfigureAwait(false)).GetDiagnosticsAsync(code, cancellationToken).ConfigureAwait(false);
@@ -57,8 +57,8 @@ public sealed class LinqLanguageService : ICodeLanguageService
         => await (await GetServiceAsync(cancellationToken).ConfigureAwait(false)).GetSignatureHelpAsync(code, position, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
-    /// Composition MEF de Roslyn (1 a 2 s), JIT de la completion et compilation du DbContext genere, faits avant la
-    /// premiere frappe ; n'echoue jamais.
+    /// Roslyn MEF composition (1 to 2 s), completion JIT and compilation of the generated DbContext, done before the
+    /// first keystroke; never fails.
     /// </summary>
     public async Task WarmUpAsync(CancellationToken cancellationToken = default)
     {
@@ -67,7 +67,7 @@ public sealed class LinqLanguageService : ICodeLanguageService
             var service = await GetServiceAsync(cancellationToken).ConfigureAwait(false);
             await service.WarmUpAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         }
-#pragma warning disable CA1031 // Prechargement opportuniste : la vraie demande retentera et gerera l'erreur.
+#pragma warning disable CA1031 // Opportunistic preload: the real request will retry and handle the error.
         catch (Exception)
 #pragma warning restore CA1031
         {
@@ -77,7 +77,7 @@ public sealed class LinqLanguageService : ICodeLanguageService
     private async Task<CSharpLanguageService> GetServiceAsync(CancellationToken cancellationToken)
         => await LinqContexts.GetLanguageServiceAsync(_provider, await TryGetSchemaAsync(cancellationToken).ConfigureAwait(false), _parameters, cancellationToken).ConfigureAwait(false);
 
-    /// <summary>Structure de la base, ou null : base injoignable, connexion fermee...</summary>
+    /// <summary>Database structure, or null: unreachable database, closed connection...</summary>
     private async Task<SqlDatabaseSchema?> TryGetSchemaAsync(CancellationToken cancellationToken)
     {
         if (_provider is null || _schema is null)
@@ -87,7 +87,7 @@ public sealed class LinqLanguageService : ICodeLanguageService
         {
             return await _schema(cancellationToken).ConfigureAwait(false);
         }
-#pragma warning disable CA1031 // Comme ISqlCatalog : une exception de l'hote vaut absence de structure.
+#pragma warning disable CA1031 // Like ISqlCatalog: an exception from the host counts as a missing structure.
         catch (Exception ex) when (ex is not OperationCanceledException)
 #pragma warning restore CA1031
         {

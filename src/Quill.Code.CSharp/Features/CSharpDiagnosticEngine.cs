@@ -3,7 +3,7 @@ using Quill.Code.CSharp.Roslyn;
 
 namespace Quill.Code.CSharp.Features;
 
-/// <summary>Diagnostics Roslyn ramenés au texte de l'éditeur.</summary>
+/// <summary>Roslyn diagnostics mapped back to the editor text.</summary>
 internal static class CSharpDiagnosticEngine
 {
     public static async Task<IReadOnlyList<CodeDiagnostic>> GetDiagnosticsAsync(CSharpDocument document, CancellationToken cancellationToken)
@@ -11,7 +11,7 @@ internal static class CSharpDiagnosticEngine
         if (string.IsNullOrWhiteSpace(document.Text))
             return [];
 
-        // Le modèle sémantique rend aussi les fautes de syntaxe.
+        // The semantic model also returns syntax errors.
         if (document.Options.IncludeSemanticDiagnostics && await document.Document.GetSemanticModelAsync(cancellationToken) is { } semantic)
             return CSharpDiagnosticMapper.Map(semantic.GetDiagnostics(cancellationToken: cancellationToken), document.Text);
 

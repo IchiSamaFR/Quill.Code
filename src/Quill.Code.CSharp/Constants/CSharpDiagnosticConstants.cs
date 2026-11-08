@@ -1,8 +1,8 @@
 ﻿namespace Quill.Code.CSharp.Constants;
 
-/// <summary>Constantes des diagnostics C#.</summary>
+/// <summary>C# diagnostic constants.</summary>
 internal static class CSharpDiagnosticConstants
 {
-    // Au-delà, une erreur en amont fait cascader les suivantes : les premières suffisent.
+    // Beyond that, an upstream error cascades into the following ones: the first ones are enough.
     internal const int MaxDiagnostics = 100;
 }

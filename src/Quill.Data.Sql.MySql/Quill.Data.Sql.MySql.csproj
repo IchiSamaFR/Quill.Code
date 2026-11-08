@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>Quill.Data.Sql.MySql</RootNamespace>
-		<Description>Lecture du catalogue MySQL / MariaDB (information_schema) pour Quill.Data.Sql.</Description>
+		<Description>MySQL / MariaDB catalog reading (information_schema) for Quill.Data.Sql.</Description>
 	</PropertyGroup>
 
 	<ItemGroup>

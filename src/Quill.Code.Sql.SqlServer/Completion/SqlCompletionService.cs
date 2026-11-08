@@ -6,12 +6,12 @@ using Quill.Code.Sql.SqlServer.Schema;
 namespace Quill.Code.Sql.SqlServer.Completion;
 
 /// <summary>
-/// Autocomplétion T-SQL : mots-clés et objets du catalogue selon ce qu'attend la grammaire au curseur
-/// (<see cref="SqlContextAnalyzer"/>), mots déjà écrits dans le document et variables déclarées dans le script et paramètres de l'hôte.
+/// T-SQL completion: keywords and catalog objects according to what the grammar expects at the caret
+/// (<see cref="SqlContextAnalyzer"/>), words already written in the document, variables declared in the script and host parameters.
 /// </summary>
 internal sealed partial class SqlCompletionService : ICodeCompletion
 {
-    /// <summary>Seuls mots attendus après un nom de table : la liste doit gêner le moins possible la frappe d'un alias.</summary>
+    /// <summary>Only words expected after a table name: the list must interfere as little as possible with typing an alias.</summary>
     private static readonly HashSet<string> FollowTableName = new(StringComparer.OrdinalIgnoreCase)
     {
         "AS", "WITH", "WHERE", "JOIN", "INNER", "LEFT", "RIGHT", "FULL", "OUTER", "CROSS", "APPLY", "ON",
@@ -47,7 +47,7 @@ internal sealed partial class SqlCompletionService : ICodeCompletion
         return new CompletionList(items, wordStart, position - wordStart);
     }
 
-    /// <summary>Le contrat ne donne pas le curseur : le mot remplacé est celui qui termine <paramref name="code"/>.</summary>
+    /// <summary>The contract does not give the caret: the replaced word is the one ending <paramref name="code"/>.</summary>
     public Task<CompletionChange> GetChangeAsync(string code, CompletionItem item, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(code);
@@ -57,7 +57,7 @@ internal sealed partial class SqlCompletionService : ICodeCompletion
         return Task.FromResult(new CompletionChange(start, code.Length - start, item.TextToInsert));
     }
 
-    /// <summary>Table, base, membre ou procédure : place réservée aux objets du schéma.</summary>
+    /// <summary>Table, database, member or procedure: slot reserved for schema objects.</summary>
     private static IReadOnlyList<CompletionItem> KeywordItems(SqlContext context)
     {
         Func<CompletionItem, bool>? accepts = context.Kind switch
@@ -73,8 +73,8 @@ internal sealed partial class SqlCompletionService : ICodeCompletion
     }
 
     /// <summary>
-    /// Identifiants déjà écrits (tables, colonnes, alias), comme les suggestions par mot de VS Code : utiles sans
-    /// catalogue. Le mot en cours de frappe est exclu : il se proposerait lui-même.
+    /// Identifiers already written (tables, columns, aliases), like VS Code word-based suggestions: useful without
+    /// a catalog. The word being typed is excluded: it would suggest itself.
     /// </summary>
     private static IReadOnlyList<CompletionItem> DocumentWords(string code, int wordStart, SqlContext context)
     {
@@ -90,7 +90,7 @@ internal sealed partial class SqlCompletionService : ICodeCompletion
             .ToArray();
     }
 
-    /// <summary>Variables déjà écrites dans le script (DECLARE…), et paramètres de l'hôte, proposés quand le mot en cours commence par <c>@</c>.</summary>
+    /// <summary>Variables already written in the script (DECLARE…) and host parameters, suggested when the current word starts with <c>@</c>.</summary>
     private CompletionItem[] VariableItems(string code, int wordStart, int position)
     {
         var tokens = SqlLexer.Tokenize(code);
@@ -112,7 +112,7 @@ internal sealed partial class SqlCompletionService : ICodeCompletion
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Select(name => new CompletionItem { Label = name, Kind = CompletionItemKind.Variable, Detail = types.GetValueOrDefault(name) });
 
-        // Les paramètres de l'hôte (dashboard) passent en premier : un DECLARE du même nom ne les double pas.
+        // Host parameters (dashboard) come first: a DECLARE with the same name does not duplicate them.
         return host.Concat(declared)
             .GroupBy(i => i.Label, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
@@ -124,7 +124,7 @@ internal sealed partial class SqlCompletionService : ICodeCompletion
 
     private static CompletionItem[] Merge(IReadOnlyList<CompletionItem>[] batches)
     {
-        // MAX est à la fois type et fonction, Users peut exister dans deux schémas : seuls les vrais doublons partent.
+        // MAX is both a type and a function, Users may exist in two schemas: only true duplicates go.
         var seen = new HashSet<(string, CompletionItemKind, string?)>();
         var items = new List<CompletionItem>(batches.Sum(batch => batch.Count));
         foreach (var item in batches.SelectMany(batch => batch))
@@ -133,7 +133,7 @@ internal sealed partial class SqlCompletionService : ICodeCompletion
                 items.Add(item);
         }
 
-        // Un mot du document déjà connu du schéma ou des mots-clés ferait doublon, sans type ni icône.
+        // A document word already known from the schema or the keywords would be a duplicate, without type or icon.
         var known = items.Where(item => item.Kind != CompletionItemKind.Text)
             .Select(item => item.Label)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);

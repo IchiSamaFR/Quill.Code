@@ -1,8 +1,8 @@
 ﻿namespace Quill.Data.Sql.Constants;
 
-/// <summary>Constantes de la structure d'une base.</summary>
+/// <summary>Database structure constants.</summary>
 public static class SqlSchemaConstants
 {
-    /// <summary>Schéma préféré pour un nom non qualifié, comme le fait SQL Server.</summary>
+    /// <summary>Preferred schema for an unqualified name, as SQL Server does.</summary>
     public const string DefaultSchema = "dbo";
 }

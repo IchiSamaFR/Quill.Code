@@ -6,10 +6,10 @@ using Quill.Code.CSharp.Constants;
 
 namespace Quill.Code.CSharp.Features;
 
-/// <summary>Diagnostics Roslyn ramenés au texte de l'éditeur (positions, gravité, message localisé).</summary>
+/// <summary>Roslyn diagnostics mapped back to the editor text (positions, severity, localized message).</summary>
 internal static class CSharpDiagnosticMapper
 {
-    /// <summary>Diagnostics d'une compilation (plusieurs documents) : seuls ceux du texte de l'éditeur sont gardés.</summary>
+    /// <summary>Diagnostics of a compilation (several documents): only those of the editor text are kept.</summary>
     public static async Task<IReadOnlyList<CodeDiagnostic>> MapAsync(CSharpDocument document, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
     {
         var tree = await document.Document.GetSyntaxTreeAsync(cancellationToken);
@@ -44,7 +44,7 @@ internal static class CSharpDiagnosticMapper
         return result;
     }
 
-    /// <summary>Un diagnostic sans longueur (« ; » attendu en fin de texte…) souligne le caractère visible le plus proche.</summary>
+    /// <summary>A zero-length diagnostic (";" expected at end of text…) underlines the nearest visible character.</summary>
     private static (int Start, int Length) Widen(string text, int start, int length)
     {
         if (length > 0)

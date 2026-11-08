@@ -5,24 +5,24 @@ using System.Reflection;
 namespace Quill.Code.CSharp.Linq;
 
 /// <summary>
-/// Moteur de base d'une requete LINQ (ex. <c>SqlServerLinqProvider</c> de <c>Quill.Code.CSharp.Linq.SqlServer</c>) :
-/// types des colonnes du DbContext genere, references du fournisseur EF et connexion. Une meme instance pour
-/// l'editeur et l'execution : les DbContext compiles et les references sont mis en cache par fournisseur.
+/// Database engine of a LINQ query (e.g. <c>SqlServerLinqProvider</c> from <c>Quill.Code.CSharp.Linq.SqlServer</c>):
+/// column types of the generated DbContext, EF provider references and connection. The same instance for
+/// the editor and the execution: compiled DbContexts and references are cached per provider.
 /// </summary>
 public interface ILinqDatabaseProvider
 {
-    /// <summary>Assemblies du fournisseur EF et de son pilote, referencees par les requetes (ex. <c>EF.Functions</c> propres au moteur).</summary>
+    /// <summary>Assemblies of the EF provider and its driver, referenced by queries (e.g. engine-specific <c>EF.Functions</c>).</summary>
     IReadOnlyList<Assembly> Assemblies { get; }
 
-    /// <summary>Type C# d'une colonne, sans nullabilite (ex. <c>int</c>, <c>string</c>) ; null : non mappable, la colonne est ignoree.</summary>
+    /// <summary>C# type of a column, without nullability (e.g. <c>int</c>, <c>string</c>); null: not mappable, the column is ignored.</summary>
     string? GetClrType(SqlColumn column);
 
     /// <summary>
-    /// Chaine de connexion d'une execution, sur <paramref name="database"/> (null : celle de la chaine) ;
-    /// leve <see cref="ArgumentException"/> ou <see cref="FormatException"/> si elle est invalide.
+    /// Connection string of an execution, on <paramref name="database"/> (null: the one in the string);
+    /// throws <see cref="ArgumentException"/> or <see cref="FormatException"/> if it is invalid.
     /// </summary>
     string BuildConnectionString(string connectionString, string? database);
 
-    /// <summary>Branche le contexte EF sur la base (ex. <c>UseSqlServer</c>).</summary>
+    /// <summary>Connects the EF context to the database (e.g. <c>UseSqlServer</c>).</summary>
     void Configure(DbContextOptionsBuilder builder, string connectionString);
 }

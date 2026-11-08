@@ -7,8 +7,8 @@ using System.Reflection;
 namespace Quill.Code.CSharp.Linq.Oracle;
 
 /// <summary>
-/// Requetes LINQ sur Oracle : Oracle.EntityFrameworkCore sur ODP.NET Core, SQL genere compatible Oracle 19c.
-/// Une connexion Oracle porte une seule base : la base demandee est ignoree. A garder en une instance par application.
+/// LINQ queries on Oracle: Oracle.EntityFrameworkCore on ODP.NET Core, generated SQL compatible with Oracle 19c.
+/// An Oracle connection holds a single database: the requested database is ignored. Keep one instance per application.
 /// </summary>
 public sealed class OracleLinqProvider : ILinqDatabaseProvider
 {
@@ -20,7 +20,7 @@ public sealed class OracleLinqProvider : ILinqDatabaseProvider
     {
         ArgumentNullException.ThrowIfNull(column);
 
-        // SqlType est DATA_TYPE : NUMBER, VARCHAR2, TIMESTAMP(6) WITH TIME ZONE...
+        // SqlType is DATA_TYPE: NUMBER, VARCHAR2, TIMESTAMP(6) WITH TIME ZONE...
         var sqlType = (string.IsNullOrEmpty(column.SqlType) ? column.DataType : column.SqlType).ToUpperInvariant();
 
         if (sqlType.StartsWith("TIMESTAMP", StringComparison.Ordinal))
@@ -32,7 +32,7 @@ public sealed class OracleLinqProvider : ILinqDatabaseProvider
         if (parenthesis > 0)
             sqlType = sqlType[..parenthesis];
 
-        // ROWID, XMLTYPE, SDO_GEOMETRY, INTERVAL YEAR... : pas de mapping sans paquet dedie.
+        // ROWID, XMLTYPE, SDO_GEOMETRY, INTERVAL YEAR...: no mapping without a dedicated package.
         return sqlType switch
         {
             "NUMBER" => NumberType(column.Precision, column.Scale),
@@ -54,11 +54,11 @@ public sealed class OracleLinqProvider : ILinqDatabaseProvider
     {
         ArgumentNullException.ThrowIfNull(builder);
 
-        // Plus petit dialecte pris en charge : evite le SQL 23ai (BOOLEAN, JSON...) sur un serveur plus ancien.
+        // Lowest supported dialect: avoids 23ai SQL (BOOLEAN, JSON...) on an older server.
         builder.UseOracle(connectionString, oracle => oracle.UseOracleSQLCompatibility(OracleSQLCompatibility.DatabaseVersion19));
     }
 
-    /// <summary>NUMBER(p, 0) : entier selon sa largeur, comme le mapping par defaut d'EF Core Oracle ; sinon decimal.</summary>
+    /// <summary>NUMBER(p, 0): integer according to its width, like EF Core Oracle's default mapping; otherwise decimal.</summary>
     private static string NumberType(byte precision, byte scale) => (precision, scale) switch
     {
         (1, 0) => "bool",

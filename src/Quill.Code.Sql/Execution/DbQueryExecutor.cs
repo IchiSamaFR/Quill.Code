@@ -8,9 +8,9 @@ using Quill.Code.Execution;
 namespace Quill.Code.Sql.Execution;
 
 /// <summary>
-/// Execution SQL sur un pilote ADO.NET, base des executeurs de moteur (MySQL, PostgreSQL, Oracle, SQLite) : meme contrat
-/// que <c>SqlServerQueryExecutor</c>. Le script est decoupe en lots par <see cref="SplitScript"/> (par defaut un seul :
-/// le pilote enchaine les instructions) ; un lot en echec n'empeche pas les suivants. Une connexion est ouverte pour chaque appel.
+/// SQL execution on an ADO.NET driver, base of the engine executors (MySQL, PostgreSQL, Oracle, SQLite): same contract
+/// as <c>SqlServerQueryExecutor</c>. The script is split into batches by <see cref="SplitScript"/> (a single one by default:
+/// the driver chains the statements); a failed batch does not prevent the following ones. A connection is opened for each call.
 /// </summary>
 public abstract class DbQueryExecutor : ISqlQueryExecutor
 {
@@ -23,7 +23,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
         var batches = SplitScript(script);
         if (batches.Count == 0)
         {
-            log?.Invoke(new LogEntry(LogLevel.Information, "Aucune instruction à exécuter."));
+            log?.Invoke(new LogEntry(LogLevel.Information, "No statement to run."));
             return;
         }
 
@@ -44,24 +44,24 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
                 }
                 catch (DbException ex) when (!cancellationToken.IsCancellationRequested)
                 {
-                    // Le lot suivant est tout de meme execute ; la ligne n'a de sens que si le script a ete decoupe.
+                    // The next batch still runs; the line only makes sense if the script was split.
                     LogError(log, ex, batches.Count > 1 ? batch.StartLine : null, LogSource.Code);
                 }
             }
         }
         catch (DbException ex) when (cancellationToken.IsCancellationRequested)
         {
-            // L'annulation d'une commande en cours remonte souvent sous forme d'exception du pilote.
+            // Canceling a running command often surfaces as a driver exception.
             throw new OperationCanceledException(ex.Message, ex, cancellationToken);
         }
         catch (DbException ex)
         {
-            // Hors d'un lot : connexion impossible, droits...
+            // Outside a batch: connection impossible, permissions...
             LogError(log, ex, batchStartLine: null, LogSource.Host);
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException or InvalidOperationException)
         {
-            log?.Invoke(new LogEntry(LogLevel.Error, $"Échec : {ex.Message}"));
+            log?.Invoke(new LogEntry(LogLevel.Error, $"Failure: {ex.Message}"));
         }
     }
 
@@ -75,7 +75,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
         await using var command = connection.CreateCommand();
-#pragma warning disable CA2100 // La requete est celle de l'utilisateur ; les valeurs passent en parametres.
+#pragma warning disable CA2100 // The query is the user's; values are passed as parameters.
         command.CommandText = query;
 #pragma warning restore CA2100
         command.CommandTimeout = QueryExecutionLimits.ReadCommandTimeoutSeconds;
@@ -85,7 +85,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
 
-        // Premier jeu qui a des colonnes : une instruction sans resultat peut preceder le SELECT.
+        // First set that has columns: a statement without a result may precede the SELECT.
         while (reader.FieldCount == 0 && await reader.NextResultAsync(cancellationToken).ConfigureAwait(false))
         {
         }
@@ -97,30 +97,30 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
     }
 
     /// <summary>
-    /// Connexion non ouverte sur <paramref name="database"/> (null : celle de la chaine) ; <paramref name="forRead"/> :
-    /// requete parametree, a ouvrir en <see cref="QueryExecutionLimits.ReadConnectTimeoutSeconds"/>.
-    /// Leve <see cref="ArgumentException"/> ou <see cref="FormatException"/> si la chaine est invalide.
+    /// Unopened connection on <paramref name="database"/> (null: the one in the string); <paramref name="forRead"/>:
+    /// parameterized query, to open within <see cref="QueryExecutionLimits.ReadConnectTimeoutSeconds"/>.
+    /// Throws <see cref="ArgumentException"/> or <see cref="FormatException"/> if the string is invalid.
     /// </summary>
     protected abstract DbConnection CreateConnection(string connectionString, string? database, bool forRead);
 
-    /// <summary>Lots du script, dans l'ordre ; par defaut le script entier, le pilote enchainant ses instructions.</summary>
+    /// <summary>Batches of the script, in order; by default the whole script, the driver chaining its statements.</summary>
     protected virtual IReadOnlyList<QueryBatch> SplitScript(string script)
         => string.IsNullOrWhiteSpace(script) ? [] : [new QueryBatch(script, 1)];
 
-    /// <summary>Branche les messages du serveur (NOTICE, avertissements...) sur <paramref name="log"/>, avant l'ouverture.</summary>
+    /// <summary>Wires server messages (NOTICE, warnings...) to <paramref name="log"/>, before opening.</summary>
     protected virtual void AttachMessages(DbConnection connection, Action<LogEntry> log)
     {
     }
 
-    /// <summary>Reglages propres au pilote, appliques a chaque commande (ex. liaison des parametres par nom).</summary>
+    /// <summary>Driver-specific settings, applied to each command (e.g. binding parameters by name).</summary>
     protected virtual void PrepareCommand(DbCommand command)
     {
     }
 
-    /// <summary>Nom du parametre tel que le pilote l'attend, a partir du nom saisi sans prefixe.</summary>
+    /// <summary>Parameter name as the driver expects it, from the name entered without prefix.</summary>
     protected virtual string GetParameterName(string name) => $"@{name}";
 
-    /// <summary>Type ADO.NET d'un parametre.</summary>
+    /// <summary>ADO.NET type of a parameter.</summary>
     protected virtual DbType GetDbType(QueryParameterType type) => type switch
     {
         QueryParameterType.Integer => DbType.Int64,
@@ -132,35 +132,35 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
         _ => DbType.String,
     };
 
-    /// <summary>Valeur envoyee au pilote ; null devient <see cref="DBNull"/>.</summary>
+    /// <summary>Value sent to the driver; null becomes <see cref="DBNull"/>.</summary>
     protected virtual object GetParameterValue(QueryParameter parameter)
     {
         ArgumentNullException.ThrowIfNull(parameter);
         return parameter.Value ?? DBNull.Value;
     }
 
-    /// <summary>Texte d'une erreur du serveur ; par defaut le message du pilote.</summary>
+    /// <summary>Text of a server error; by default the driver's message.</summary>
     protected virtual string FormatError(DbException exception)
     {
         ArgumentNullException.ThrowIfNull(exception);
         return exception.Message;
     }
 
-    /// <returns>Nombre de jeux de resultats lus depuis le debut du script.</returns>
+    /// <returns>Number of result sets read since the start of the script.</returns>
     private async Task<int> ExecuteBatchAsync(DbConnection connection, QueryBatch batch, int resultSetCount, DataRunOptions? options, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-#pragma warning disable CA2100 // Le script est celui de l'utilisateur, execute tel quel.
+#pragma warning disable CA2100 // The script is the user's, run as is.
         command.CommandText = batch.Text;
 #pragma warning restore CA2100
-        // Pas de timeout : l'utilisateur garde la main via l'annulation.
+        // No timeout: the user keeps control through cancellation.
         command.CommandTimeout = 0;
         PrepareCommand(command);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         do
         {
-            // FieldCount == 0 : instruction sans jeu de resultats (INSERT, UPDATE, DDL...).
+            // FieldCount == 0: statement without a result set (INSERT, UPDATE, DDL...).
             if (reader.FieldCount > 0)
             {
                 var resultSet = await DbResultSetReader.ReadAsync(reader, ++resultSetCount, QueryExecutionLimits.MaxRowsPerResultSet, DbResultSetReader.FormatForResults, cancellationToken).ConfigureAwait(false);
@@ -169,9 +169,9 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
         }
         while (await reader.NextResultAsync(cancellationToken).ConfigureAwait(false));
 
-        // Cumul du lot, connu une fois tous les jeux parcourus ; -1 pour un SELECT seul.
+        // Batch total, known once all sets have been read; -1 for a lone SELECT.
         if (reader.RecordsAffected >= 0)
-            options?.Log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({reader.RecordsAffected} ligne(s) affectée(s))")));
+            options?.Log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({reader.RecordsAffected} row(s) affected)")));
 
         return resultSetCount;
     }
@@ -180,7 +180,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
     {
         var result = command.CreateParameter();
 
-        // Un nom saisi a la main peut garder son prefixe (@, :) ou des espaces.
+        // A name entered by hand may keep its prefix (@, :) or spaces.
         result.ParameterName = GetParameterName(parameter.Name.Trim().TrimStart('@', ':'));
         result.DbType = GetDbType(parameter.Type);
         result.Value = GetParameterValue(parameter);
@@ -194,7 +194,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
 
         var message = FormatError(exception);
         var text = batchStartLine is { } line
-            ? string.Create(CultureInfo.InvariantCulture, $"Instruction ligne {line}{Environment.NewLine}{message}")
+            ? string.Create(CultureInfo.InvariantCulture, $"Statement at line {line}{Environment.NewLine}{message}")
             : message;
 
         log(new LogEntry(LogLevel.Error, text, source));

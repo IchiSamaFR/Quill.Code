@@ -5,19 +5,19 @@ using Quill.Code.Constants;
 namespace Quill.Code.Highlighting;
 
 /// <summary>
-/// Lecture des définitions de coloration au format .xshd d'AvalonEdit (2008).
+/// Reads highlighting definitions in AvalonEdit's .xshd format (2008).
 /// </summary>
 /// <remarks>
-/// Pris en charge : <c>Property</c>, <c>Color</c> (foreground, fontWeight, fontStyle), le <c>RuleSet</c> principal avec ses
-/// <c>Span</c> (Begin/End, multiline), <c>Rule</c> et <c>Keywords</c>. Les RuleSet imbriqués (échappements dans un span)
-/// et les imports sont ignorés : le span est alors coloré d'un seul tenant.
+/// Supported: <c>Property</c>, <c>Color</c> (foreground, fontWeight, fontStyle), the main <c>RuleSet</c> with its
+/// <c>Span</c> (Begin/End, multiline), <c>Rule</c> and <c>Keywords</c>. Nested RuleSets (escapes inside a span)
+/// and imports are ignored: the span is then colored as a whole.
 /// </remarks>
 public static class XshdReader
 {
     private static readonly XNamespace Xshd = "http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008";
 
-    /// <summary>Lit une définition depuis un flux.</summary>
-    /// <exception cref="FormatException">Fichier sans RuleSet, couleur sans nom ou non déclarée.</exception>
+    /// <summary>Reads a definition from a stream.</summary>
+    /// <exception cref="FormatException">File without a RuleSet, color without a name or not declared.</exception>
     public static SyntaxDefinition Load(Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -31,25 +31,25 @@ public static class XshdReader
         return Load(await XDocument.LoadAsync(stream, LoadOptions.None, cancellationToken));
     }
 
-    /// <summary>Lit une définition depuis son texte XML.</summary>
+    /// <summary>Reads a definition from its XML text.</summary>
     public static SyntaxDefinition Parse(string xml)
     {
         ArgumentNullException.ThrowIfNull(xml);
         return Load(XDocument.Parse(xml));
     }
 
-    /// <summary>Lit une définition depuis un document XML déjà chargé.</summary>
+    /// <summary>Reads a definition from an already loaded XML document.</summary>
     public static SyntaxDefinition Load(XDocument document)
     {
         ArgumentNullException.ThrowIfNull(document);
 
-        var root = document.Root ?? throw new FormatException("Définition de coloration vide.");
+        var root = document.Root ?? throw new FormatException("Empty highlighting definition.");
         var colors = ReadColors(root);
         var properties = ReadProperties(root);
 
-        // Le RuleSet principal est celui sans nom.
+        // The main RuleSet is the one without a name.
         var ruleSet = root.Elements(Xshd + "RuleSet").FirstOrDefault(e => e.Attribute("name") is null)
-            ?? throw new FormatException("Définition de coloration sans RuleSet principal.");
+            ?? throw new FormatException("Highlighting definition without a main RuleSet.");
 
         var options = RegexOptions.CultureInvariant;
         if ((bool?)ruleSet.Attribute("ignoreCase") == true)
@@ -88,7 +88,7 @@ public static class XshdReader
         {
             var name = (string?)element.Attribute("name");
             if (string.IsNullOrEmpty(name))
-                throw new FormatException("Couleur sans attribut « name ».");
+                throw new FormatException("Color without a \"name\" attribute.");
 
             colors[name] = ReadColor(element, name);
         }
@@ -111,15 +111,15 @@ public static class XshdReader
     private static SyntaxColor ReadColor(XElement element, string? name)
         => new(name, (string?)element.Attribute("foreground"), (string?)element.Attribute("fontWeight"), (string?)element.Attribute("fontStyle"));
 
-    // Couleur nommée (color="Comment") ou déclarée directement sur l'élément (foreground="#…") ; sans couleur, le texte
-    // est reconnu mais garde la couleur par défaut.
+    // Named color (color="Comment") or declared directly on the element (foreground="#…"); without a color, the text
+    // is recognized but keeps the default color.
     private static SyntaxColor? ResolveColor(XElement element, Dictionary<string, SyntaxColor> colors)
     {
         if ((string?)element.Attribute("color") is { Length: > 0 } name)
         {
             return colors.TryGetValue(name, out var color)
                 ? color
-                : throw new FormatException($"Couleur « {name} » non déclarée.");
+                : throw new FormatException($"Color \"{name}\" is not declared.");
         }
 
         return element.Attribute("foreground") is null && element.Attribute("fontWeight") is null && element.Attribute("fontStyle") is null
@@ -131,7 +131,7 @@ public static class XshdReader
     {
         var begin = (element.Element(Xshd + "Begin")?.Value ?? (string?)element.Attribute("begin"))?.Trim();
         if (string.IsNullOrEmpty(begin))
-            throw new FormatException("Span sans début.");
+            throw new FormatException("Span without a begin.");
 
         var end = (element.Element(Xshd + "End")?.Value ?? (string?)element.Attribute("end"))?.Trim();
 
@@ -149,7 +149,7 @@ public static class XshdReader
         return pattern.Length == 0 ? null : new SyntaxRule(new Regex(pattern, options), null, false, false, ResolveColor(element, colors));
     }
 
-    // Une seule expression par liste ; les mots les plus longs d'abord pour que « double » ne s'arrête pas à « do ».
+    // A single expression per list; longest words first so that "double" does not stop at "do".
     private static SyntaxRule? ReadKeywords(XElement element, Dictionary<string, SyntaxColor> colors, RegexOptions options, List<SyntaxKeyword> keywords)
     {
         var words = element.Elements(Xshd + "Word")
@@ -163,7 +163,7 @@ public static class XshdReader
         var category = (string?)element.Attribute("color") ?? string.Empty;
         keywords.AddRange(words.Select(word => new SyntaxKeyword(word, category)));
 
-        // Les \b évitent de colorer un mot-clé noyé dans un identifiant (SELECTED).
+        // The \b avoid coloring a keyword buried in an identifier (SELECTED).
         var alternatives = words.Distinct(StringComparer.Ordinal).OrderByDescending(w => w.Length).Select(Regex.Escape);
         return new SyntaxRule(new Regex($@"\b(?>{string.Join('|', alternatives)})\b", options), null, false, false, ResolveColor(element, colors));
     }
