@@ -66,7 +66,7 @@ using var compiled = await language.CompileAsync(code, new CSharpCompileOptions
 
 if (!compiled.Success)
     foreach (var error in compiled.Errors)
-        Console.WriteLine(error.Describe(code)); // "Ligne 2, colonne 6 : CS0103 …"
+        Console.WriteLine(error.Describe(code)); // "Line 2, column 6: CS0103 …"
 else
     Run(compiled.Assembly!);
 ```
@@ -96,7 +96,7 @@ language.RemoveSource(key);
 language.SourcesChanged += (_, _) => RefreshDiagnostics();
 ```
 
-An error in a source is returned at position 0 with the file: "FileHelper.cs (12, 5) : …".
+An error in a source is returned at position 0 with the file: "FileHelper.cs (12, 5): …".
 
 ### T-SQL
 

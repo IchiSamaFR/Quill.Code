@@ -16,6 +16,6 @@ public static class CodeDiagnosticExtensions
 
         var position = LinePosition.FromOffset(text, diagnostic.Start);
         var code = diagnostic.Code is null ? string.Empty : diagnostic.Code + " ";
-        return $"Ligne {position.Line}, colonne {position.Column} : {code}{diagnostic.Message}";
+        return $"Line {position.Line}, column {position.Column}: {code}{diagnostic.Message}";
     }
 }

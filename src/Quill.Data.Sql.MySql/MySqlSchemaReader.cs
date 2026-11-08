@@ -85,7 +85,7 @@ public sealed class MySqlSchemaReader : ISqlSchemaReader
 
         await reader.ReadAsync(cancellationToken);
         var databaseName = reader.IsDBNull(0)
-            ? throw new InvalidOperationException("Aucune base sélectionnée : précisez Database dans la chaîne de connexion.")
+            ? throw new InvalidOperationException("No database selected: specify Database in the connection string.")
             : reader.GetString(0);
 
         await reader.NextResultAsync(cancellationToken);

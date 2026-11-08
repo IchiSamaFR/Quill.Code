@@ -17,15 +17,15 @@ public sealed class QueryResultSet
 
     private readonly string? _title;
 
-    /// <summary>Tab title: the one given at execution (Dump("...")), otherwise "Résultats n".</summary>
-    public string Title => string.IsNullOrWhiteSpace(_title) ? $"Résultats {Index}" : _title;
+    /// <summary>Tab title: the one given at execution (Dump("...")), otherwise "Results n".</summary>
+    public string Title => string.IsNullOrWhiteSpace(_title) ? $"Results {Index}" : _title;
 
     /// <summary>Number of rows read, for the status bar.</summary>
     public string Summary => IsTruncated
-        ? $"{Rows.Count} premières lignes"
-        : $"{Rows.Count} ligne(s)";
+        ? $"First {Rows.Count} rows"
+        : $"{Rows.Count} row(s)";
 
-    /// <summary>Result set; <paramref name="title"/> replaces "Résultats n".</summary>
+    /// <summary>Result set; <paramref name="title"/> replaces "Results n".</summary>
     public QueryResultSet(int index, IReadOnlyList<QueryResultColumn> columns, IReadOnlyList<QueryResultRow> rows, bool isTruncated, string? title = null)
     {
         Index = index;

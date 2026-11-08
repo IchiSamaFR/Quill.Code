@@ -8,7 +8,7 @@ public sealed class CSharpRunAbandonedException : OperationCanceledException
 {
     /// <summary>Execution abandoned on cancellation of <paramref name="cancellationToken"/>.</summary>
     public CSharpRunAbandonedException(CancellationToken cancellationToken)
-        : base("Le code ne peut pas être interrompu : il se termine en arrière-plan.", null, cancellationToken)
+        : base("The code cannot be interrupted: it finishes in the background.", null, cancellationToken)
     {
     }
 }

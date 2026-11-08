@@ -17,10 +17,10 @@ namespace Quill.Code.CSharp.Linq.Compilation;
 /// parameters), editor C# services, then each query, compiled from the very project of the editor.
 /// No state of its own apart from the service cache.
 /// </summary>
-[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Compilation en memoire, sans trimming : compilation et reflexion assumees.")]
-[UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Compilation en memoire, sans trimming : compilation et reflexion assumees.")]
-[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Compilation en memoire, sans trimming : compilation et reflexion assumees.")]
-[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Compilation en memoire, sans AOT : compilation et reflexion assumees.")]
+[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "In-memory compilation, no trimming: compilation and reflection are intended.")]
+[UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "In-memory compilation, no trimming: compilation and reflection are intended.")]
+[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "In-memory compilation, no trimming: compilation and reflection are intended.")]
+[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "In-memory compilation, no AOT: compilation and reflection are intended.")]
 internal static class LinqCompiler
 {
     // One service per compiled QueryGlobals (released with it): references, context and parameters do not change from one
@@ -61,7 +61,7 @@ internal static class LinqCompiler
         }, cancellationToken);
 
         if (compiled.Assembly is not { } assembly)
-            throw new LinqCompilationException($"Le modele genere {model.ContextClassName} ne compile pas.", compiled.Errors.Select(e => e.Describe(model.Source)).ToArray());
+            throw new LinqCompilationException($"The generated model {model.ContextClassName} does not compile.", compiled.Errors.Select(e => e.Describe(model.Source)).ToArray());
 
         var contextType = assembly.GetType($"{model.Namespace}.{model.ContextClassName}", throwOnError: true)!;
         var extensionsType = assembly.GetType($"{model.Namespace}.{EfModelConstants.ExtensionsClassName}", throwOnError: true)!;
@@ -105,7 +105,7 @@ internal static class LinqCompiler
         }, cancellationToken);
 
         if (compiled.Assembly is not { } assembly)
-            throw new LinqCompilationException("Les parametres de la requete ne compilent pas.", compiled.Errors.Select(e => e.Describe(source)).ToArray());
+            throw new LinqCompilationException("The query parameters do not compile.", compiled.Errors.Select(e => e.Describe(source)).ToArray());
 
         var globalsType = assembly.GetType(LinqQueryConstants.GlobalsClass, throwOnError: true)!;
 
@@ -152,7 +152,7 @@ internal static class LinqCompiler
         {
             var (resultSet, sql) = LinqResultConverter.Capture(value, ++index, title, maxRows, cancellationToken);
             if (sql is not null)
-                options.Log?.Invoke(new LogEntry(LogLevel.Information, $"{resultSet.Title} : SQL généré :{Environment.NewLine}{sql}"));
+                options.Log?.Invoke(new LogEntry(LogLevel.Information, $"{resultSet.Title}: generated SQL:{Environment.NewLine}{sql}"));
 
             options.Data?.Invoke(resultSet);
         }), values, options, cancellationToken);
@@ -177,7 +177,7 @@ internal static class LinqCompiler
         ArgumentNullException.ThrowIfNull(context);
 
         var model = parameters.Model
-            ?? throw new InvalidOperationException("Une requete ne s'execute que sur le modele d'une connexion.");
+            ?? throw new InvalidOperationException("A query only runs on the model of a connection.");
 
         // All values are converted before setting any: an error leaves none half set.
         Dictionary<PropertyInfo, object?> converted = [];

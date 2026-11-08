@@ -9,7 +9,7 @@ namespace Quill.Code.Editing;
 /// <remarks>A null result means: nothing special, the key keeps its normal effect.</remarks>
 public static class CodeEditing
 {
-    #region Saisie
+    #region Typing
 
     /// <summary>
     /// Enter: keeps the line's indentation, adds a level after "{", and between "{" and "}" opens the block
@@ -210,7 +210,7 @@ public static class CodeEditing
 
     #endregion
 
-    #region Lignes
+    #region Lines
 
     /// <summary>
     /// Ctrl+K, Ctrl+C / Ctrl+K, Ctrl+U: comment prefix placed at the minimum indentation of non-empty lines, or removed.

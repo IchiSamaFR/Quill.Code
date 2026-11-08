@@ -50,11 +50,11 @@ public sealed class PostgreSqlQueryExecutor : DbQueryExecutor
         if (exception is not PostgresException postgres)
             return base.FormatError(exception);
 
-        var lines = new List<string>(4) { $"{postgres.Severity} {postgres.SqlState} : {postgres.MessageText}" };
+        var lines = new List<string>(4) { $"{postgres.Severity} {postgres.SqlState}: {postgres.MessageText}" };
         if (!string.IsNullOrWhiteSpace(postgres.Detail))
-            lines.Add($"Détail : {postgres.Detail}");
+            lines.Add($"Detail: {postgres.Detail}");
         if (!string.IsNullOrWhiteSpace(postgres.Hint))
-            lines.Add($"Conseil : {postgres.Hint}");
+            lines.Add($"Hint: {postgres.Hint}");
         return string.Join(Environment.NewLine, lines);
     }
 }

@@ -57,7 +57,7 @@ public sealed class LinqQueryExecutor
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException)
         {
-            log?.Invoke(new LogEntry(LogLevel.Error, $"Échec : {ex.Message}"));
+            log?.Invoke(new LogEntry(LogLevel.Error, $"Failure: {ex.Message}"));
             return;
         }
 
@@ -66,7 +66,7 @@ public sealed class LinqQueryExecutor
         {
             var model = await LinqContexts.GetModelAsync(_provider, schema, cancellationToken).ConfigureAwait(false);
             log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture,
-                $"Contexte {model.Model.ContextClassName} ({LinqQueryConstants.ContextAlias}) : {model.Model.EntityClassNames.Count} table(s) et vue(s).")));
+                $"Context {model.Model.ContextClassName} ({LinqQueryConstants.ContextAlias}): {model.Model.EntityClassNames.Count} table(s) and view(s).")));
 
             globals = await LinqContexts.GetParametersAsync(model, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
@@ -103,7 +103,7 @@ public sealed class LinqQueryExecutor
         }
         catch (CSharpRunAbandonedException)
         {
-            log?.Invoke(new LogEntry(LogLevel.Error, "Le code LINQ ne peut pas être interrompu : il se termine en arrière-plan et garde sa connexion ouverte jusque-là."));
+            log?.Invoke(new LogEntry(LogLevel.Error, "The LINQ code cannot be interrupted: it finishes in the background and keeps its connection open until then."));
             throw;
         }
         catch (LinqCompilationException ex)
@@ -125,7 +125,7 @@ public sealed class LinqQueryExecutor
         catch (Exception ex) when (ex is not OperationCanceledException)
 #pragma warning restore CA1031
         {
-            log?.Invoke(new LogEntry(LogLevel.Error, $"{ex.GetType().Name} : {ex.Message}", LogSource.Code));
+            log?.Invoke(new LogEntry(LogLevel.Error, $"{ex.GetType().Name}: {ex.Message}", LogSource.Code));
             return;
         }
 
@@ -136,12 +136,12 @@ public sealed class LinqQueryExecutor
         foreach (var resultSet in dumped)
         {
             // Several sets: each message says which tab it relates to.
-            var prefix = dumped.Length > 1 ? $"{resultSet.Title} : " : string.Empty;
-            log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"{prefix}({resultSet.Rows.Count} ligne(s))")));
+            var prefix = dumped.Length > 1 ? $"{resultSet.Title}: " : string.Empty;
+            log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"{prefix}({resultSet.Rows.Count} row(s))")));
         }
 
         if (dumped.Length == 0)
-            log?.Invoke(new LogEntry(LogLevel.Information, "Aucun résultat : affichez les données avec .Dump()."));
+            log?.Invoke(new LogEntry(LogLevel.Information, "No result: display the data with .Dump()."));
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public sealed class LinqQueryExecutor
         // A read only displays one set: the last Dump().
         return resultSets.Count > 0
             ? resultSets[^1]
-            : throw new InvalidOperationException("Aucun résultat : le script doit afficher les données avec .Dump().");
+            : throw new InvalidOperationException("No result: the script must display the data with .Dump().");
     }
 
     /// <summary>
@@ -258,7 +258,7 @@ public sealed class LinqQueryExecutor
             // Outside the lock: the receiver must not block the script's other writes.
             _log(entry with { Text = text.ReplaceLineEndings() });
             if (truncatesNow)
-                _log(new LogEntry(LogLevel.Error, string.Format(CultureInfo.CurrentCulture, "Sortie Log tronquée à {0:N0} caractères.", LinqExecutionConstants.MaxLogLength)));
+                _log(new LogEntry(LogLevel.Error, string.Format(CultureInfo.CurrentCulture, "Log output truncated to {0:N0} characters.", LinqExecutionConstants.MaxLogLength)));
         }
     }
 }

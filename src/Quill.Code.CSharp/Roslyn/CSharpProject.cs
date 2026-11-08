@@ -99,10 +99,10 @@ internal sealed class CSharpProject
         var (project, documentId, options) = Current();
         var source = options.SourceTransform?.Invoke(text) ?? text;
         if (source.Length != text.Length)
-            throw new InvalidOperationException("SourceTransform doit rendre un source de même longueur que le texte.");
+            throw new InvalidOperationException("SourceTransform must return a source of the same length as the text.");
 
         var document = WithTextReferences(project, options, text).GetDocument(documentId)
-            ?? throw new InvalidOperationException("Le document de l'éditeur est introuvable dans le projet.");
+            ?? throw new InvalidOperationException("The editor document cannot be found in the project.");
 
         // Encoding required to emit debug information (PDB).
         return new CSharpDocument(document.WithText(SourceText.From(source, Encoding.UTF8)), text, options);

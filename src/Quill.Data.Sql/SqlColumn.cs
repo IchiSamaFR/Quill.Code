@@ -45,7 +45,7 @@ public sealed record SqlColumn(string Name, string DataType)
                 parts.Add("PK");
             if (IsForeignKey)
                 parts.Add("FK");
-            parts.Add(IsComputed ? $"calculée, {DataType}" : DataType);
+            parts.Add(IsComputed ? $"computed, {DataType}" : DataType);
             if (IsIdentity)
                 parts.Add("identity");
             parts.Add(IsNullable ? "null" : "not null");

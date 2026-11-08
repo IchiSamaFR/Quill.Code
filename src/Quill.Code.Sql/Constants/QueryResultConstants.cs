@@ -7,5 +7,5 @@ internal static class QueryResultConstants
 
     internal const int ReadMaxBinaryBytes = 32;
 
-    internal const string UnnamedColumn = "(Aucun nom de colonne)";
+    internal const string UnnamedColumn = "(No column name)";
 }

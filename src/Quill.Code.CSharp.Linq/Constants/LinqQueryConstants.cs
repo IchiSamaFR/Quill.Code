@@ -18,7 +18,7 @@ internal static class LinqQueryConstants
     internal const string GlobalUsings = "GlobalUsings.cs";
 
     /// <summary>Document of the query in the Roslyn project.</summary>
-    internal const string QueryDocumentName = "requete.cs";
+    internal const string QueryDocumentName = "query.cs";
 
     /// <summary>Name of projects compiled without a DbContext (C# only).</summary>
     internal const string WithoutModelName = "SansConnexion";

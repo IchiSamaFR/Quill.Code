@@ -35,7 +35,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         var batches = SqlBatchSplitter.Split(script);
         if (batches.Count == 0)
         {
-            log?.Invoke(new LogEntry(LogLevel.Information, "Aucune instruction à exécuter."));
+            log?.Invoke(new LogEntry(LogLevel.Information, "No statement to run."));
             return;
         }
 
@@ -83,7 +83,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException or InvalidOperationException)
         {
-            log?.Invoke(new LogEntry(LogLevel.Error, $"Échec : {ex.Message}"));
+            log?.Invoke(new LogEntry(LogLevel.Error, $"Failure: {ex.Message}"));
         }
     }
 
@@ -119,9 +119,9 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         {
             // Unknown variable: list what was actually sent so that a mistyped name shows.
             var sent = parameters.Count == 0
-                ? "aucun"
+                ? "none"
                 : string.Join(", ", command.Parameters.Cast<SqlParameter>().Select(p => p.ParameterName));
-            throw new InvalidOperationException($"{ex.Message} Paramètres envoyés : {sent}.", ex);
+            throw new InvalidOperationException($"{ex.Message} Parameters sent: {sent}.", ex);
         }
 
         await using var _ = reader;
@@ -146,7 +146,7 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
 #pragma warning restore CA2100
         // No timeout: the user keeps control through cancellation.
         command.CommandTimeout = 0;
-        command.StatementCompleted += (_, e) => options?.Log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({e.RecordCount} ligne(s) affectée(s))")));
+        command.StatementCompleted += (_, e) => options?.Log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({e.RecordCount} row(s) affected)")));
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         do
@@ -192,8 +192,8 @@ public sealed class SqlServerQueryExecutor : ISqlQueryExecutor
         {
             // The server numbers lines from the start of the batch: realign on the script.
             var header = batchStartLine is { } start && error.LineNumber > 0
-                ? string.Create(CultureInfo.InvariantCulture, $"Msg {error.Number}, Niveau {error.Class}, État {error.State}, Ligne {start + error.LineNumber - 1}")
-                : string.Create(CultureInfo.InvariantCulture, $"Msg {error.Number}, Niveau {error.Class}, État {error.State}");
+                ? string.Create(CultureInfo.InvariantCulture, $"Msg {error.Number}, Level {error.Class}, State {error.State}, Line {start + error.LineNumber - 1}")
+                : string.Create(CultureInfo.InvariantCulture, $"Msg {error.Number}, Level {error.Class}, State {error.State}");
 
             log(new LogEntry(LogLevel.Error, $"{header}{Environment.NewLine}{error.Message}", source));
         }

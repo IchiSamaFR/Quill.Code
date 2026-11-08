@@ -16,5 +16,5 @@ internal static class LinqExecutionConstants
     internal const int MaxBinaryBytes = 64;
 
     /// <summary>Column of a Dump of simple values.</summary>
-    internal const string ScalarColumn = "Valeur";
+    internal const string ScalarColumn = "Value";
 }

@@ -7,7 +7,7 @@ public sealed class CSharpCompilationException : Exception
 {
     /// <summary>Failed compilation, with all its diagnostics (errors and warnings).</summary>
     public CSharpCompilationException(IReadOnlyList<CodeDiagnostic> diagnostics)
-        : base("Le code ne compile pas.")
+        : base("The code does not compile.")
     {
         ArgumentNullException.ThrowIfNull(diagnostics);
         Diagnostics = diagnostics;

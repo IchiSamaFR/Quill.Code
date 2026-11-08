@@ -56,7 +56,7 @@ public sealed class CSharpCompilationResult : IDisposable
     public Task<T> RunAsync<T>(Func<Assembly, T> run, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(run);
-        var assembly = Assembly ?? throw new InvalidOperationException("La compilation a échoué : rien à exécuter.");
+        var assembly = Assembly ?? throw new InvalidOperationException("Compilation failed: nothing to run.");
         cancellationToken.ThrowIfCancellationRequested();
 
         var task = Task.Run(() =>
@@ -85,7 +85,7 @@ public sealed class CSharpCompilationResult : IDisposable
     {
         var result = await RunAsync(assembly =>
         {
-            var entryPoint = assembly.EntryPoint ?? throw new InvalidOperationException("Le code compilé n'a pas de point d'entrée.");
+            var entryPoint = assembly.EntryPoint ?? throw new InvalidOperationException("The compiled code has no entry point.");
             return entryPoint.Invoke(null, entryPoint.GetParameters().Length == 0 ? null : new object?[] { args ?? Array.Empty<string>() });
         }, cancellationToken).ConfigureAwait(false);
 

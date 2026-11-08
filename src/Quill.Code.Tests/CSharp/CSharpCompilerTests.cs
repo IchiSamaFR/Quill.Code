@@ -50,7 +50,7 @@ public sealed class CSharpCompilerTests
         Assert.False(compiled.Success);
         var error = Assert.Single(compiled.Errors);
         Assert.Equal("unknown", code.Substring(error.Start, error.Length));
-        Assert.StartsWith($"Ligne 1, colonne {code.IndexOf("unknown", StringComparison.Ordinal) + 1} : CS0103 ", error.Describe(code), StringComparison.Ordinal);
+        Assert.StartsWith($"Line 1, column {code.IndexOf("unknown", StringComparison.Ordinal) + 1}: CS0103 ", error.Describe(code), StringComparison.Ordinal);
     }
 
     [Fact]

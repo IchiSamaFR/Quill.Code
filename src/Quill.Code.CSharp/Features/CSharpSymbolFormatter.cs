@@ -53,7 +53,7 @@ internal static class CSharpSymbolFormatter
     private static string? DeclaredBy(IMethodSymbol method)
     {
         var container = (method.ReducedFrom ?? method).ContainingType;
-        return container is null ? null : $"Déclarée par {container.ToDisplayString(Format)}";
+        return container is null ? null : $"Declared by {container.ToDisplayString(Format)}";
     }
 
     // [Description] set by a code generator (e.g. Querify's DbContext) on types and their members.

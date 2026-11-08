@@ -23,7 +23,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
         var batches = SplitScript(script);
         if (batches.Count == 0)
         {
-            log?.Invoke(new LogEntry(LogLevel.Information, "Aucune instruction à exécuter."));
+            log?.Invoke(new LogEntry(LogLevel.Information, "No statement to run."));
             return;
         }
 
@@ -61,7 +61,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
         }
         catch (Exception ex) when (ex is ArgumentException or FormatException or InvalidOperationException)
         {
-            log?.Invoke(new LogEntry(LogLevel.Error, $"Échec : {ex.Message}"));
+            log?.Invoke(new LogEntry(LogLevel.Error, $"Failure: {ex.Message}"));
         }
     }
 
@@ -171,7 +171,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
 
         // Batch total, known once all sets have been read; -1 for a lone SELECT.
         if (reader.RecordsAffected >= 0)
-            options?.Log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({reader.RecordsAffected} ligne(s) affectée(s))")));
+            options?.Log?.Invoke(new LogEntry(LogLevel.Information, string.Create(CultureInfo.InvariantCulture, $"({reader.RecordsAffected} row(s) affected)")));
 
         return resultSetCount;
     }
@@ -194,7 +194,7 @@ public abstract class DbQueryExecutor : ISqlQueryExecutor
 
         var message = FormatError(exception);
         var text = batchStartLine is { } line
-            ? string.Create(CultureInfo.InvariantCulture, $"Instruction ligne {line}{Environment.NewLine}{message}")
+            ? string.Create(CultureInfo.InvariantCulture, $"Statement at line {line}{Environment.NewLine}{message}")
             : message;
 
         log(new LogEntry(LogLevel.Error, text, source));

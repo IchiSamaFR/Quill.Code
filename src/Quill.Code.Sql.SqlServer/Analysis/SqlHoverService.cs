@@ -98,9 +98,9 @@ internal sealed class SqlHoverService : ICodeHover
                         return DescribeObject(direct, null);
 
                     if (current is not null && current.HasSchema(name))
-                        return ($"(schéma) {name}", $"Base {current.Name}");
+                        return ($"(schema) {name}", $"Database {current.Name}");
 
-                    return await _catalog.IsDatabaseAsync(name, cancellationToken).ConfigureAwait(false) ? ($"(base de données) {name}", null) : null;
+                    return await _catalog.IsDatabaseAsync(name, cancellationToken).ConfigureAwait(false) ? ($"(database) {name}", null) : null;
                 }
 
             case 1:
@@ -118,7 +118,7 @@ internal sealed class SqlHoverService : ICodeHover
 
                     if (await _catalog.IsDatabaseAsync(owner, cancellationToken).ConfigureAwait(false)
                         && (await _catalog.GetDatabaseAsync(owner, cancellationToken).ConfigureAwait(false))?.HasSchema(name) == true)
-                        return ($"(schéma) {owner}.{name}", $"Base {owner}");
+                        return ($"(schema) {owner}.{name}", $"Database {owner}");
 
                     return null;
                 }
@@ -160,11 +160,11 @@ internal sealed class SqlHoverService : ICodeHover
     {
         var description = new StringBuilder(table.QualifiedName);
         if (column.IsPrimaryKey)
-            description.Append(" · clé primaire");
+            description.Append(" · primary key");
         if (alsoIn.Count > 0)
-            description.Append("\nAussi dans : ").AppendJoin(", ", alsoIn);
+            description.Append("\nAlso in: ").AppendJoin(", ", alsoIn);
 
-        return ($"(colonne) {column.Name} {column.DataType} {(column.IsNullable ? "NULL" : "NOT NULL")}", description.ToString());
+        return ($"(column) {column.Name} {column.DataType} {(column.IsNullable ? "NULL" : "NOT NULL")}", description.ToString());
     }
 
     /// <summary>E.g. "(table) dbo.Users", then its first columns with their type.</summary>
@@ -172,8 +172,8 @@ internal sealed class SqlHoverService : ICodeHover
     {
         var kind = source.Kind switch
         {
-            SqlSchemaObjectKind.View => "vue",
-            SqlSchemaObjectKind.Procedure => "procédure",
+            SqlSchemaObjectKind.View => "view",
+            SqlSchemaObjectKind.Procedure => "procedure",
             _ => "table",
         };
 
@@ -186,10 +186,10 @@ internal sealed class SqlHoverService : ICodeHover
 
         var description = string.Join('\n', source.Columns
             .Take(SqlAnalysisConstants.HoverMaxListedColumns)
-            .Select(c => $"{c.Name} {c.DataType}{(c.IsPrimaryKey ? " · clé" : string.Empty)}"));
+            .Select(c => $"{c.Name} {c.DataType}{(c.IsPrimaryKey ? " · key" : string.Empty)}"));
 
         if (source.Columns.Count > SqlAnalysisConstants.HoverMaxListedColumns)
-            description += $"\n… et {source.Columns.Count - SqlAnalysisConstants.HoverMaxListedColumns} autre(s)";
+            description += $"\n… and {source.Columns.Count - SqlAnalysisConstants.HoverMaxListedColumns} more";
 
         return (signature, description);
     }
@@ -202,7 +202,7 @@ internal sealed class SqlHoverService : ICodeHover
 
         var variable = _options.Variables.FirstOrDefault(v => string.Equals(v.Reference, "@" + name.TrimStart('@'), StringComparison.OrdinalIgnoreCase));
         if (variable is not null)
-            return new HoverInfo(token.Start, token.Length, $"(paramètre) {name} {variable.Type}", variable.Description);
+            return new HoverInfo(token.Start, token.Length, $"(parameter) {name} {variable.Type}", variable.Description);
 
         return FindDeclaredType(text, tokens, name) is { } type
             ? new HoverInfo(token.Start, token.Length, $"(variable) {name} {type}", null)

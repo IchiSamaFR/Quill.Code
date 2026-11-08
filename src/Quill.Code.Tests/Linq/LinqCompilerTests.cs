@@ -219,14 +219,14 @@ public class LinqCompilerTests
         List<(object? Value, string? Title)> dumps = [];
         using var context = LinqCompiler.CreateContext(Model.Value, ConnectionString);
         await LinqCompiler.RunAsync(TestLinq.Globals(Model.Value), """
-            Db.AspNetUsers.Dump("Utilisateurs");
+            Db.AspNetUsers.Dump("Users");
             var total = 40.Dump();
             (total + 2).Dump();
             """, context, (value, title) => dumps.Add((value, title)));
 
         Assert.Equal(3, dumps.Count);
         Assert.IsAssignableFrom<IQueryable>(dumps[0].Value);
-        Assert.Equal("Utilisateurs", dumps[0].Title);
+        Assert.Equal("Users", dumps[0].Title);
         Assert.Equal(40, dumps[1].Value);
         Assert.Null(dumps[1].Title);
         Assert.Equal(42, dumps[2].Value);

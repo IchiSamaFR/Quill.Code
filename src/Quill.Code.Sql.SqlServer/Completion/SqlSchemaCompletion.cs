@@ -46,7 +46,7 @@ internal sealed class SqlSchemaCompletion
                 Label = d.Name,
                 Kind = CompletionItemKind.Database,
                 InsertText = SqlKeywords.Quote(d.Name),
-                Detail = d.IsSystem ? "système" : null,
+                Detail = d.IsSystem ? "system" : null,
             })
             .ToArray();
 

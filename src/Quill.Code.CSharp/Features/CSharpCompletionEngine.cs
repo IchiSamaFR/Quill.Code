@@ -38,7 +38,7 @@ internal static class CSharpCompletionEngine
     public static async Task<CompletionChange> GetChangeAsync(CSharpDocument document, CompletionItem item, CancellationToken cancellationToken)
     {
         if (item.Data is not RoslynCompletion.CompletionItem roslynItem)
-            throw new ArgumentException("La proposition ne vient pas de l'autocomplétion C#.", nameof(item));
+            throw new ArgumentException("The suggestion does not come from C# completion.", nameof(item));
 
         if (RoslynCompletion.CompletionService.GetService(document.Document) is not { } service)
             return Replace(document, roslynItem.Span, item.TextToInsert);

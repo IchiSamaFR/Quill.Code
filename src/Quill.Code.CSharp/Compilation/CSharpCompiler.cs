@@ -13,7 +13,7 @@ internal static class CSharpCompiler
     public static async Task<CSharpCompilationResult> CompileAsync(CSharpDocument document, CSharpCompileOptions options, CancellationToken cancellationToken)
     {
         var compilation = await document.Document.Project.GetCompilationAsync(cancellationToken)
-            ?? throw new InvalidOperationException("Roslyn n'a pas produit de compilation pour le projet.");
+            ?? throw new InvalidOperationException("Roslyn produced no compilation for the project.");
 
         // Unique name: each compilation is loaded into its own context.
         var name = options.AssemblyName ?? $"{compilation.AssemblyName}_{Guid.NewGuid():N}";
@@ -69,6 +69,6 @@ internal static class CSharpCompiler
     private static string Describe(Diagnostic diagnostic)
     {
         var position = diagnostic.Location.GetLineSpan().StartLinePosition;
-        return $"{Path.GetFileName(diagnostic.Location.SourceTree!.FilePath)} ({position.Line + 1}, {position.Character + 1}) : {diagnostic.GetMessage(CultureInfo.CurrentUICulture)}";
+        return $"{Path.GetFileName(diagnostic.Location.SourceTree!.FilePath)} ({position.Line + 1}, {position.Character + 1}): {diagnostic.GetMessage(CultureInfo.CurrentUICulture)}";
     }
 }

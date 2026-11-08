@@ -60,7 +60,7 @@ What is specific to an application stays in the application: Querify's connectio
 
 ## Comments and language
 
-* Everything in English: type and member names, XML documentation, code comments, README, CHANGELOG and commit messages.
+* Everything in English: type and member names, XML documentation, code comments, runtime messages (logs, exceptions, hover and result labels), README, CHANGELOG and commit messages.
 * `/// <summary>` on every public member (documentation embedded in the package).
 * Concise comments: the **why**, never the what.
 

@@ -56,6 +56,6 @@ public sealed class MySqlQueryExecutor : DbQueryExecutor
     /// <inheritdoc/>
     protected override string FormatError(DbException exception)
         => exception is MySqlException mySql
-            ? string.Create(CultureInfo.InvariantCulture, $"Erreur {mySql.Number} ({mySql.SqlState}){Environment.NewLine}{mySql.Message}")
+            ? string.Create(CultureInfo.InvariantCulture, $"Error {mySql.Number} ({mySql.SqlState}){Environment.NewLine}{mySql.Message}")
             : base.FormatError(exception);
 }

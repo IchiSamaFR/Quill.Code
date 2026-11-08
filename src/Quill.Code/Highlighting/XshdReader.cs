@@ -43,13 +43,13 @@ public static class XshdReader
     {
         ArgumentNullException.ThrowIfNull(document);
 
-        var root = document.Root ?? throw new FormatException("Définition de coloration vide.");
+        var root = document.Root ?? throw new FormatException("Empty highlighting definition.");
         var colors = ReadColors(root);
         var properties = ReadProperties(root);
 
         // The main RuleSet is the one without a name.
         var ruleSet = root.Elements(Xshd + "RuleSet").FirstOrDefault(e => e.Attribute("name") is null)
-            ?? throw new FormatException("Définition de coloration sans RuleSet principal.");
+            ?? throw new FormatException("Highlighting definition without a main RuleSet.");
 
         var options = RegexOptions.CultureInvariant;
         if ((bool?)ruleSet.Attribute("ignoreCase") == true)
@@ -88,7 +88,7 @@ public static class XshdReader
         {
             var name = (string?)element.Attribute("name");
             if (string.IsNullOrEmpty(name))
-                throw new FormatException("Couleur sans attribut « name ».");
+                throw new FormatException("Color without a \"name\" attribute.");
 
             colors[name] = ReadColor(element, name);
         }
@@ -119,7 +119,7 @@ public static class XshdReader
         {
             return colors.TryGetValue(name, out var color)
                 ? color
-                : throw new FormatException($"Couleur « {name} » non déclarée.");
+                : throw new FormatException($"Color \"{name}\" is not declared.");
         }
 
         return element.Attribute("foreground") is null && element.Attribute("fontWeight") is null && element.Attribute("fontStyle") is null
@@ -131,7 +131,7 @@ public static class XshdReader
     {
         var begin = (element.Element(Xshd + "Begin")?.Value ?? (string?)element.Attribute("begin"))?.Trim();
         if (string.IsNullOrEmpty(begin))
-            throw new FormatException("Span sans début.");
+            throw new FormatException("Span without a begin.");
 
         var end = (element.Element(Xshd + "End")?.Value ?? (string?)element.Attribute("end"))?.Trim();
 

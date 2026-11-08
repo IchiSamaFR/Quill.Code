@@ -22,7 +22,7 @@ public sealed class CSharpScriptRuntimeTests
         using var compiled = await service.CompileAsync("""
             Log.Information("a");
             Log.Write(LogLevel.Warning, 42);
-            Log.Write(LogLevel.None, "ignoré");
+            Log.Write(LogLevel.None, "ignored");
             return 3;
             """, new CSharpCompileOptions { Log = e => logs.Add((e.Level, e.Text)) });
 
@@ -67,7 +67,7 @@ public sealed class CSharpScriptRuntimeTests
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => service.RunAsync("throw new System.InvalidOperationException(\"boum\");"));
 
-        Assert.Equal("boum", exception.Message);
+        Assert.Equal("boom", exception.Message);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public sealed class CSharpScriptRuntimeTests
         using var compiled = await service.CompileAsync("throw new System.InvalidOperationException(\"boum\");");
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => compiled.RunEntryPointAsync());
-        Assert.Equal("boum", exception.Message);
+        Assert.Equal("boom", exception.Message);
     }
 
     [Fact]

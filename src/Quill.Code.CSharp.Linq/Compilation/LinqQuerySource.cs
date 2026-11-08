@@ -15,7 +15,7 @@ namespace Quill.Code.CSharp.Linq.Compilation;
 /// C# frame of LINQ queries (stateless): usings and context alias, globals (context and parameters), references
 /// and compilation options. Shared by the editor and the execution.
 /// </summary>
-[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Compilation en memoire : reflexion assumee, pas de publication trimmed.")]
+[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "In-memory compilation: reflection is intended, no trimmed publishing.")]
 internal static class LinqQuerySource
 {
     private static readonly Dictionary<Type, string> TypeKeywords = new()
@@ -124,7 +124,7 @@ internal static class LinqQuerySource
         }
         catch (Exception ex) when (ex is InvalidCastException or FormatException or OverflowException or ArgumentException)
         {
-            throw new ArgumentException($"Parametre « {name} » : la valeur « {parameter.Value} » ne convient pas au type {type.Name}.", nameof(parameter), ex);
+            throw new ArgumentException($"Parameter \"{name}\": the value \"{parameter.Value}\" does not fit the type {type.Name}.", nameof(parameter), ex);
         }
     }
 

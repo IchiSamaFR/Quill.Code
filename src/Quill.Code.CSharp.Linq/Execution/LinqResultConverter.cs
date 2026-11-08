@@ -9,11 +9,11 @@ using System.Reflection;
 namespace Quill.Code.CSharp.Linq.Execution;
 
 /// <summary>Values displayed by Dump() converted to result sets (grid): objects, scalars, dictionaries, EF queries.</summary>
-[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "Compilation en memoire, sans trimming : reflexion sur les resultats assumee.")]
-[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Compilation en memoire, sans AOT : reflexion sur les resultats assumee.")]
+[UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "In-memory compilation, no trimming: reflection on results is intended.")]
+[UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "In-memory compilation, no trimming: reflection on results is intended.")]
+[UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "In-memory compilation, no trimming: reflection on results is intended.")]
+[UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "In-memory compilation, no trimming: reflection on results is intended.")]
+[UnconditionalSuppressMessage("AOT", "IL3050", Justification = "In-memory compilation, no AOT: reflection on results is intended.")]
 internal static class LinqResultConverter
 {
     private static readonly MethodInfo QueryableTake = typeof(Queryable).GetMethods()
@@ -192,7 +192,7 @@ internal static class LinqResultConverter
         byte[] bytes => "0x" + Convert.ToHexString(bytes, 0, Math.Min(bytes.Length, LinqExecutionConstants.MaxBinaryBytes)) + (bytes.Length > LinqExecutionConstants.MaxBinaryBytes ? "…" : string.Empty),
         IFormattable f => f.ToString(null, CultureInfo.InvariantCulture),
         // Nested collection (Select(u => u.Roles)...): its size is given rather than the type name.
-        IEnumerable e => $"({e.Cast<object?>().Count()} élément(s))",
+        IEnumerable e => $"({e.Cast<object?>().Count()} item(s))",
         _ => value.ToString(),
     };
 }
