@@ -1,4 +1,4 @@
-﻿# Supprimer la ligne ci-dessous si vous voulez hériter les paramètres .editorconfig des répertoires supérieurs
+﻿# Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
 [*]
@@ -36,7 +36,7 @@ csharp_style_var_when_type_is_apparent = true:silent
 csharp_prefer_braces = when_multiline:silent
 dotnet_style_readonly_field = true:suggestion
 
-# ----- Nommage (suggestions : visibles dans l'IDE, sans casser le build) -----
+# ----- Naming (suggestions: visible in the IDE, without breaking the build) -----
 # Constantes et champs statiques en lecture seule : PascalCase
 dotnet_naming_symbols.constants.applicable_kinds = field
 dotnet_naming_symbols.constants.required_modifiers = const

@@ -5,6 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions [SemV
 ## [Unreleased]
 
 ### Added
+- SQL dialects: `SqlDialect` (`Quill.Code.Sql.Dialects`) describes what varies from one engine to another — identifier delimiters (`[name]`, `` `name` ``, `"name"`) and casing, parameter prefix (`@name`, `:name`), reading the first rows (`TOP`, `LIMIT`, `FETCH FIRST n ROWS ONLY`), qualified object name, keywords, types, functions and phrases. One per engine: `SqlServerDialect`, `MySqlDialect`, `PostgreSqlDialect`, `OracleDialect`, `SqliteDialect` (`.Instance`), shared words in `SqlStandardKeywords`. `SqlLanguageOptions.Dialect` (T-SQL by default) hands it to `SqlLanguageService`: suggested words, delimited identifiers, parameters, lexer (backticks, `#`, `$$`, `:name`) and context analysis (`GO`, `USE`, `EXEC` / `CALL`, `LIMIT` never taken for an alias) follow it. `SqlLexer.Tokenize`, `SqlContextAnalyzer.Analyze` and `AnalyzeScope` take the dialect as an optional last parameter.
 - `Quill.Code.CSharp.Linq` separated from the engine: it now only depends on EF Core Relational; the engine is an `ILinqDatabaseProvider` (column types, provider assemblies, connection string, `Configure` of the context) passed to `LinqLanguageOptions.Provider` and to `LinqQueryExecutor(provider)` (instead of `applicationName`). `Quill.Code.CSharp.Linq.SqlServer`: `SqlServerLinqProvider(applicationName)`.
 - `Quill.Code.CSharp.Linq` (net10.0, EF Core), taken from `Querify.Languages.Linq`: LINQ / EF queries on a DbContext generated from a `SqlDatabaseSchema`. `LinqLanguageService(LinqLanguageOptions)` for the editor (structure read again on each request, parameters as variables); `LinqQueryExecutor` on the contract of `SqlServerQueryExecutor`: `RunAsync` with no return value (Dump through `Data`, generated SQL, `Log.*` and errors through `Log`, cancellation thrown), `ReadAsync` returns the last Dump and throws its errors. Generation, compilation and caches are internal.
 
@@ -21,6 +22,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions [SemV
 - `ICodeLanguageProvider` becomes `ICodeLanguageService`.
 
 ### Removed
+- `SqlVariable.Reference`: the name is written with the dialect's prefix (`SqlDialect.FormatParameter`).
 - `CSharpWorkspace`, `CSharpCompletionService`, `CSharpDiagnosticService`, `CSharpHoverService`, `CSharpSignatureService`, `CSharpSource`, `CSharpLanguageOptions.AllowImports`; `CSharpProject`, `CSharpDocument` and `CSharpDiagnosticMapper` become internal.
 - `ICodeCompilation` (empty) and `CodeLanguageServiceProvider` (unused static registry).
 

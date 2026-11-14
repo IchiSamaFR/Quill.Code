@@ -1,4 +1,5 @@
-﻿using Quill.Code.Sql.SqlServer.Completion;
+﻿using Quill.Code.Sql.Dialects;
+using Quill.Code.Sql.SqlServer.Completion;
 using Quill.Data.Sql;
 
 namespace Quill.Code.Sql.SqlServer.Schema;
@@ -10,10 +11,12 @@ namespace Quill.Code.Sql.SqlServer.Schema;
 internal sealed class SqlCatalogReader
 {
     private readonly ISqlCatalog? _catalog;
+    private readonly SqlDialect _dialect;
 
-    public SqlCatalogReader(ISqlCatalog? catalog)
+    public SqlCatalogReader(ISqlCatalog? catalog, SqlDialect dialect)
     {
         _catalog = catalog;
+        _dialect = dialect;
     }
 
     public bool IsAvailable => _catalog is not null;
@@ -59,6 +62,14 @@ internal sealed class SqlCatalogReader
             return null;
 
         var database = await GetDatabaseAsync(table.Database ?? scope.Database, cancellationToken).ConfigureAwait(false);
-        return database?.Find(table.Schema, table.Name);
+        if (database?.Find(table.Schema, table.Name) is { } found)
+            return found;
+
+        // MySQL, SQLite: "other_db.table", the qualifier is the database.
+        if (!_dialect.SchemaIsDatabase || table.Schema is null || table.Database is not null
+            || !await IsDatabaseAsync(table.Schema, cancellationToken).ConfigureAwait(false))
+            return null;
+
+        return (await GetDatabaseAsync(table.Schema, cancellationToken).ConfigureAwait(false))?.Find(null, table.Name);
     }
 }

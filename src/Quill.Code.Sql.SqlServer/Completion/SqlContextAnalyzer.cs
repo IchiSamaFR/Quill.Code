@@ -1,12 +1,14 @@
-﻿using Quill.Code.Sql.SqlServer.Lexing;
+﻿using Quill.Code.Sql.Dialects;
+using Quill.Code.Sql.SqlServer.Lexing;
 using System.Text.RegularExpressions;
 
 namespace Quill.Code.Sql.SqlServer.Completion;
 
 /// <summary>
-/// Guesses what T-SQL expects at the caret, without a real parser: previous token first,
-/// then nearest clause keyword at the same parenthesis level. The analysis is limited
-/// to the current batch (delimited by GO), like the execution.
+/// Guesses what the SQL expects at the caret, without a real parser: previous token first,
+/// then the nearest clause keyword at the same parenthesis level. The analysis is limited
+/// to the current batch (delimited by GO in T-SQL), like execution. What varies from one engine
+/// to another (delimiters, parameters, USE, EXEC / CALL) comes from the dialect, T-SQL by default.
 /// </summary>
 public static partial class SqlContextAnalyzer
 {
@@ -16,7 +18,7 @@ public static partial class SqlContextAnalyzer
         "FROM", "JOIN", "UPDATE", "INTO", "TABLE", "MERGE", "USING", "APPLY"
     };
 
-    /// <summary>Sources where an alias can follow the table name.</summary>
+    /// <summary>Sources where an alias may follow the table name.</summary>
     private static readonly HashSet<string> AliasedSources = new(StringComparer.OrdinalIgnoreCase)
     {
         "FROM", "JOIN", "MERGE", "USING", "APPLY"
@@ -28,7 +30,7 @@ public static partial class SqlContextAnalyzer
         "SELECT", "WHERE", "ON", "HAVING", "BY", "SET", "VALUES", "OUTPUT", "IF", "WHILE", "RETURN", "PRINT"
     };
 
-    /// <summary>Clauses opening a new statement.</summary>
+    /// <summary>Clauses that start a new statement.</summary>
     private static readonly HashSet<string> StatementClauses = new(StringComparer.OrdinalIgnoreCase)
     {
         "UNION", "EXCEPT", "INTERSECT", "BEGIN", "END", "DECLARE", "EXEC", "EXECUTE"
@@ -48,41 +50,43 @@ public static partial class SqlContextAnalyzer
 
     private static readonly HashSet<string> ConvertFunctions = new(StringComparer.OrdinalIgnoreCase) { "CONVERT", "TRY_CONVERT" };
 
-    /// <summary>Rest of the line after GO: a repetition count and a comment, nothing else.</summary>
+    /// <summary>Rest of the line after GO: a repeat count and a comment, nothing else.</summary>
     [GeneratedRegex(@"^[ \t]*\d*[ \t]*(?:--.*)?\r?$", RegexOptions.CultureInvariant)]
     private static partial Regex GoLineTailRegex();
 
     /// <summary>Analyzes the text around <paramref name="caret"/>.</summary>
     /// <param name="text">Full editor text.</param>
     /// <param name="caret">Caret position.</param>
-    /// <param name="database">Database imposed by the caller (dashboard…), if the text does not choose one with USE.</param>
-    public static SqlContext Analyze(string text, int caret, string? database = null)
+    /// <param name="database">Database imposed by the caller (dashboard…), if the text does not pick one through USE.</param>
+    /// <param name="dialect">Dialect of the text; T-SQL by default.</param>
+    public static SqlContext Analyze(string text, int caret, string? database = null, SqlDialect? dialect = null)
     {
         ArgumentNullException.ThrowIfNull(text);
+        dialect ??= SqlServerDialect.Instance;
 
         caret = Math.Clamp(caret, 0, text.Length);
         var wordStart = FindWordStart(text, caret);
-        var all = SqlLexer.Tokenize(text);
+        var all = SqlLexer.Tokenize(text, dialect);
 
-        if (all.Any(token => IsCaretInside(token, caret)) || (wordStart < caret && text[wordStart] == '@'))
+        if (all.Any(token => IsCaretInside(token, caret)) || IsVariableWord(text, wordStart, caret, dialect))
             return SqlContext.None;
 
-        var (batchStart, batchEnd) = FindBatch(text, all, caret);
+        var (batchStart, batchEnd) = FindBatch(text, all, caret, dialect);
         var tokens = all.Where(t => !t.IsComment && t.Start >= batchStart && t.End <= batchEnd).ToArray();
 
         // Tokens strictly before the word being typed.
         var index = tokens.Count(t => t.End <= wordStart);
 
-        var (kind, qualifier) = DetermineKind(text, tokens, index, wordStart);
+        var (kind, qualifier) = DetermineKind(text, tokens, index, wordStart, dialect);
         if (kind == SqlContextKind.None)
             return SqlContext.None;
 
-        // The qualifier's first word is analyzed as if it were being typed.
+        // The first word of the qualifier is analyzed as if it were being typed.
         var parentKind = SqlContextKind.General;
         if (kind == SqlContextKind.MemberAccess)
         {
             var first = index - (2 * qualifier.Count);
-            parentKind = DetermineKind(text, tokens, first, tokens[first].Start).Kind;
+            parentKind = DetermineKind(text, tokens, first, tokens[first].Start, dialect).Kind;
         }
 
         return new SqlContext
@@ -90,9 +94,9 @@ public static partial class SqlContextAnalyzer
             Kind = kind,
             Qualifier = qualifier,
             MemberParentKind = parentKind,
-            Tables = ParseTables(text, tokens).OrderBy(t => Math.Abs(t.Offset - caret)).ToArray(),
+            Tables = ParseTables(text, tokens, dialect).OrderBy(t => Math.Abs(t.Offset - caret)).ToArray(),
             // A USE in the text wins over the database imposed by the caller (dashboard).
-            Database = FindDatabase(text, all, caret) ?? (string.IsNullOrWhiteSpace(database) ? null : database)
+            Database = FindDatabase(text, all, caret, dialect) ?? (string.IsNullOrWhiteSpace(database) ? null : database)
         };
     }
 
@@ -100,19 +104,20 @@ public static partial class SqlContextAnalyzer
     /// Tables and database of the batch containing <paramref name="offset"/>, without guessing what is expected:
     /// the tooltip needs them on an already written name, where <see cref="Analyze"/> suggests nothing.
     /// </summary>
-    public static SqlContext AnalyzeScope(string text, int offset, string? database)
+    public static SqlContext AnalyzeScope(string text, int offset, string? database, SqlDialect? dialect = null)
     {
         ArgumentNullException.ThrowIfNull(text);
+        dialect ??= SqlServerDialect.Instance;
 
-        var all = SqlLexer.Tokenize(text);
-        var (batchStart, batchEnd) = FindBatch(text, all, offset);
+        var all = SqlLexer.Tokenize(text, dialect);
+        var (batchStart, batchEnd) = FindBatch(text, all, offset, dialect);
         var tokens = all.Where(t => !t.IsComment && t.Start >= batchStart && t.End <= batchEnd).ToArray();
 
         return new SqlContext
         {
             Kind = SqlContextKind.General,
-            Tables = ParseTables(text, tokens).OrderBy(t => Math.Abs(t.Offset - offset)).ToArray(),
-            Database = FindDatabase(text, all, offset) ?? (string.IsNullOrWhiteSpace(database) ? null : database)
+            Tables = ParseTables(text, tokens, dialect).OrderBy(t => Math.Abs(t.Offset - offset)).ToArray(),
+            Database = FindDatabase(text, all, offset, dialect) ?? (string.IsNullOrWhiteSpace(database) ? null : database)
         };
     }
 
@@ -128,6 +133,20 @@ public static partial class SqlContextAnalyzer
 
     private static bool IsIdentifierChar(char c) => char.IsLetterOrDigit(c) || c is '_' or '@' or '#' or '$';
 
+    /// <summary>
+    /// True if the word being typed is a variable or a parameter: it starts with <c>@</c>, or follows the dialect's
+    /// <c>:</c> (Oracle), which is not part of the word ("::" and the time of a literal excluded).
+    /// </summary>
+    internal static bool IsVariableWord(string text, int wordStart, int caret, SqlDialect dialect)
+    {
+        if (wordStart < caret && text[wordStart] == '@')
+            return true;
+
+        return dialect.ParameterPrefix == ':' && wordStart > 0 && text[wordStart - 1] == ':'
+            && (wordStart < 2 || text[wordStart - 2] != ':')
+            && (wordStart == caret || !char.IsDigit(text[wordStart]));
+    }
+
     // ---------- Caret position ----------
 
     private static bool IsCaretInside(SqlToken token, int caret)
@@ -138,13 +157,15 @@ public static partial class SqlContextAnalyzer
         return token.Start < caret && (caret < token.End || (caret == token.End && !token.IsTerminated));
     }
 
-    /// <summary>Bounds of the batch containing the caret: between the GO lines around it.</summary>
-    private static (int Start, int End) FindBatch(string text, IReadOnlyList<SqlToken> tokens, int caret)
+    /// <summary>Bounds of the batch containing the caret: between the surrounding GO lines.</summary>
+    private static (int Start, int End) FindBatch(string text, IReadOnlyList<SqlToken> tokens, int caret, SqlDialect dialect)
     {
         var start = 0;
         var end = text.Length;
+        if (dialect.BatchSeparator is not { } separator)
+            return (start, end);
 
-        foreach (var token in tokens.Where(t => t.IsWord(text, "GO") && IsGoLine(text, t)))
+        foreach (var token in tokens.Where(t => t.IsWord(text, separator) && IsGoLine(text, t)))
         {
             if (token.End <= caret)
                 start = token.End;
@@ -170,7 +191,7 @@ public static partial class SqlContextAnalyzer
 
     // ---------- Expected kind ----------
 
-    private static (SqlContextKind Kind, IReadOnlyList<string> Qualifier) DetermineKind(string text, SqlToken[] tokens, int index, int wordStart)
+    private static (SqlContextKind Kind, IReadOnlyList<string> Qualifier) DetermineKind(string text, SqlToken[] tokens, int index, int wordStart, SqlDialect dialect)
     {
         if (index == 0)
             return (SqlContextKind.General, []);
@@ -190,13 +211,13 @@ public static partial class SqlContextAnalyzer
         {
             var word = previous.GetText(text);
 
-            if (word.Equals("USE", StringComparison.OrdinalIgnoreCase))
+            if (dialect.HasUseStatement && word.Equals("USE", StringComparison.OrdinalIgnoreCase))
                 return (SqlContextKind.Database, []);
 
             if (TableSourceKeywords.Contains(word))
                 return (SqlContextKind.TableSource, []);
 
-            if (word.Equals("EXEC", StringComparison.OrdinalIgnoreCase) || word.Equals("EXECUTE", StringComparison.OrdinalIgnoreCase))
+            if (dialect.ProcedureKeywords.Contains(word, StringComparer.OrdinalIgnoreCase))
                 return (SqlContextKind.Procedure, []);
 
             if (word.Equals("AS", StringComparison.OrdinalIgnoreCase))
@@ -270,7 +291,7 @@ public static partial class SqlContextAnalyzer
         if (previous.Kind == SqlTokenKind.Comma)
             return isInsideParen ? SqlContextKind.Column : SqlContextKind.TableSource;
 
-        // UPDATE t | and INTO t | do not accept an alias: SET, VALUES... are expected there.
+        // UPDATE t | and INTO t | accept no alias: SET, VALUES... are expected there.
         var isNameEnd = IsName(previous) || previous.Kind == SqlTokenKind.CloseParen;
         if (isNameEnd && AliasedSources.Contains(clause)
             && IsTableNamePosition(text, tokens, index - 1) && !ContainsNewLine(text, previous.End, wordStart))
@@ -362,7 +383,7 @@ public static partial class SqlContextAnalyzer
     // ---------- Tables and database ----------
 
     /// <summary>Tables after FROM, JOIN, UPDATE, INTO, MERGE, USING, APPLY, and after the commas of a FROM.</summary>
-    private static List<SqlTableReference> ParseTables(string text, SqlToken[] tokens)
+    private static List<SqlTableReference> ParseTables(string text, SqlToken[] tokens, SqlDialect dialect)
     {
         List<SqlTableReference> tables = [];
 
@@ -374,7 +395,7 @@ public static partial class SqlContextAnalyzer
             var isFrom = tokens[i].IsWord(text, "FROM");
             var next = i + 1;
 
-            while (TryParseTable(text, tokens, next, out var table, out next))
+            while (TryParseTable(text, tokens, next, dialect, out var table, out next))
             {
                 if (table is not null)
                     tables.Add(table);
@@ -394,7 +415,7 @@ public static partial class SqlContextAnalyzer
     /// Reads "[db.][schema.]name [(args)] [AS] [alias] [WITH (hints)]"; a subquery
     /// (SELECT ...) alias is skipped without producing a table.
     /// </summary>
-    private static bool TryParseTable(string text, SqlToken[] tokens, int start, out SqlTableReference? table, out int next)
+    private static bool TryParseTable(string text, SqlToken[] tokens, int start, SqlDialect dialect, out SqlTableReference? table, out int next)
     {
         table = null;
         next = start;
@@ -411,7 +432,7 @@ public static partial class SqlContextAnalyzer
         }
         else
         {
-            while (next < tokens.Length && IsName(tokens[next]) && !IsWordIn(text, tokens[next], ReservedWords))
+            while (next < tokens.Length && IsName(tokens[next]) && !IsReserved(text, tokens[next], dialect))
             {
                 parts.Add(Unquote(tokens[next].GetText(text)));
                 next++;
@@ -425,7 +446,7 @@ public static partial class SqlContextAnalyzer
             if (parts.Count == 0)
                 return false;
 
-            // Table function: dbo.fn(@x) alias.
+            // Table-valued function: dbo.fn(@x) alias.
             if (next < tokens.Length && tokens[next].Kind == SqlTokenKind.OpenParen)
                 next = SkipParens(tokens, next);
         }
@@ -434,7 +455,7 @@ public static partial class SqlContextAnalyzer
             next++;
 
         string? alias = null;
-        if (next < tokens.Length && IsName(tokens[next]) && !IsWordIn(text, tokens[next], ReservedWords))
+        if (next < tokens.Length && IsName(tokens[next]) && !IsReserved(text, tokens[next], dialect))
         {
             alias = Unquote(tokens[next].GetText(text));
             next++;
@@ -455,8 +476,11 @@ public static partial class SqlContextAnalyzer
     }
 
     /// <summary>Last USE before the caret, across all batches.</summary>
-    private static string? FindDatabase(string text, IReadOnlyList<SqlToken> tokens, int caret)
+    private static string? FindDatabase(string text, IReadOnlyList<SqlToken> tokens, int caret, SqlDialect dialect)
     {
+        if (!dialect.HasUseStatement)
+            return null;
+
         string? database = null;
         SqlToken? previous = null;
 
@@ -492,12 +516,22 @@ public static partial class SqlContextAnalyzer
     private static bool IsWordIn(string text, SqlToken token, HashSet<string> words)
         => token.Kind == SqlTokenKind.Word && words.Contains(token.GetText(text));
 
+    /// <summary>Word that cannot be a table name or alias, dialect-specific clauses included (LIMIT, FETCH...).</summary>
+    private static bool IsReserved(string text, SqlToken token, SqlDialect dialect)
+    {
+        if (token.Kind != SqlTokenKind.Word)
+            return false;
+
+        var word = token.GetText(text);
+        return ReservedWords.Contains(word) || dialect.ClauseKeywords.Contains(word, StringComparer.OrdinalIgnoreCase);
+    }
+
     private static bool ContainsNewLine(string text, int start, int end)
         => end > start && text.AsSpan(start, end - start).Contains('\n');
 
     private static string? NullIfEmpty(string value) => value.Length == 0 ? null : value;
 
-    /// <summary>[My Table] -> My Table, "x""y" -> x"y.</summary>
+    /// <summary>[My Table] -> My Table, "x""y" -> x"y, `x` -> x.</summary>
     public static string Unquote(string name)
     {
         if (name.Length >= 2 && name[0] == '[')
@@ -505,6 +539,9 @@ public static partial class SqlContextAnalyzer
 
         if (name.Length >= 2 && name[0] == '"')
             return name[1..(name[^1] == '"' ? ^1 : ^0)].Replace("\"\"", "\"", StringComparison.Ordinal);
+
+        if (name.Length >= 2 && name[0] == '`')
+            return name[1..(name[^1] == '`' ? ^1 : ^0)].Replace("``", "`", StringComparison.Ordinal);
 
         return name;
     }

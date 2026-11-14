@@ -1,4 +1,5 @@
 ﻿using Quill.Code.Completion;
+using Quill.Code.Sql.Dialects;
 using Quill.Code.Sql.SqlServer.Schema;
 using Quill.Data.Sql;
 
@@ -15,10 +16,12 @@ internal sealed class SqlSchemaCompletion
     private static readonly SqlSchemaObjectKind[] ProcedureKinds = [SqlSchemaObjectKind.Procedure];
 
     private readonly SqlCatalogReader _catalog;
+    private readonly SqlDialect _dialect;
 
-    public SqlSchemaCompletion(SqlCatalogReader catalog)
+    public SqlSchemaCompletion(SqlCatalogReader catalog, SqlDialect dialect)
     {
         _catalog = catalog;
+        _dialect = dialect;
     }
 
     public async Task<IReadOnlyList<CompletionItem>> GetItemsAsync(SqlContext context, CancellationToken cancellationToken)
@@ -45,7 +48,7 @@ internal sealed class SqlSchemaCompletion
             {
                 Label = d.Name,
                 Kind = CompletionItemKind.Database,
-                InsertText = SqlKeywords.Quote(d.Name),
+                InsertText = _dialect.QuoteIdentifier(d.Name),
                 Detail = d.IsSystem ? "system" : null,
             })
             .ToArray();
@@ -54,12 +57,15 @@ internal sealed class SqlSchemaCompletion
     private async Task<IReadOnlyList<CompletionItem>> GetSourceItemsAsync(string? database, SqlSchemaObjectKind[] kinds, CancellationToken cancellationToken)
     {
         var schema = await _catalog.GetDatabaseAsync(database, cancellationToken).ConfigureAwait(false);
-        IReadOnlyList<CompletionItem> objects = schema is null ? [] : ObjectItems(schema, null, kinds, withSchemas: true);
+        // The schema of a MySQL or SQLite object is its database: it is already listed with the databases.
+        IReadOnlyList<CompletionItem> objects = schema is null ? [] : ObjectItems(schema, null, kinds, withSchemas: !_dialect.SchemaIsDatabase);
+        if (!_dialect.QueriesOtherDatabases)
+            return objects;
 
         return [.. objects, .. await GetDatabaseItemsAsync(cancellationToken).ConfigureAwait(false)];
     }
 
-    /// <summary>Columns of all tables referenced in the batch (SELECT, WHERE, ON…), with the source table.</summary>
+    /// <summary>Columns of all the tables named in the batch (SELECT, WHERE, ON…), with their source table.</summary>
     private async Task<IReadOnlyList<CompletionItem>> GetQueryColumnItemsAsync(SqlContext context, CancellationToken cancellationToken)
     {
         List<CompletionItem> items = [];
@@ -97,10 +103,12 @@ internal sealed class SqlSchemaCompletion
                     if (current?.Find(null, name) is { Columns.Count: > 0 } direct)
                         return ColumnItems(direct, null);
 
-                    return await _catalog.IsDatabaseAsync(name, cancellationToken).ConfigureAwait(false)
-                        && await _catalog.GetDatabaseAsync(name, cancellationToken).ConfigureAwait(false) is { } other
-                        ? SchemaItems(other)
-                        : [];
+                    if (!await _catalog.IsDatabaseAsync(name, cancellationToken).ConfigureAwait(false)
+                        || await _catalog.GetDatabaseAsync(name, cancellationToken).ConfigureAwait(false) is not { } other)
+                        return [];
+
+                    // database.|: its schemas, or directly its objects when the database stands for the schema.
+                    return _dialect.SchemaIsDatabase ? ObjectItems(other, null, kinds, withSchemas: false) : SchemaItems(other);
                 }
 
             case 2:
@@ -129,7 +137,7 @@ internal sealed class SqlSchemaCompletion
     // ---------- Building suggestions ----------
 
     /// <summary>Objects of a database, of a schema if specified; the schemas themselves to continue with "schema.".</summary>
-    private static IReadOnlyList<CompletionItem> ObjectItems(SqlDatabaseSchema database, string? schema, SqlSchemaObjectKind[] kinds, bool withSchemas)
+    private IReadOnlyList<CompletionItem> ObjectItems(SqlDatabaseSchema database, string? schema, SqlSchemaObjectKind[] kinds, bool withSchemas)
     {
         var objects = database.Objects
             .Where(o => kinds.Contains(o.Kind))
@@ -139,31 +147,36 @@ internal sealed class SqlSchemaCompletion
                 Label = o.Name,
                 Kind = ToItemKind(o.Kind),
                 // Outside the default schema, the schema is inserted: "Users" alone would target dbo.Users.
-                InsertText = schema is not null || SqlDatabaseSchema.IsDefaultSchema(o.Schema)
-                    ? SqlKeywords.Quote(o.Name)
-                    : $"{SqlKeywords.Quote(o.Schema)}.{SqlKeywords.Quote(o.Name)}",
+                InsertText = schema is not null || IsDefaultSchema(database, o.Schema)
+                    ? _dialect.QuoteIdentifier(o.Name)
+                    : $"{_dialect.QuoteIdentifier(o.Schema)}.{_dialect.QuoteIdentifier(o.Name)}",
                 Detail = o.Schema,
             });
 
         return withSchemas ? [.. objects, .. SchemaItems(database)] : [.. objects];
     }
 
-    private static IReadOnlyList<CompletionItem> ColumnItems(SqlSchemaObject table, string? owner)
+    /// <summary>Schema of unqualified names: the dialect's one (dbo, public), or the database itself (MySQL, SQLite).</summary>
+    private bool IsDefaultSchema(SqlDatabaseSchema database, string schema)
+        => string.Equals(schema, _dialect.DefaultSchema, StringComparison.OrdinalIgnoreCase)
+            || (_dialect.SchemaIsDatabase && string.Equals(schema, database.Name, StringComparison.OrdinalIgnoreCase));
+
+    private IReadOnlyList<CompletionItem> ColumnItems(SqlSchemaObject table, string? owner)
         => table.Columns.Select(c => new CompletionItem
         {
             Label = c.Name,
             Kind = CompletionItemKind.Column,
-            InsertText = SqlKeywords.Quote(c.Name),
-            // Several tables in the batch: specify where the column comes from.
+            InsertText = _dialect.QuoteIdentifier(c.Name),
+            // Several tables in the batch: tell where the column comes from.
             Detail = owner is null ? c.DataType : $"{c.DataType} · {owner}",
         }).ToArray();
 
-    private static IReadOnlyList<CompletionItem> SchemaItems(SqlDatabaseSchema database)
+    private IReadOnlyList<CompletionItem> SchemaItems(SqlDatabaseSchema database)
         => database.Schemas.Select(s => new CompletionItem
         {
             Label = s,
             Kind = CompletionItemKind.Schema,
-            InsertText = SqlKeywords.Quote(s),
+            InsertText = _dialect.QuoteIdentifier(s),
             Detail = database.Name,
         }).ToArray();
 

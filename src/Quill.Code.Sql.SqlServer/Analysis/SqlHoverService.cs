@@ -9,12 +9,12 @@ using Quill.Code.Sql.SqlServer.Constants;
 namespace Quill.Code.Sql.SqlServer.Analysis;
 
 /// <summary>
-/// T-SQL hover: type of a column, columns of a table or alias, object, schema or database (host catalog),
+/// SQL hover: type of a column, columns of a table or alias, object, schema or database (host catalog),
 /// type of a variable declared in the text or provided by the host.
 /// </summary>
 internal sealed class SqlHoverService : ICodeHover
 {
-    /// <summary>Words ending a DECLARE statement.</summary>
+    /// <summary>Words that end a DECLARE statement.</summary>
     private static readonly HashSet<string> StatementWords = new(StringComparer.OrdinalIgnoreCase)
     {
         "SELECT", "SET", "DECLARE", "INSERT", "UPDATE", "DELETE", "MERGE", "IF", "WHILE", "BEGIN", "END",
@@ -27,7 +27,7 @@ internal sealed class SqlHoverService : ICodeHover
     public SqlHoverService(SqlLanguageOptions options)
     {
         _options = options;
-        _catalog = new SqlCatalogReader(options.Catalog);
+        _catalog = new SqlCatalogReader(options.Catalog, options.Dialect);
     }
 
     /// <inheritdoc />
@@ -35,10 +35,10 @@ internal sealed class SqlHoverService : ICodeHover
     {
         ArgumentNullException.ThrowIfNull(code);
 
-        // Comments skipped: nothing to explain inside, and they would break the qualifier (a./*x*/b).
-        var tokens = SqlLexer.Tokenize(code).Where(t => !t.IsComment).ToArray();
+        // Comments set aside: nothing to explain inside, and they would break the qualifier (a./*x*/b).
+        var tokens = SqlLexer.Tokenize(code, _options.Dialect).Where(t => !t.IsComment).ToArray();
 
-        // The hovered character, or the one before it (mouse placed right after the end of the name).
+        // The hovered character, or the one before it (mouse resting just after the end of the name).
         var index = Array.FindIndex(tokens, t => t.Start <= position && position < t.End);
         if (index < 0)
             index = Array.FindIndex(tokens, t => t.Start < position && position == t.End);
@@ -52,7 +52,7 @@ internal sealed class SqlHoverService : ICodeHover
         if (token.Kind is not (SqlTokenKind.Word or SqlTokenKind.QuotedIdentifier) || !_catalog.IsAvailable)
             return null;
 
-        var scope = SqlContextAnalyzer.AnalyzeScope(code, token.Start, _options.Database);
+        var scope = SqlContextAnalyzer.AnalyzeScope(code, token.Start, _options.Database, _options.Dialect);
         var name = SqlContextAnalyzer.Unquote(token.GetText(code));
         var described = await DescribeNameAsync(scope, ReadQualifier(code, tokens, index), name, cancellationToken).ConfigureAwait(false);
 
@@ -200,7 +200,9 @@ internal sealed class SqlHoverService : ICodeHover
     {
         var name = token.GetText(text);
 
-        var variable = _options.Variables.FirstOrDefault(v => string.Equals(v.Reference, "@" + name.TrimStart('@'), StringComparison.OrdinalIgnoreCase));
+        // A host parameter is recognized by its name, whatever the prefix (@name, :name).
+        var bareName = name.TrimStart('@', ':');
+        var variable = _options.Variables.FirstOrDefault(v => string.Equals(v.Name.Trim().TrimStart('@', ':'), bareName, StringComparison.OrdinalIgnoreCase));
         if (variable is not null)
             return new HoverInfo(token.Start, token.Length, $"(parameter) {name} {variable.Type}", variable.Description);
 

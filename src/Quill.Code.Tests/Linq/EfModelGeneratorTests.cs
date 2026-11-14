@@ -101,7 +101,7 @@ public class EfModelGeneratorTests
     {
         using var context = CreateContext();
         return context.Model.FindEntityType($"{EfModelConstants.GeneratedNamespace}.{className}")
-            ?? throw new InvalidOperationException($"Entite {className} absente du modele.");
+            ?? throw new InvalidOperationException($"Entity {className} missing from the model.");
     }
 
     private static DbContext CreateContext()
