@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  SQL highlighting: T-SQL, plus the words, delimiters and parameters of the other engines (MySQL, PostgreSQL, Oracle, SQLite).
+  A single file for all: the words suggested by completion follow the connection's dialect (Quill).
+  This is WHERE table / column names coming from the schema would be added later:
+  just inject an extra <Keywords> generated on the fly.
+-->
+<SyntaxDefinition name="SQL" extensions=".sql" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+
+	<!-- Line comment prefix, used by the editor -->
+	<Property name="LineComment" value="--" />
+
+	<!-- Unrecognized text: painted explicitly so a comment's color does not spill over while typing -->
+	<Color name="Default" foreground="#D4D4D4" />
+	<Color name="Comment" foreground="#6A9955" />
+	<Color name="String" foreground="#CE9178" />
+	<Color name="Number" foreground="#B5CEA8" />
+	<Color name="Keyword" foreground="#569CD6" fontWeight="normal" />
+	<Color name="DataType" foreground="#4EC9B0" />
+	<Color name="Function" foreground="#DCDCAA" />
+	<Color name="Variable" foreground="#9CDCFE" />
+	<Color name="Bracketed" foreground="#9CDCFE" />
+	<Color name="Operator" foreground="#D4D4D4" />
+
+	<RuleSet ignoreCase="true">
+
+		<Span color="Comment">
+			<Begin>--</Begin>
+		</Span>
+
+		<Span color="Comment" multiline="true">
+			<Begin>/\*</Begin>
+			<End>\*/</End>
+		</Span>
+
+		<!-- SQL string: '' is an escaped quote, so it is part of the string.
+		     The closing quote is optional so a string being typed is colored too. -->
+		<Rule color="String">'(?:[^']|'')*'?</Rule>
+
+		<!-- Bracketed identifier: [My Table] -->
+		<Span color="Bracketed">
+			<Begin>\[</Begin>
+			<End>\]</End>
+		</Span>
+
+		<!-- Identifier in backticks (MySQL, SQLite) or double quotes: `My Table`, "My Table" -->
+		<Span color="Bracketed">
+			<Begin>`</Begin>
+			<End>`</End>
+		</Span>
+
+		<Rule color="Bracketed">"(?:[^"]|"")*"?</Rule>
+
+		<Keywords color="Keyword">
+			<Word>SELECT</Word><Word>FROM</Word><Word>WHERE</Word><Word>GROUP</Word><Word>BY</Word>
+			<Word>HAVING</Word><Word>ORDER</Word><Word>ASC</Word><Word>DESC</Word><Word>TOP</Word>
+			<Word>DISTINCT</Word><Word>INSERT</Word><Word>INTO</Word><Word>VALUES</Word><Word>UPDATE</Word>
+			<Word>SET</Word><Word>DELETE</Word><Word>MERGE</Word><Word>OUTPUT</Word><Word>TRUNCATE</Word>
+			<Word>CREATE</Word><Word>ALTER</Word><Word>DROP</Word><Word>TABLE</Word><Word>VIEW</Word>
+			<Word>INDEX</Word><Word>PROCEDURE</Word><Word>PROC</Word><Word>FUNCTION</Word><Word>TRIGGER</Word>
+			<Word>SCHEMA</Word><Word>DATABASE</Word><Word>CONSTRAINT</Word><Word>PRIMARY</Word><Word>FOREIGN</Word>
+			<Word>KEY</Word><Word>REFERENCES</Word><Word>UNIQUE</Word><Word>CHECK</Word><Word>DEFAULT</Word>
+			<Word>IDENTITY</Word><Word>CLUSTERED</Word><Word>NONCLUSTERED</Word>
+			<Word>JOIN</Word><Word>INNER</Word><Word>LEFT</Word><Word>RIGHT</Word><Word>FULL</Word>
+			<Word>OUTER</Word><Word>CROSS</Word><Word>APPLY</Word><Word>ON</Word><Word>AS</Word>
+			<Word>UNION</Word><Word>ALL</Word><Word>EXCEPT</Word><Word>INTERSECT</Word>
+			<Word>AND</Word><Word>OR</Word><Word>NOT</Word><Word>IN</Word><Word>EXISTS</Word>
+			<Word>BETWEEN</Word><Word>LIKE</Word><Word>IS</Word><Word>NULL</Word><Word>CASE</Word>
+			<Word>WHEN</Word><Word>THEN</Word><Word>ELSE</Word><Word>END</Word><Word>IIF</Word>
+			<Word>WITH</Word><Word>OVER</Word><Word>PARTITION</Word><Word>ROWS</Word><Word>RANGE</Word>
+			<Word>DECLARE</Word><Word>EXEC</Word><Word>EXECUTE</Word><Word>RETURN</Word><Word>BEGIN</Word>
+			<Word>IF</Word><Word>WHILE</Word><Word>BREAK</Word><Word>CONTINUE</Word><Word>GOTO</Word>
+			<Word>TRY</Word><Word>CATCH</Word><Word>THROW</Word><Word>RAISERROR</Word>
+			<Word>TRANSACTION</Word><Word>TRAN</Word><Word>COMMIT</Word><Word>ROLLBACK</Word><Word>SAVE</Word>
+			<Word>GRANT</Word><Word>REVOKE</Word><Word>DENY</Word><Word>USE</Word><Word>GO</Word>
+			<Word>OFFSET</Word><Word>FETCH</Word><Word>NEXT</Word><Word>ONLY</Word><Word>FIRST</Word>
+			<Word>NOLOCK</Word><Word>READUNCOMMITTED</Word>
+		</Keywords>
+
+		<!-- Other engines: MySQL, PostgreSQL, Oracle, SQLite -->
+		<Keywords color="Keyword">
+			<Word>LIMIT</Word><Word>RETURNING</Word><Word>ILIKE</Word><Word>REGEXP</Word><Word>MINUS</Word>
+			<Word>ROWNUM</Word><Word>DUAL</Word><Word>CONNECT</Word><Word>PRIOR</Word><Word>LATERAL</Word>
+			<Word>NATURAL</Word><Word>USING</Word><Word>RECURSIVE</Word><Word>SAVEPOINT</Word><Word>CALL</Word>
+			<Word>PRAGMA</Word><Word>VACUUM</Word><Word>EXPLAIN</Word><Word>ANALYZE</Word><Word>SHOW</Word>
+			<Word>DESCRIBE</Word><Word>AUTO_INCREMENT</Word><Word>AUTOINCREMENT</Word><Word>ELSIF</Word><Word>ELSEIF</Word>
+			<Word>LOOP</Word><Word>EXCEPTION</Word><Word>PERCENT</Word><Word>TIES</Word><Word>NULLS</Word>
+			<Word>WINDOW</Word><Word>FILTER</Word><Word>CONFLICT</Word><Word>NOTHING</Word><Word>TEMPORARY</Word>
+			<Word>SEQUENCE</Word><Word>MATERIALIZED</Word><Word>CASCADE</Word><Word>INTERVAL</Word><Word>FOR</Word>
+		</Keywords>
+
+		<Keywords color="DataType">
+			<Word>INTEGER</Word><Word>NUMBER</Word><Word>VARCHAR2</Word><Word>NVARCHAR2</Word><Word>CLOB</Word>
+			<Word>NCLOB</Word><Word>BLOB</Word><Word>RAW</Word><Word>BOOLEAN</Word><Word>SERIAL</Word>
+			<Word>BIGSERIAL</Word><Word>UUID</Word><Word>JSON</Word><Word>JSONB</Word><Word>BYTEA</Word>
+			<Word>TIMESTAMP</Word><Word>TIMESTAMPTZ</Word><Word>DOUBLE</Word><Word>MEDIUMINT</Word><Word>TINYTEXT</Word>
+			<Word>MEDIUMTEXT</Word><Word>LONGTEXT</Word><Word>ENUM</Word>
+		</Keywords>
+
+		<Keywords color="Function">
+			<Word>NVL</Word><Word>NVL2</Word><Word>DECODE</Word><Word>TO_CHAR</Word><Word>TO_DATE</Word>
+			<Word>TO_NUMBER</Word><Word>TO_TIMESTAMP</Word><Word>SYSDATE</Word><Word>SYSTIMESTAMP</Word><Word>NOW</Word>
+			<Word>IFNULL</Word><Word>LENGTH</Word><Word>SUBSTR</Word><Word>INSTR</Word><Word>GROUP_CONCAT</Word>
+			<Word>LISTAGG</Word><Word>ARRAY_AGG</Word><Word>DATE_TRUNC</Word><Word>EXTRACT</Word><Word>CURRENT_DATE</Word>
+			<Word>CURRENT_TIMESTAMP</Word><Word>STRFTIME</Word><Word>GREATEST</Word><Word>LEAST</Word><Word>TRUNC</Word>
+			<Word>ABS</Word><Word>ROUND</Word><Word>FLOOR</Word><Word>CEIL</Word>
+		</Keywords>
+
+		<Keywords color="DataType">
+			<Word>INT</Word><Word>BIGINT</Word><Word>SMALLINT</Word><Word>TINYINT</Word><Word>BIT</Word>
+			<Word>DECIMAL</Word><Word>NUMERIC</Word><Word>MONEY</Word><Word>FLOAT</Word><Word>REAL</Word>
+			<Word>DATE</Word><Word>DATETIME</Word><Word>DATETIME2</Word><Word>DATETIMEOFFSET</Word><Word>TIME</Word>
+			<Word>CHAR</Word><Word>VARCHAR</Word><Word>NCHAR</Word><Word>NVARCHAR</Word><Word>TEXT</Word>
+			<Word>NTEXT</Word><Word>BINARY</Word><Word>VARBINARY</Word><Word>UNIQUEIDENTIFIER</Word>
+			<Word>XML</Word><Word>SQL_VARIANT</Word><Word>MAX</Word>
+		</Keywords>
+
+		<Keywords color="Function">
+			<Word>COUNT</Word><Word>SUM</Word><Word>AVG</Word><Word>MIN</Word><Word>MAX</Word>
+			<Word>CAST</Word><Word>CONVERT</Word><Word>TRY_CAST</Word><Word>TRY_CONVERT</Word>
+			<Word>ISNULL</Word><Word>COALESCE</Word><Word>NULLIF</Word><Word>LEN</Word><Word>SUBSTRING</Word>
+			<Word>REPLACE</Word><Word>LTRIM</Word><Word>RTRIM</Word><Word>TRIM</Word><Word>UPPER</Word>
+			<Word>LOWER</Word><Word>CONCAT</Word><Word>FORMAT</Word><Word>GETDATE</Word><Word>SYSDATETIME</Word>
+			<Word>DATEADD</Word><Word>DATEDIFF</Word><Word>DATEPART</Word><Word>YEAR</Word><Word>MONTH</Word>
+			<Word>DAY</Word><Word>ROW_NUMBER</Word><Word>RANK</Word><Word>DENSE_RANK</Word><Word>NTILE</Word>
+			<Word>LAG</Word><Word>LEAD</Word><Word>STRING_AGG</Word><Word>NEWID</Word><Word>SCOPE_IDENTITY</Word>
+		</Keywords>
+
+		<!-- Variables and parameters: @x, @@ROWCOUNT -->
+		<Rule color="Variable">@@?[\w_]+</Rule>
+
+		<!-- Oracle parameter :name; "::" (PostgreSQL cast) and ":=" stay operators -->
+		<Rule color="Variable">(?&lt;![:\w]):[A-Za-z_]\w*</Rule>
+
+		<Rule color="Number">\b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?</Rule>
+
+		<Rule color="Operator">[?,.;()\[\]{}+\-/%*&lt;&gt;^+~!|&amp;=]+</Rule>
+	</RuleSet>
+</SyntaxDefinition>

@@ -1,0 +1,129 @@
+﻿<Window x:Class="Quill.Code.Demo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Quill.Code — demo"
+        Width="1100"
+        Height="780"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="260" />
+        </Grid.RowDefinitions>
+
+        <!-- Demo scenario and execution -->
+        <DockPanel Grid.Row="0" Margin="8" LastChildFill="True">
+            <ComboBox x:Name="ScenarioBox"
+                      Width="320"
+                      DisplayMemberPath="Name"
+                      DockPanel.Dock="Left" />
+            <Button x:Name="RunButton"
+                    Margin="8,0,0,0"
+                    Padding="12,2"
+                    Content="▶ Run (F5)"
+                    DockPanel.Dock="Left" />
+            <TextBlock x:Name="HintText"
+                       Margin="12,0,0,0"
+                       VerticalAlignment="Center"
+                       Foreground="Gray"
+                       TextTrimming="CharacterEllipsis" />
+        </DockPanel>
+
+        <!-- Editor: a RichTextBox, highlighted and completed by Quill. Undo disabled: highlighting rewrites the document. -->
+        <RichTextBox x:Name="Editor"
+                     Grid.Row="1"
+                     Padding="6"
+                     AcceptsReturn="True"
+                     AcceptsTab="True"
+                     Background="#1E1E1E"
+                     BorderThickness="0"
+                     CaretBrush="White"
+                     FontFamily="Consolas"
+                     FontSize="14"
+                     Foreground="#D4D4D4"
+                     HorizontalScrollBarVisibility="Auto"
+                     IsUndoEnabled="False"
+                     VerticalScrollBarVisibility="Auto">
+            <RichTextBox.Resources>
+                <Style TargetType="{x:Type Paragraph}">
+                    <Setter Property="Margin" Value="0" />
+                </Style>
+            </RichTextBox.Resources>
+        </RichTextBox>
+
+        <!-- Completion, placed under the caret -->
+        <Popup x:Name="CompletionPopup"
+               Grid.Row="1"
+               Placement="Relative"
+               PlacementTarget="{Binding ElementName=Editor}"
+               StaysOpen="True">
+            <Border Background="#252526"
+                    BorderBrush="#454545"
+                    BorderThickness="1">
+                <ListBox x:Name="CompletionList"
+                         MinWidth="320"
+                         MaxHeight="240"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Focusable="False"
+                         FontFamily="Consolas"
+                         FontSize="13"
+                         Foreground="#D4D4D4">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="{x:Type ListBoxItem}">
+                            <Setter Property="Focusable" Value="False" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Margin="16,0,0,0"
+                                           DockPanel.Dock="Right"
+                                           Foreground="Gray"
+                                           Text="{Binding Detail}" />
+                                <TextBlock Width="90"
+                                           DockPanel.Dock="Left"
+                                           Foreground="#4EC9B0"
+                                           Text="{Binding Kind}" />
+                                <TextBlock Text="{Binding Label}" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
+        </Popup>
+
+        <!-- Hover: what Quill knows about the name under the mouse -->
+        <TextBlock x:Name="HoverText"
+                   Grid.Row="2"
+                   Padding="8,4"
+                   Background="#F3F3F3"
+                   FontFamily="Consolas"
+                   Text="Hover over a name to see its type."
+                   TextTrimming="CharacterEllipsis" />
+
+        <GridSplitter Grid.Row="3"
+                      Height="4"
+                      HorizontalAlignment="Stretch" />
+
+        <!-- Results (one tab per set, added on execution), messages and diagnostics -->
+        <TabControl x:Name="ResultTabs" Grid.Row="4">
+            <TabItem x:Name="MessagesTab" Header="Messages">
+                <TextBox x:Name="MessagesBox"
+                         BorderThickness="0"
+                         FontFamily="Consolas"
+                         HorizontalScrollBarVisibility="Auto"
+                         IsReadOnly="True"
+                         VerticalScrollBarVisibility="Auto" />
+            </TabItem>
+            <TabItem x:Name="DiagnosticsTab" Header="Diagnostics">
+                <ListBox x:Name="DiagnosticsList"
+                         BorderThickness="0"
+                         FontFamily="Consolas" />
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Window>

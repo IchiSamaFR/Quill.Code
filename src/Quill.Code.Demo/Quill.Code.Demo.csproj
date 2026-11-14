@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- Demo application (WPF, Windows): outside Quill.Code.slnx, which the CI builds on Linux. -->
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<UseWPF>true</UseWPF>
+		<RootNamespace>Quill.Code.Demo</RootNamespace>
+		<IsPackable>false</IsPackable>
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- Highlightings, samples and demo database script, read by DemoResources. -->
+		<EmbeddedResource Include="Resources\**" LogicalName="%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Quill.Code\Quill.Code.csproj" />
+		<ProjectReference Include="..\Quill.Code.CSharp.Linq\Quill.Code.CSharp.Linq.csproj" />
+		<ProjectReference Include="..\Quill.Code.CSharp.Linq.Sqlite\Quill.Code.CSharp.Linq.Sqlite.csproj" />
+		<ProjectReference Include="..\Quill.Code.Sql.MySql\Quill.Code.Sql.MySql.csproj" />
+		<ProjectReference Include="..\Quill.Code.Sql.Oracle\Quill.Code.Sql.Oracle.csproj" />
+		<ProjectReference Include="..\Quill.Code.Sql.PostgreSql\Quill.Code.Sql.PostgreSql.csproj" />
+		<ProjectReference Include="..\Quill.Code.Sql.Sqlite\Quill.Code.Sql.Sqlite.csproj" />
+		<ProjectReference Include="..\Quill.Code.Sql.SqlServer\Quill.Code.Sql.SqlServer.csproj" />
+		<ProjectReference Include="..\Quill.Data.Sql\Quill.Data.Sql.csproj" />
+		<ProjectReference Include="..\Quill.Data.Sql.Sqlite\Quill.Data.Sql.Sqlite.csproj" />
+	</ItemGroup>
+
+</Project>
