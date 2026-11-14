@@ -37,7 +37,7 @@ internal sealed class EditorCompletion
         {
             // A click on the scroll bar picks nothing.
             if (e.OriginalSource is DependencyObject source && ItemsControl.ContainerFromElement(_list, source) is ListBoxItem)
-                Commit();
+                _ = CommitAsync();
         };
     }
 
@@ -98,8 +98,13 @@ internal sealed class EditorCompletion
                 Move(-1);
                 break;
             case Key.Enter or Key.Tab:
-                Commit();
-                break;
+                if (_list.SelectedItem is not CompletionItem
+                    || (_session?.IsSuggestionMode == true && _list.SelectedIndex < 0))
+                    return;
+
+                e.Handled = true;
+                _ = CommitAsync();
+                return;
             case Key.Escape:
                 Close();
                 break;
@@ -144,7 +149,7 @@ internal sealed class EditorCompletion
                 if (version != _version)
                     return;
 
-                _session = new Session(wordStart, list.Items);
+                _session = new Session(wordStart, list.SpanStart, list.Items, list.IsSuggestionMode);
 
                 // The text may have moved during the request.
                 text = EditorText.GetText(_editor);
@@ -156,7 +161,7 @@ internal sealed class EditorCompletion
                 }
             }
 
-            Show(CompletionFilter.Filter(_session.Candidates, text[wordStart..caret]));
+            Show(CompletionFilter.Filter(_session.Candidates, text[wordStart..caret]), _session.IsSuggestionMode);
         }
         catch (Exception ex) when (ex is InvalidOperationException or ArgumentException or OperationCanceledException)
         {
@@ -164,7 +169,7 @@ internal sealed class EditorCompletion
         }
     }
 
-    private void Show(IReadOnlyList<CompletionItem> items)
+    private void Show(IReadOnlyList<CompletionItem> items, bool isSuggestionMode)
     {
         if (items.Count == 0)
         {
@@ -173,7 +178,7 @@ internal sealed class EditorCompletion
         }
 
         _list.ItemsSource = items;
-        _list.SelectedIndex = 0;
+        _list.SelectedIndex = isSuggestionMode ? -1 : 0;
 
         var caret = _editor.CaretPosition.GetCharacterRect(LogicalDirection.Forward);
         _popup.HorizontalOffset = caret.Left;
@@ -191,18 +196,50 @@ internal sealed class EditorCompletion
     }
 
     /// <summary>Replaces the current word with the chosen suggestion.</summary>
-    private void Commit()
+    private async Task CommitAsync()
     {
         var item = _list.SelectedItem as CompletionItem;
         var session = _session;
         var caret = EditorText.GetCaretOffset(_editor);
         Close();
 
-        if (item is null || session is null || caret < session.WordStart)
+        if (item is null || session is null || caret < session.SpanStart || _service() is not { } service)
             return;
 
-        EditorText.Replace(_editor, session.WordStart, caret, item.TextToInsert);
-        _editor.Focus();
+        try
+        {
+            var text = EditorText.GetText(_editor);
+            if (item.Data is not null)
+            {
+                var fresh = await service.GetCompletionsAsync(text, caret);
+                if (EditorText.GetText(_editor) != text)
+                    return;
+
+                item = fresh.Items.FirstOrDefault(candidate =>
+                    candidate.Label == item.Label
+                    && candidate.Kind == item.Kind
+                    && candidate.TextToInsert == item.TextToInsert
+                    && candidate.FilterText == item.FilterText);
+                if (item is null)
+                    return;
+
+                var change = await service.GetChangeAsync(text, item);
+                if (EditorText.GetText(_editor) != text)
+                    return;
+
+                EditorText.Replace(_editor, change.SpanStart, change.SpanStart + change.SpanLength, change.NewText);
+                _editor.CaretPosition = EditorText.GetPosition(_editor, Math.Clamp(change.CaretPosition, 0, EditorText.GetText(_editor).Length));
+            }
+            else
+            {
+                EditorText.Replace(_editor, session.SpanStart, caret, item.TextToInsert);
+            }
+
+            _editor.Focus();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or ArgumentException or OperationCanceledException)
+        {
+        }
     }
 
     private static int FindWordStart(string text, int caret)
@@ -217,5 +254,5 @@ internal sealed class EditorCompletion
     private static bool IsIdentifierChar(char c) => char.IsLetterOrDigit(c) || c is '_' or '@' or '#' or '$';
 
     /// <summary>Suggestions requested for the word starting at <paramref name="WordStart"/>.</summary>
-    private sealed record Session(int WordStart, IReadOnlyList<CompletionItem> Candidates);
+    private sealed record Session(int WordStart, int SpanStart, IReadOnlyList<CompletionItem> Candidates, bool IsSuggestionMode);
 }

@@ -136,6 +136,26 @@ public sealed class SqlDialect
         return $"{ParameterPrefix}{name.Trim().TrimStart('@', ':')}";
     }
 
+    /// <summary>Compares two identifiers after applying this dialect's quoted or unquoted case rules.</summary>
+    public bool IdentifierEquals(string left, bool leftQuoted, string right, bool rightQuoted)
+    {
+        ArgumentNullException.ThrowIfNull(left);
+        ArgumentNullException.ThrowIfNull(right);
+
+        static string Fold(string name, bool quoted, SqlIdentifierCasing casing)
+            => quoted ? name : casing switch
+            {
+                SqlIdentifierCasing.Upper => name.ToUpperInvariant(),
+                SqlIdentifierCasing.Lower => name.ToLowerInvariant(),
+                _ => name,
+            };
+
+        var comparison = IdentifierCasing == SqlIdentifierCasing.Insensitive
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        return string.Equals(Fold(left, leftQuoted, IdentifierCasing), Fold(right, rightQuoted, IdentifierCasing), comparison);
+    }
+
     /// <summary>Query reading the first <paramref name="count"/> rows of <paramref name="source"/> (name already formatted).</summary>
     public string SelectFirstRows(string source, int count)
     {

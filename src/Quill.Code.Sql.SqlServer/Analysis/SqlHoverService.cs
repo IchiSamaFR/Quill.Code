@@ -54,7 +54,15 @@ internal sealed class SqlHoverService : ICodeHover
 
         var scope = SqlContextAnalyzer.AnalyzeScope(code, token.Start, _options.Database, _options.Dialect);
         var name = SqlContextAnalyzer.Unquote(token.GetText(code));
-        var described = await DescribeNameAsync(scope, ReadQualifier(code, tokens, index), name, cancellationToken).ConfigureAwait(false);
+        var qualifier = ReadQualifier(code, tokens, index);
+        var qualifierQuoted = ReadQualifierQuoted(tokens, index);
+        var described = await DescribeNameAsync(
+            scope,
+            qualifier,
+            qualifierQuoted,
+            name,
+            token.Kind == SqlTokenKind.QuotedIdentifier,
+            cancellationToken).ConfigureAwait(false);
 
         return described is { } hover ? new HoverInfo(token.Start, token.Length, hover.Signature, hover.Description) : null;
     }
@@ -69,23 +77,38 @@ internal sealed class SqlHoverService : ICodeHover
         return parts;
     }
 
+    private static List<bool> ReadQualifierQuoted(SqlToken[] tokens, int index)
+    {
+        List<bool> quoted = [];
+        for (var i = index - 1; i >= 1 && tokens[i].Kind == SqlTokenKind.Dot && tokens[i - 1].Kind is SqlTokenKind.Word or SqlTokenKind.QuotedIdentifier; i -= 2)
+            quoted.Insert(0, tokens[i - 1].Kind == SqlTokenKind.QuotedIdentifier);
+
+        return quoted;
+    }
+
     // ---------- Catalog names ----------
 
-    private async Task<(string Signature, string? Description)?> DescribeNameAsync(SqlContext scope, List<string> qualifier, string name, CancellationToken cancellationToken)
+    private async Task<(string Signature, string? Description)?> DescribeNameAsync(
+        SqlContext scope,
+        List<string> qualifier,
+        List<bool> qualifierQuoted,
+        string name,
+        bool nameIsQuoted,
+        CancellationToken cancellationToken)
     {
         switch (qualifier.Count)
         {
             case 0:
                 {
                     // Alias or table of the FROM, then column of a table of the batch, then object, schema or database.
-                    if (scope.FindTable(name) is { } reference && await _catalog.FindAsync(scope, reference, cancellationToken).ConfigureAwait(false) is { } referenced)
-                        return DescribeObject(referenced, reference.Alias);
+                    if (scope.FindTable(name, _options.Dialect, nameIsQuoted) is { } reference && await _catalog.FindAsync(scope, reference, cancellationToken).ConfigureAwait(false) is { } referenced)
+                        return DescribeObject(referenced, reference.Alias, reference.AliasIsQuoted);
 
                     List<(SqlSchemaObject Table, SqlColumn Column)> matches = [];
                     foreach (var table in scope.Tables)
                     {
                         if (await _catalog.FindAsync(scope, table, cancellationToken).ConfigureAwait(false) is { } source
-                            && FindColumn(source, name) is { } column
+                            && FindColumn(source, name, nameIsQuoted) is { } column
                             && !matches.Any(m => ReferenceEquals(m.Table, source)))
                             matches.Add((source, column));
                     }
@@ -94,36 +117,40 @@ internal sealed class SqlHoverService : ICodeHover
                         return DescribeColumn(matches[0].Table, matches[0].Column, matches.Skip(1).Select(m => m.Table.QualifiedName).ToArray());
 
                     var current = await _catalog.GetDatabaseAsync(scope.Database, cancellationToken).ConfigureAwait(false);
-                    if (current?.Find(null, name) is { } direct)
+                    if (current is not null && _catalog.Find(current, null, name, nameIsQuoted) is { } direct)
                         return DescribeObject(direct, null);
 
-                    if (current is not null && current.HasSchema(name))
+                    if (current is not null && _catalog.HasSchema(current, name, nameIsQuoted))
                         return ($"(schema) {name}", $"Database {current.Name}");
 
-                    return await _catalog.IsDatabaseAsync(name, cancellationToken).ConfigureAwait(false) ? ($"(database) {name}", null) : null;
+                    return await _catalog.IsDatabaseAsync(name, cancellationToken, nameIsQuoted).ConfigureAwait(false) ? ($"(database) {name}", null) : null;
                 }
 
             case 1:
                 {
                     var owner = qualifier[0];
-                    if (scope.FindTable(owner) is { } reference && await _catalog.FindAsync(scope, reference, cancellationToken).ConfigureAwait(false) is { } aliased)
-                        return ColumnOf(aliased, name);
+                    var ownerIsQuoted = qualifierQuoted[0];
+                    if (scope.FindTable(owner, _options.Dialect, ownerIsQuoted) is { } reference && await _catalog.FindAsync(scope, reference, cancellationToken).ConfigureAwait(false) is { } aliased)
+                        return ColumnOf(aliased, name, nameIsQuoted);
 
                     var current = await _catalog.GetDatabaseAsync(scope.Database, cancellationToken).ConfigureAwait(false);
-                    if (current is not null && current.HasSchema(owner) && current.Find(owner, name) is { } inSchema)
+                    if (current is not null && _catalog.HasSchema(current, owner, ownerIsQuoted)
+                        && _catalog.Find(current, owner, name, nameIsQuoted, ownerIsQuoted) is { } inSchema)
                         return DescribeObject(inSchema, null);
 
-                    if (current?.Find(null, owner) is { } table)
-                        return ColumnOf(table, name);
+                    if (current is not null && _catalog.Find(current, null, owner, ownerIsQuoted) is { } table)
+                        return ColumnOf(table, name, nameIsQuoted);
 
-                    if (_options.Dialect.SchemaIsDatabase
-                        && await _catalog.IsDatabaseAsync(owner, cancellationToken).ConfigureAwait(false)
-                        && (await _catalog.GetDatabaseAsync(owner, cancellationToken).ConfigureAwait(false))?.Find(null, name) is { } remoteTable)
-                        return DescribeObject(remoteTable, null);
+                    if (await _catalog.IsDatabaseAsync(owner, cancellationToken, ownerIsQuoted).ConfigureAwait(false)
+                        && await _catalog.GetDatabaseAsync(owner, cancellationToken).ConfigureAwait(false) is { } other)
+                    {
+                        if (_options.Dialect.SchemaIsDatabase
+                            && _catalog.Find(other, null, name, nameIsQuoted) is { } remoteTable)
+                            return DescribeObject(remoteTable, null);
 
-                    if (await _catalog.IsDatabaseAsync(owner, cancellationToken).ConfigureAwait(false)
-                        && (await _catalog.GetDatabaseAsync(owner, cancellationToken).ConfigureAwait(false))?.HasSchema(name) == true)
-                        return ($"(schema) {owner}.{name}", $"Database {owner}");
+                        if (_catalog.HasSchema(other, name, nameIsQuoted))
+                            return ($"(schema) {owner}.{name}", $"Database {owner}");
+                    }
 
                     return null;
                 }
@@ -131,17 +158,20 @@ internal sealed class SqlHoverService : ICodeHover
             case 2:
                 {
                     if (_options.Dialect.SchemaIsDatabase
-                        && await _catalog.IsDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false)
-                        && (await _catalog.GetDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false))?.Find(null, qualifier[1]) is { } remoteTable)
-                        return ColumnOf(remoteTable, name);
+                        && await _catalog.IsDatabaseAsync(qualifier[0], cancellationToken, qualifierQuoted[0]).ConfigureAwait(false)
+                        && await _catalog.GetDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false) is { } remote
+                        && _catalog.Find(remote, null, qualifier[1], qualifierQuoted[1]) is { } remoteTable)
+                        return ColumnOf(remoteTable, name, nameIsQuoted);
 
                     var current = await _catalog.GetDatabaseAsync(scope.Database, cancellationToken).ConfigureAwait(false);
-                    if (current?.Find(qualifier[0], qualifier[1]) is { } table)
-                        return ColumnOf(table, name);
+                    if (current is not null
+                        && _catalog.Find(current, qualifier[0], qualifier[1], qualifierQuoted[1], qualifierQuoted[0]) is { } table)
+                        return ColumnOf(table, name, nameIsQuoted);
 
-                    if (await _catalog.IsDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false)
-                        && (await _catalog.GetDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false))?.Find(qualifier[1], name) is { } remote)
-                        return DescribeObject(remote, null);
+                    if (await _catalog.IsDatabaseAsync(qualifier[0], cancellationToken, qualifierQuoted[0]).ConfigureAwait(false)
+                        && await _catalog.GetDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false) is { } other
+                        && _catalog.Find(other, qualifier[1], name, nameIsQuoted, qualifierQuoted[1]) is { } remoteObject)
+                        return DescribeObject(remoteObject, null);
 
                     return null;
                 }
@@ -149,7 +179,10 @@ internal sealed class SqlHoverService : ICodeHover
             case 3:
                 {
                     var other = await _catalog.GetDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false);
-                    return other?.Find(qualifier[1], qualifier[2]) is { } table ? ColumnOf(table, name) : null;
+                    return other is not null
+                        && _catalog.Find(other, qualifier[1], qualifier[2], qualifierQuoted[2], qualifierQuoted[1]) is { } table
+                        ? ColumnOf(table, name, nameIsQuoted)
+                        : null;
                 }
 
             default:
@@ -157,11 +190,11 @@ internal sealed class SqlHoverService : ICodeHover
         }
     }
 
-    private static SqlColumn? FindColumn(SqlSchemaObject table, string name)
-        => table.Columns.FirstOrDefault(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase));
+    private SqlColumn? FindColumn(SqlSchemaObject table, string name, bool nameIsQuoted = false)
+        => table.Columns.FirstOrDefault(c => _options.Dialect.IdentifierEquals(c.Name, leftQuoted: true, name, nameIsQuoted));
 
-    private static (string, string?)? ColumnOf(SqlSchemaObject table, string name)
-        => FindColumn(table, name) is { } column ? DescribeColumn(table, column, []) : null;
+    private (string, string?)? ColumnOf(SqlSchemaObject table, string name, bool nameIsQuoted = false)
+        => FindColumn(table, name, nameIsQuoted) is { } column ? DescribeColumn(table, column, []) : null;
 
     // ---------- Texts ----------
 
@@ -178,7 +211,7 @@ internal sealed class SqlHoverService : ICodeHover
     }
 
     /// <summary>E.g. "(table) dbo.Users", then its first columns with their type.</summary>
-    private static (string, string?) DescribeObject(SqlSchemaObject source, string? alias)
+    private (string, string?) DescribeObject(SqlSchemaObject source, string? alias, bool aliasIsQuoted = false)
     {
         var kind = source.Kind switch
         {
@@ -187,7 +220,7 @@ internal sealed class SqlHoverService : ICodeHover
             _ => "table",
         };
 
-        var signature = alias is null || string.Equals(alias, source.Name, StringComparison.OrdinalIgnoreCase)
+        var signature = alias is null || _options.Dialect.IdentifierEquals(source.Name, leftQuoted: true, alias, aliasIsQuoted)
             ? $"({kind}) {source.QualifiedName}"
             : $"({kind}) {source.QualifiedName} AS {alias}";
 

@@ -51,9 +51,28 @@ internal sealed class SqlCatalogReader
         }
     }
 
-    public async Task<bool> IsDatabaseAsync(string name, CancellationToken cancellationToken)
+    public async Task<bool> IsDatabaseAsync(string name, CancellationToken cancellationToken, bool isQuoted = false)
         => (await GetDatabasesAsync(cancellationToken).ConfigureAwait(false))
-            .Any(d => string.Equals(d.Name, name, StringComparison.OrdinalIgnoreCase));
+            .Any(d => _dialect.IdentifierEquals(d.Name, leftQuoted: true, name, isQuoted));
+
+    public SqlSchemaObject? Find(SqlDatabaseSchema database, string? schema, string name, bool nameIsQuoted = false, bool schemaIsQuoted = false)
+    {
+        var candidates = database.Objects
+            .Where(o => _dialect.IdentifierEquals(o.Name, leftQuoted: true, name, nameIsQuoted))
+            .Where(o => schema is null || _dialect.IdentifierEquals(o.Schema, leftQuoted: true, schema, schemaIsQuoted))
+            .ToArray();
+
+        if (schema is not null)
+            return candidates.FirstOrDefault();
+
+        var defaultSchema = _dialect.DefaultSchema;
+        return candidates.FirstOrDefault(o => defaultSchema is not null
+                && _dialect.IdentifierEquals(o.Schema, leftQuoted: true, defaultSchema, rightQuoted: false))
+            ?? candidates.FirstOrDefault();
+    }
+
+    public bool HasSchema(SqlDatabaseSchema database, string schema, bool isQuoted = false)
+        => database.Objects.Any(o => _dialect.IdentifierEquals(o.Schema, leftQuoted: true, schema, isQuoted));
 
     /// <summary>Object designated by a table of the batch; null for a temporary or unknown table.</summary>
     public async Task<SqlSchemaObject?> FindAsync(SqlContext scope, SqlTableReference table, CancellationToken cancellationToken)
@@ -62,14 +81,15 @@ internal sealed class SqlCatalogReader
             return null;
 
         var database = await GetDatabaseAsync(table.Database ?? scope.Database, cancellationToken).ConfigureAwait(false);
-        if (database?.Find(table.Schema, table.Name) is { } found)
+        if (database is not null && Find(database, table.Schema, table.Name, table.NameIsQuoted, table.SchemaIsQuoted) is { } found)
             return found;
 
         // MySQL, SQLite: "other_db.table", the qualifier is the database.
         if (!_dialect.SchemaIsDatabase || table.Schema is null || table.Database is not null
-            || !await IsDatabaseAsync(table.Schema, cancellationToken).ConfigureAwait(false))
+            || !await IsDatabaseAsync(table.Schema, cancellationToken, table.SchemaIsQuoted).ConfigureAwait(false))
             return null;
 
-        return (await GetDatabaseAsync(table.Schema, cancellationToken).ConfigureAwait(false))?.Find(null, table.Name);
+        var remote = await GetDatabaseAsync(table.Schema, cancellationToken).ConfigureAwait(false);
+        return remote is null ? null : Find(remote, null, table.Name, table.NameIsQuoted);
     }
 }

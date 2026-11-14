@@ -95,6 +95,31 @@ public class SqlDialectCompletionTests
     }
 
     [Fact]
+    public async Task PostgreSql_ResolvesQuotedNamesAndDefaultSchemaCaseSensitively()
+    {
+        var catalog = CreatePostgreSqlCatalog();
+        var service = new SqlLanguageService(new SqlLanguageOptions { Dialect = PostgreSqlDialect.Instance, Catalog = catalog });
+
+        var unquoted = await service.GetCompletionsAsync("SELECT users.|", "SELECT users.|".Length - 1);
+        Assert.Contains(unquoted.Items, i => i.Label == "public_id");
+        Assert.DoesNotContain(unquoted.Items, i => i.Label == "quoted_id");
+        var directTableHover = await service.GetHoverAsync("SELECT * FROM users", "SELECT * FROM users".LastIndexOf("users", StringComparison.Ordinal));
+        Assert.Equal("(table) public.users", directTableHover?.Signature);
+
+        const string quotedQuery = "SELECT u.| FROM public.\"Users\" u";
+        var quoted = await service.GetCompletionsAsync(quotedQuery, quotedQuery.IndexOf('|'));
+        Assert.Contains(quoted.Items, i => i.Label == "quoted_id");
+        Assert.DoesNotContain(quoted.Items, i => i.Label == "public_id");
+
+        const string wrongAlias = "SELECT \"u\".| FROM public.users AS \"U\"";
+        var wrongAliasItems = await service.GetCompletionsAsync(wrongAlias, wrongAlias.IndexOf('|'));
+        Assert.DoesNotContain(wrongAliasItems.Items, i => i.Kind == CompletionItemKind.Column);
+
+        var hover = await service.GetHoverAsync("SELECT u.\"quoted_id\" FROM public.\"Users\" u", 15);
+        Assert.Equal("(column) quoted_id int NULL", hover?.Signature);
+    }
+
+    [Fact]
     public async Task Oracle_ListsParametersAfterAColon()
     {
         var service = new SqlLanguageService(new SqlLanguageOptions
@@ -221,6 +246,16 @@ public class SqlDialectCompletionTests
         new SqlDatabaseSchema("archive",
         [
             new SqlSchemaObject("archive", "orders", SqlSchemaObjectKind.Table, [new SqlColumn("Id", "int")]),
+        ]),
+    ]);
+
+    private static SqlCatalog CreatePostgreSqlCatalog() => new(
+    [
+        new SqlDatabaseSchema("shop",
+        [
+            new SqlSchemaObject("dbo", "users", SqlSchemaObjectKind.Table, [new SqlColumn("dbo_id", "int")]),
+            new SqlSchemaObject("public", "users", SqlSchemaObjectKind.Table, [new SqlColumn("public_id", "int")]),
+            new SqlSchemaObject("public", "Users", SqlSchemaObjectKind.Table, [new SqlColumn("quoted_id", "int")]),
         ]),
     ]);
 }

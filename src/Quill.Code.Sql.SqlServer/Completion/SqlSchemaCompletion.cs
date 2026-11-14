@@ -92,18 +92,19 @@ internal sealed class SqlSchemaCompletion
             case 1:
                 {
                     var name = qualifier[0];
-                    if (context.FindTable(name) is { } table && await _catalog.FindAsync(context, table, cancellationToken).ConfigureAwait(false) is { } aliased)
+                    var nameIsQuoted = context.QualifierQuoted[0];
+                    if (context.FindTable(name, _dialect, nameIsQuoted) is { } table && await _catalog.FindAsync(context, table, cancellationToken).ConfigureAwait(false) is { } aliased)
                         return ColumnItems(aliased, null);
 
                     var current = await _catalog.GetDatabaseAsync(context.Database, cancellationToken).ConfigureAwait(false);
-                    if (current is not null && current.HasSchema(name))
-                        return ObjectItems(current, name, kinds, withSchemas: false);
+                    if (current is not null && _catalog.HasSchema(current, name, nameIsQuoted))
+                        return ObjectItems(current, name, kinds, withSchemas: false, schemaIsQuoted: nameIsQuoted);
 
                     // Table missing from the batch: SELECT Users.| stays valid if Users is in the FROM of another statement.
-                    if (current?.Find(null, name) is { Columns.Count: > 0 } direct)
+                    if (current is not null && _catalog.Find(current, null, name, nameIsQuoted) is { Columns.Count: > 0 } direct)
                         return ColumnItems(direct, null);
 
-                    if (!await _catalog.IsDatabaseAsync(name, cancellationToken).ConfigureAwait(false)
+                    if (!await _catalog.IsDatabaseAsync(name, cancellationToken, nameIsQuoted).ConfigureAwait(false)
                         || await _catalog.GetDatabaseAsync(name, cancellationToken).ConfigureAwait(false) is not { } other)
                         return [];
 
@@ -114,25 +115,29 @@ internal sealed class SqlSchemaCompletion
             case 2:
                 {
                     if (_dialect.SchemaIsDatabase
-                        && await _catalog.IsDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false)
+                        && await _catalog.IsDatabaseAsync(qualifier[0], cancellationToken, context.QualifierQuoted[0]).ConfigureAwait(false)
                         && await _catalog.GetDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false) is { } remote
-                        && remote.Find(null, qualifier[1]) is { } remoteTable)
+                        && _catalog.Find(remote, null, qualifier[1], context.QualifierQuoted[1]) is { } remoteTable)
                         return ColumnItems(remoteTable, null);
 
                     var current = await _catalog.GetDatabaseAsync(context.Database, cancellationToken).ConfigureAwait(false);
-                    if (current?.Find(qualifier[0], qualifier[1]) is { } table)
+                    if (current is not null
+                        && _catalog.Find(current, qualifier[0], qualifier[1], context.QualifierQuoted[1], context.QualifierQuoted[0]) is { } table)
                         return ColumnItems(table, null);
 
-                    return await _catalog.IsDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false)
+                    return await _catalog.IsDatabaseAsync(qualifier[0], cancellationToken, context.QualifierQuoted[0]).ConfigureAwait(false)
                         && await _catalog.GetDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false) is { } other
-                        ? ObjectItems(other, qualifier[1], kinds, withSchemas: false)
+                        ? ObjectItems(other, qualifier[1], kinds, withSchemas: false, schemaIsQuoted: context.QualifierQuoted[1])
                         : [];
                 }
 
             case 3:
                 {
                     var other = await _catalog.GetDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false);
-                    return other?.Find(qualifier[1], qualifier[2]) is { } table ? ColumnItems(table, null) : [];
+                    return other is not null
+                        && _catalog.Find(other, qualifier[1], qualifier[2], context.QualifierQuoted[2], context.QualifierQuoted[1]) is { } table
+                        ? ColumnItems(table, null)
+                        : [];
                 }
 
             default:
@@ -143,11 +148,11 @@ internal sealed class SqlSchemaCompletion
     // ---------- Building suggestions ----------
 
     /// <summary>Objects of a database, of a schema if specified; the schemas themselves to continue with "schema.".</summary>
-    private IReadOnlyList<CompletionItem> ObjectItems(SqlDatabaseSchema database, string? schema, SqlSchemaObjectKind[] kinds, bool withSchemas)
+    private IReadOnlyList<CompletionItem> ObjectItems(SqlDatabaseSchema database, string? schema, SqlSchemaObjectKind[] kinds, bool withSchemas, bool schemaIsQuoted = false)
     {
         var objects = database.Objects
             .Where(o => kinds.Contains(o.Kind))
-            .Where(o => schema is null || string.Equals(o.Schema, schema, StringComparison.OrdinalIgnoreCase))
+            .Where(o => schema is null || _dialect.IdentifierEquals(o.Schema, leftQuoted: true, schema, schemaIsQuoted))
             .Select(o => new CompletionItem
             {
                 Label = o.Name,
@@ -164,8 +169,9 @@ internal sealed class SqlSchemaCompletion
 
     /// <summary>Schema of unqualified names: the dialect's one (dbo, public), or the database itself (MySQL, SQLite).</summary>
     private bool IsDefaultSchema(SqlDatabaseSchema database, string schema)
-        => string.Equals(schema, _dialect.DefaultSchema, StringComparison.OrdinalIgnoreCase)
-            || (_dialect.SchemaIsDatabase && string.Equals(schema, database.Name, StringComparison.OrdinalIgnoreCase));
+        => (_dialect.DefaultSchema is { } defaultSchema
+                && _dialect.IdentifierEquals(schema, leftQuoted: true, defaultSchema, rightQuoted: false))
+            || (_dialect.SchemaIsDatabase && _dialect.IdentifierEquals(schema, leftQuoted: true, database.Name, rightQuoted: true));
 
     private IReadOnlyList<CompletionItem> ColumnItems(SqlSchemaObject table, string? owner)
         => table.Columns.Select(c => new CompletionItem
@@ -178,7 +184,10 @@ internal sealed class SqlSchemaCompletion
         }).ToArray();
 
     private IReadOnlyList<CompletionItem> SchemaItems(SqlDatabaseSchema database)
-        => database.Schemas.Select(s => new CompletionItem
+        => database.Objects.Select(o => o.Schema)
+            .Distinct(_dialect.IdentifierCasing == SqlIdentifierCasing.Insensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal)
+            .Order(_dialect.IdentifierCasing == SqlIdentifierCasing.Insensitive ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal)
+            .Select(s => new CompletionItem
         {
             Label = s,
             Kind = CompletionItemKind.Schema,

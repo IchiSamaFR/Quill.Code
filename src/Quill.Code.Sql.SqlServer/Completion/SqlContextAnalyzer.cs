@@ -93,6 +93,7 @@ public static partial class SqlContextAnalyzer
         {
             Kind = kind,
             Qualifier = qualifier,
+            QualifierQuoted = kind == SqlContextKind.MemberAccess ? ReadQualifierQuoted(tokens, index - 1) : [],
             MemberParentKind = parentKind,
             Tables = ParseTables(text, tokens, dialect).OrderBy(t => Math.Abs(t.Offset - caret)).ToArray(),
             // A USE in the text wins over the database imposed by the caller (dashboard).
@@ -261,6 +262,19 @@ public static partial class SqlContextAnalyzer
         return parts;
     }
 
+    private static List<bool> ReadQualifierQuoted(SqlToken[] tokens, int dotIndex)
+    {
+        List<bool> quoted = [];
+        var i = dotIndex;
+        while (i >= 1 && tokens[i].Kind == SqlTokenKind.Dot && IsName(tokens[i - 1]) && tokens[i - 1].End == tokens[i].Start)
+        {
+            quoted.Insert(0, tokens[i - 1].Kind == SqlTokenKind.QuotedIdentifier);
+            i -= 2;
+        }
+
+        return quoted;
+    }
+
     /// <summary>
     /// "AS" introduces a type in CAST(x AS |), an alias in SELECT / FROM, and the body
     /// of a view or procedure (CREATE VIEW v AS |).
@@ -424,6 +438,7 @@ public static partial class SqlContextAnalyzer
             return false;
 
         List<string> parts = [];
+        List<bool> quotedParts = [];
         var offset = tokens[next].Start;
 
         if (tokens[next].Kind == SqlTokenKind.OpenParen)
@@ -435,6 +450,7 @@ public static partial class SqlContextAnalyzer
             while (next < tokens.Length && IsName(tokens[next]) && !IsReserved(text, tokens[next], dialect))
             {
                 parts.Add(Unquote(tokens[next].GetText(text)));
+                quotedParts.Add(tokens[next].Kind == SqlTokenKind.QuotedIdentifier);
                 next++;
 
                 if (next < tokens.Length && tokens[next].Kind == SqlTokenKind.Dot)
@@ -455,9 +471,11 @@ public static partial class SqlContextAnalyzer
             next++;
 
         string? alias = null;
+        var aliasIsQuoted = false;
         if (next < tokens.Length && IsName(tokens[next]) && !IsReserved(text, tokens[next], dialect))
         {
             alias = Unquote(tokens[next].GetText(text));
+            aliasIsQuoted = tokens[next].Kind == SqlTokenKind.QuotedIdentifier;
             next++;
         }
 
@@ -469,7 +487,13 @@ public static partial class SqlContextAnalyzer
             var name = parts[^1];
             var schema = parts.Count >= 2 ? NullIfEmpty(parts[^2]) : null;
             var database = parts.Count >= 3 ? NullIfEmpty(parts[^3]) : null;
-            table = new SqlTableReference(database, schema, name, alias, offset);
+            table = new SqlTableReference(database, schema, name, alias, offset)
+            {
+                DatabaseIsQuoted = parts.Count >= 3 && quotedParts[^3],
+                SchemaIsQuoted = parts.Count >= 2 && quotedParts[^2],
+                NameIsQuoted = quotedParts[^1],
+                AliasIsQuoted = aliasIsQuoted,
+            };
         }
 
         return true;

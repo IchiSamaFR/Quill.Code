@@ -55,7 +55,9 @@ public partial class MainWindow : Window
         DataObject.AddPastingHandler(Editor, OnEditorPasting);
         ScenarioBox.SelectionChanged += (_, _) => SelectScenario();
         RunButton.Click += (_, _) => _ = RunAsync();
+        StopButton.Click += (_, _) => _runCancellation?.Cancel();
         Deactivated += (_, _) => _completion.Close();
+        Closing += (_, _) => _runCancellation?.Cancel();
         Loaded += (_, _) => _ = InitializeAsync();
     }
 

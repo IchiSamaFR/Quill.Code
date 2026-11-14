@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Windows.Controls;
 using System.Windows.Data;
+using Quill.Code.CSharp.Compilation;
 using Quill.Code.Demo.Constants;
 using Quill.Code.Demo.Editing;
 using Quill.Code.Execution;
@@ -14,6 +15,7 @@ namespace Quill.Code.Demo;
 public partial class MainWindow
 {
     private bool _isRunning;
+    private CancellationTokenSource? _runCancellation;
 
     private async Task RunAsync()
     {
@@ -26,15 +28,22 @@ public partial class MainWindow
         var logs = new ConcurrentQueue<LogEntry>();
         var resultSets = new ConcurrentQueue<QueryResultSet>();
         var options = new DataRunOptions { Log = logs.Enqueue, Data = resultSets.Enqueue };
+        using var cancellation = new CancellationTokenSource();
+        _runCancellation = cancellation;
 
         _isRunning = true;
         RunButton.IsEnabled = false;
+        StopButton.IsEnabled = true;
         MessagesBox.Text = "Running…";
         try
         {
             await Task.Run(() => scenario.IsLinq
-                ? _database.LinqExecutor.RunAsync(_database.ConnectionString, schema, script, options)
-                : _database.SqlExecutor.RunAsync(_database.ConnectionString, script, options));
+                ? _database.LinqExecutor.RunAsync(_database.ConnectionString, schema, script, options, cancellation.Token)
+                : _database.SqlExecutor.RunAsync(_database.ConnectionString, script, options, cancellation.Token));
+        }
+        catch (CSharpRunAbandonedException ex)
+        {
+            logs.Enqueue(new LogEntry(LogLevel.Error, ex.Message));
         }
         catch (Exception ex) when (ex is DbException or InvalidOperationException or OperationCanceledException)
         {
@@ -43,6 +52,8 @@ public partial class MainWindow
         finally
         {
             _isRunning = false;
+            _runCancellation = null;
+            StopButton.IsEnabled = false;
             RunButton.IsEnabled = _scenario is { CanRun: true };
         }
 
