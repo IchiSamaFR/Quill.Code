@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  C# highlighting of LINQ queries (Entity Framework), Visual Studio dark colors.
+  Color names also serve as completion categories:
+  DataType and Type -> types, Keyword and Control -> keywords.
+-->
+<SyntaxDefinition name="LINQ" extensions=".linq;.csx" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+
+	<Property name="LineComment" value="//" />
+
+	<!-- Unrecognized text: painted explicitly so a comment's color does not spill over while typing -->
+	<Color name="Default" foreground="#D4D4D4" />
+	<Color name="Comment" foreground="#6A9955" />
+	<Color name="String" foreground="#CE9178" />
+	<Color name="Number" foreground="#B5CEA8" />
+	<Color name="Keyword" foreground="#569CD6" />
+	<Color name="Control" foreground="#D8A0DF" />
+	<Color name="DataType" foreground="#569CD6" />
+	<Color name="Type" foreground="#4EC9B0" />
+	<Color name="Method" foreground="#DCDCAA" />
+	<Color name="Operator" foreground="#D4D4D4" />
+
+	<RuleSet ignoreCase="false">
+
+		<Span color="Comment">
+			<Begin>//</Begin>
+		</Span>
+
+		<Span color="Comment" multiline="true">
+			<Begin>/\*</Begin>
+			<End>\*/</End>
+		</Span>
+
+		<!-- Verbatim (@"", $@"", @$""): "" escapes a quote, the string may span several lines -->
+		<Rule color="String">(?:\$@|@\$?)"(?:[^"]|"")*"?</Rule>
+
+		<!-- Regular or interpolated string: \ escapes, closing optional while typing -->
+		<Rule color="String">\$?"(?:[^"\\\n]|\\.)*"?</Rule>
+
+		<Rule color="String">'(?:[^'\\\n]|\\.)*'?</Rule>
+
+		<Keywords color="Control">
+			<Word>if</Word><Word>else</Word><Word>switch</Word><Word>case</Word><Word>default</Word>
+			<Word>for</Word><Word>foreach</Word><Word>while</Word><Word>do</Word><Word>break</Word>
+			<Word>continue</Word><Word>return</Word><Word>yield</Word><Word>goto</Word><Word>throw</Word>
+			<Word>try</Word><Word>catch</Word><Word>finally</Word><Word>await</Word>
+		</Keywords>
+
+		<!-- LINQ query syntax -->
+		<Keywords color="Keyword">
+			<Word>from</Word><Word>where</Word><Word>select</Word><Word>group</Word><Word>into</Word>
+			<Word>orderby</Word><Word>join</Word><Word>let</Word><Word>on</Word><Word>equals</Word>
+			<Word>by</Word><Word>ascending</Word><Word>descending</Word>
+		</Keywords>
+
+		<Keywords color="Keyword">
+			<Word>new</Word><Word>var</Word><Word>null</Word><Word>true</Word><Word>false</Word>
+			<Word>is</Word><Word>as</Word><Word>in</Word><Word>out</Word><Word>ref</Word>
+			<Word>this</Word><Word>base</Word><Word>typeof</Word><Word>nameof</Word><Word>sizeof</Word>
+			<Word>default</Word><Word>checked</Word><Word>unchecked</Word><Word>when</Word><Word>with</Word>
+			<Word>not</Word><Word>and</Word><Word>or</Word><Word>async</Word><Word>using</Word>
+			<Word>static</Word><Word>const</Word><Word>readonly</Word><Word>class</Word><Word>record</Word>
+			<Word>struct</Word><Word>enum</Word><Word>interface</Word><Word>public</Word><Word>private</Word>
+			<Word>internal</Word><Word>protected</Word><Word>void</Word><Word>dynamic</Word>
+		</Keywords>
+
+		<Keywords color="DataType">
+			<Word>bool</Word><Word>byte</Word><Word>sbyte</Word><Word>char</Word><Word>short</Word>
+			<Word>ushort</Word><Word>int</Word><Word>uint</Word><Word>long</Word><Word>ulong</Word>
+			<Word>float</Word><Word>double</Word><Word>decimal</Word><Word>string</Word><Word>object</Word>
+			<Word>nint</Word><Word>nuint</Word>
+		</Keywords>
+
+		<!-- Common EF query types -->
+		<Keywords color="Type">
+			<Word>DateTime</Word><Word>DateTimeOffset</Word><Word>DateOnly</Word><Word>TimeOnly</Word>
+			<Word>TimeSpan</Word><Word>Guid</Word><Word>Math</Word><Word>Convert</Word><Word>String</Word>
+			<Word>Enumerable</Word><Word>Queryable</Word><Word>EF</Word><Word>Console</Word>
+		</Keywords>
+
+		<!-- Method call: identifier followed by a parenthesis, possibly generic -->
+		<Rule color="Method">\b[\p{L}_][\p{L}\p{Nd}_]*(?=\s*(?:&lt;[^&lt;&gt;()]*&gt;)?\s*\()</Rule>
+
+		<Rule color="Number">\b0[xX][0-9a-fA-F_]+[uUlL]*|(\b\d[\d_]*(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?[fFdDmMuUlL]*</Rule>
+
+		<Rule color="Operator">[?,.;:()\[\]{}+\-/%*&lt;&gt;^~!|&amp;=]+</Rule>
+	</RuleSet>
+</SyntaxDefinition>

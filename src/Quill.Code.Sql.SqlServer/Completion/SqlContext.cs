@@ -1,4 +1,6 @@
-﻿namespace Quill.Code.Sql.SqlServer.Completion;
+﻿using Quill.Code.Sql.Dialects;
+
+namespace Quill.Code.Sql.SqlServer.Completion;
 
 /// <summary>Result of analyzing the text around the caret.</summary>
 public sealed class SqlContext
@@ -15,6 +17,9 @@ public sealed class SqlContext
     /// <summary>Parts before the dot, in order: ["u"] for u.|, ["db", "dbo"] for db.dbo.|</summary>
     public IReadOnlyList<string> Qualifier { get; init; } = [];
 
+    /// <summary>Whether each part of <see cref="Qualifier"/> was delimited.</summary>
+    public IReadOnlyList<bool> QualifierQuoted { get; init; } = [];
+
     /// <summary>Context of the qualifier's first word: FROM dbo.| (TableSource) does not expect the same as EXEC dbo.|</summary>
     public SqlContextKind MemberParentKind { get; init; } = SqlContextKind.General;
 
@@ -27,4 +32,12 @@ public sealed class SqlContext
     /// <summary>Table designated by an alias or a simple name (u.| or Users.|).</summary>
     public SqlTableReference? FindTable(string exposedName)
         => Tables.FirstOrDefault(t => string.Equals(t.ExposedName, exposedName, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>Table designated by an identifier, following the dialect's quoted and unquoted case rules.</summary>
+    public SqlTableReference? FindTable(string exposedName, SqlDialect dialect, bool isQuoted = false)
+        => Tables.FirstOrDefault(t => dialect.IdentifierEquals(
+            t.ExposedName,
+            t.Alias is null ? t.NameIsQuoted : t.AliasIsQuoted,
+            exposedName,
+            isQuoted));
 }

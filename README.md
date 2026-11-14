@@ -33,6 +33,19 @@ dotnet add package QuillCode.CSharp
 
 Since the `Quill.` prefix is reserved on nuget.org, each `Quill.Code.X` project is published under the ID `QuillCode.X` and `Quill.Data.Sql.X` under `QuillCode.Data.Sql.X`; assemblies and namespaces keep their names.
 
+## Demo
+
+`src/Quill.Code.Demo` is a WPF (Windows) application that wires a plain RichTextBox to Quill: highlighting, completion (while typing, after a dot, Ctrl+Space), hover, diagnostics and execution (F5).
+
+```
+dotnet run --project src/Quill.Code.Demo
+```
+
+- **SQL · SQLite** and **LINQ · SQLite**: a fake "shop" database (customers, products, orders), a SQLite file recreated at each startup in the temporary folder; queries really run.
+- **SQL Server, MySQL, PostgreSQL, Oracle**: the same shop as a fictitious catalog (in-memory `SqlCatalog`), without connection or execution, to see each dialect at work (`[name]` / `` `name` `` / `"name"`, `@param` / `:param`, `TOP` / `LIMIT` / `FETCH FIRST`).
+
+It is outside `Quill.Code.slnx` (the CI builds on Linux): open `src/Quill.Code.Demo.slnx`.
+
 ## Usage
 
 One service per context, with its own Roslyn project, created on first request (off the UI thread):

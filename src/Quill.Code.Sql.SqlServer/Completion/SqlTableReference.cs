@@ -8,6 +8,18 @@
 /// <param name="Offset">Position of the reference in the text.</param>
 public sealed record SqlTableReference(string? Database, string? Schema, string Name, string? Alias, int Offset)
 {
+    /// <summary>True if the database identifier was delimited.</summary>
+    public bool DatabaseIsQuoted { get; init; }
+
+    /// <summary>True if the schema identifier was delimited.</summary>
+    public bool SchemaIsQuoted { get; init; }
+
+    /// <summary>True if the table identifier was delimited.</summary>
+    public bool NameIsQuoted { get; init; }
+
+    /// <summary>True if the alias identifier was delimited.</summary>
+    public bool AliasIsQuoted { get; init; }
+
     /// <summary>Name under which the query designates the table: the alias if there is one.</summary>
     public string ExposedName => Alias ?? Name;
 }

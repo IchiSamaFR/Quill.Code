@@ -7,11 +7,12 @@
 Key points:
 1. No reference to WPF, MAUI or any UI type: the library produces data, the apps display it.
 2. `Quill.Code` ← `Quill.Code.[Language]`; a language never references another language. `Quill.Data.Sql` (database structure, no dependency) ← `Quill.Data.Sql.[Engine]` (catalog reading) and ← `Quill.Code.Sql.SqlServer` and `Quill.Code.CSharp.Linq` (← `Quill.Code.CSharp`, engine-agnostic) ← `Quill.Code.CSharp.Linq.[Engine]` (`ILinqDatabaseProvider`); `Quill.Code` ← `Quill.Code.Sql` (`ISqlQueryExecutor` contract, `DbQueryExecutor` base) ← `Quill.Code.Sql.[Engine]` (SQL execution; plus T-SQL for `Quill.Code.Sql.SqlServer`); a `Quill.Code.*` never references a `Quill.Data.Sql.[Engine]`. Engines: SqlServer, MySql, PostgreSql, Oracle, Sqlite. Exception: `Quill.Code.Sql.[Engine]` and `Quill.Code.CSharp.Linq.[Engine]` (net10.0) depend on a driver for execution (`ISqlQueryExecutor` from `Quill.Code.Sql`, `LinqQueryExecutor` on an `ILinqDatabaseProvider`, same return contract); analysis and completion stay connection-free.
-3. No dependency injection in Quill (no container, no static registry): apps instantiate the services (`new CSharpLanguageService(() => options)`) or register them in their own container.
-4. Reuse before creating: an existing type (from `Quill.Code` first), extended if needed, rather than a new class.
-5. One type per file, `internal` / `sealed` by default, XML documentation on the public API; everything (code, comments, docs, commits) in English.
-6. No constant declared in a working class: they go in the project's `Constants/` folder (namespace `<Project>.Constants`), one static class per context (`SqlServerConstants`, `EditingConstants`, `SqlServerQueries`…), `internal` unless it is part of the API.
-7. Package versions only in `src/Directory.Packages.props`.
-8. Commits: `type: description` in English, no trailers (`Co-Authored-By`, `Claude-Session`…).
+3. SQL: whatever varies from one engine to another in the editor (delimiters, `@` / `:` parameters, `TOP` / `LIMIT` / `FETCH FIRST`, suggested words) is a property of `SqlDialect` (`Quill.Code.Sql`), exposed by each `Quill.Code.Sql.[Engine]` (`OracleDialect.Instance`…) and received through `SqlLanguageOptions.Dialect`; never a test on the engine.
+4. No dependency injection in Quill (no container, no static registry): apps instantiate the services (`new CSharpLanguageService(() => options)`) or register them in their own container.
+5. Reuse before creating: an existing type (from `Quill.Code` first), extended if needed, rather than a new class.
+6. One type per file, `internal` / `sealed` by default, XML documentation on the public API; everything (code, comments, docs, commits) in English.
+7. No constant declared in a working class: they go in the project's `Constants/` folder (namespace `<Project>.Constants`), one static class per context (`SqlServerConstants`, `EditingConstants`, `SqlServerQueries`…), `internal` unless it is part of the API.
+8. Package versions only in `src/Directory.Packages.props`.
+9. Commits: `type: description` in English, no trailers (`Co-Authored-By`, `Claude-Session`…).
 
 Build: `dotnet build src/Quill.Code.slnx` — Test: `dotnet test src/Quill.Code.slnx`
