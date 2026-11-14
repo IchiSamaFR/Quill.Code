@@ -46,6 +46,7 @@ internal sealed class DemoDatabase
     public async Task<IReadOnlyList<LogEntry>> CreateAsync(CancellationToken cancellationToken = default)
     {
         Directory.CreateDirectory(Folder);
+        Schema = null;
 
         var errors = new ConcurrentQueue<LogEntry>();
         var options = new DataRunOptions
@@ -58,7 +59,10 @@ internal sealed class DemoDatabase
         };
 
         await SqlExecutor.RunAsync(ConnectionString, DemoResources.Read(DemoConstants.DatabaseScript), options, cancellationToken);
-        Schema = await new SqliteSchemaReader().GetSchemaAsync(ConnectionString, null, cancellationToken);
-        return [.. errors];
+        var result = errors.ToArray();
+        if (result.Length == 0)
+            Schema = await new SqliteSchemaReader().GetSchemaAsync(ConnectionString, null, cancellationToken);
+
+        return result;
     }
 }

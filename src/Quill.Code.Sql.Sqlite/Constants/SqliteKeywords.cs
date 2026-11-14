@@ -8,7 +8,7 @@ internal static class SqliteKeywords
         "LIMIT", "OFFSET", "PRAGMA", "VACUUM", "ATTACH", "DETACH", "IGNORE", "ABORT", "FAIL", "CONFLICT", "NOTHING", "DO",
         "AUTOINCREMENT", "GLOB", "REGEXP", "MATCH", "RETURNING", "EXPLAIN", "QUERY", "PLAN", "TEMP", "TEMPORARY", "VIRTUAL",
         "WITHOUT", "ROWID", "STRICT", "INDEXED", "REINDEX", "ANALYZE", "RENAME", "COLUMN", "ADD", "IF", "NULLS", "FIRST", "LAST",
-        "WINDOW", "FILTER", "COLLATE", "NOCASE", "DEFERRED", "IMMEDIATE", "EXCLUSIVE", "RELEASE",
+        "WINDOW", "FILTER", "COLLATE", "NOCASE", "DEFERRED", "IMMEDIATE", "EXCLUSIVE", "RELEASE", "ESCAPE",
     ];
 
     internal static IReadOnlyList<string> DataTypes { get; } = ["TEXT", "BLOB", "BOOLEAN", "DATETIME"];

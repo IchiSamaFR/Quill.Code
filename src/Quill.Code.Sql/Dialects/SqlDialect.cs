@@ -57,6 +57,12 @@ public sealed class SqlDialect
     /// <summary>True if <c>#</c> starts a line comment (MySQL).</summary>
     public bool HashLineComments { get; init; }
 
+    /// <summary>True if <c>--</c> starts a comment only when followed by whitespace or a control character (MySQL).</summary>
+    public bool DoubleDashRequiresWhitespace { get; init; }
+
+    /// <summary>True if backslash escapes the next character in strings (MySQL by default).</summary>
+    public bool BackslashEscapesInStrings { get; init; }
+
     /// <summary>True if <c>/* */</c> comments nest.</summary>
     public bool NestedBlockComments { get; init; }
 

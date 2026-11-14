@@ -20,6 +20,8 @@ public static class MySqlDialect
         HasUseStatement = true,
         ProcedureKeywords = ["CALL"],
         HashLineComments = true,
+        DoubleDashRequiresWhitespace = true,
+        BackslashEscapesInStrings = true,
         Keywords = [.. SqlStandardKeywords.Keywords, .. MySqlKeywords.Keywords],
         DataTypes = [.. SqlStandardKeywords.DataTypes, .. MySqlKeywords.DataTypes],
         Functions = [.. SqlStandardKeywords.Functions, .. MySqlKeywords.Functions],

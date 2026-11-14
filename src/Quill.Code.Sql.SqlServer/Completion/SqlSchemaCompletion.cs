@@ -113,6 +113,12 @@ internal sealed class SqlSchemaCompletion
 
             case 2:
                 {
+                    if (_dialect.SchemaIsDatabase
+                        && await _catalog.IsDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false)
+                        && await _catalog.GetDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false) is { } remote
+                        && remote.Find(null, qualifier[1]) is { } remoteTable)
+                        return ColumnItems(remoteTable, null);
+
                     var current = await _catalog.GetDatabaseAsync(context.Database, cancellationToken).ConfigureAwait(false);
                     if (current?.Find(qualifier[0], qualifier[1]) is { } table)
                         return ColumnItems(table, null);

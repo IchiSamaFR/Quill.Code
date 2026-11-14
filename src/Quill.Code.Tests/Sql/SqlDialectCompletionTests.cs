@@ -3,6 +3,7 @@ using Quill.Code.Sql.Dialects;
 using Quill.Code.Sql.MySql;
 using Quill.Code.Sql.Oracle;
 using Quill.Code.Sql.PostgreSql;
+using Quill.Code.Sql.Sqlite;
 using Quill.Code.Sql.SqlServer;
 using Quill.Code.Sql.SqlServer.Completion;
 using Quill.Code.Sql.SqlServer.Lexing;
@@ -50,6 +51,38 @@ public class SqlDialectCompletionTests
 
         Assert.Contains(items, i => i.Label == "users" && i.TextToInsert == "users");
         Assert.DoesNotContain(items, i => i.Kind == CompletionItemKind.Schema);
+    }
+
+    [Fact]
+    public async Task MySql_ResolvesRemoteDatabaseTableColumns()
+    {
+        var service = new SqlLanguageService(new SqlLanguageOptions
+        {
+            Dialect = MySqlDialect.Instance,
+            Catalog = CreateMultiDatabaseCatalog(),
+        });
+        const string code = "SELECT archive.orders.|";
+
+        var list = await service.GetCompletionsAsync(code, code.Length - 1);
+        var item = Assert.Single(list.Items, i => i.Label == "Id");
+        Assert.Equal(CompletionItemKind.Column, item.Kind);
+    }
+
+    [Fact]
+    public async Task MySql_HoversRemoteDatabaseTablesAndColumns()
+    {
+        var service = new SqlLanguageService(new SqlLanguageOptions
+        {
+            Dialect = MySqlDialect.Instance,
+            Catalog = CreateMultiDatabaseCatalog(),
+        });
+        const string tableQuery = "SELECT * FROM archive.ord|ers";
+        const string columnQuery = "SELECT archive.orders.I|d";
+        var tableHover = await service.GetHoverAsync(tableQuery.Remove(tableQuery.IndexOf('|'), 1), tableQuery.IndexOf('|'));
+        var columnHover = await service.GetHoverAsync(columnQuery.Remove(columnQuery.IndexOf('|'), 1), columnQuery.IndexOf('|'));
+
+        Assert.Equal("(table) archive.orders", tableHover?.Signature);
+        Assert.Equal("(column) Id int NULL", columnHover?.Signature);
     }
 
     [Fact]
@@ -116,6 +149,40 @@ public class SqlDialectCompletionTests
     }
 
     [Fact]
+    public void MySqlLexer_RecognizesDashCommentsAndBackslashEscapes()
+    {
+        const string code = "SELECT 5--2 + value FROM t, 'it\\'s text', name";
+        var tokens = SqlLexer.Tokenize(code, MySqlDialect.Instance);
+
+        Assert.DoesNotContain(tokens, t => t.Kind == SqlTokenKind.LineComment);
+        Assert.Contains(tokens, t => t.Kind == SqlTokenKind.String && t.GetText(code) == "'it\\'s text'");
+        Assert.Contains(tokens, t => t.Kind == SqlTokenKind.Word && t.GetText(code) == "name");
+    }
+
+    [Fact]
+    public void MySqlLexer_CanDisableBackslashEscapes()
+    {
+        var dialect = new SqlDialect
+        {
+            Name = "MySQL without backslash escapes",
+            IdentifierQuotes = MySqlDialect.Instance.IdentifierQuotes,
+            DoubleQuotedStrings = true,
+            DoubleDashRequiresWhitespace = true,
+        };
+        const string code = "'a\\' + b";
+        var tokens = SqlLexer.Tokenize(code, dialect);
+
+        Assert.Contains(tokens, t => t.Kind == SqlTokenKind.String && t.IsTerminated);
+        Assert.Contains(tokens, t => t.Kind == SqlTokenKind.Word && t.GetText(code) == "b");
+    }
+
+    [Fact]
+    public void Sqlite_QuotesEscapeKeyword()
+    {
+        Assert.Equal("\"Escape\"", SqliteDialect.Instance.QuoteIdentifier("Escape"));
+    }
+
+    [Fact]
     public void Analyzer_DoesNotTakeLimitForAnAlias()
     {
         const string code = "SELECT  FROM users LIMIT 10";
@@ -145,6 +212,15 @@ public class SqlDialectCompletionTests
                 new SqlColumn("CreatedAt", "timestamp"),
             ]),
             new SqlSchemaObject("shop", "EMPLOYEES", SqlSchemaObjectKind.Table, [new SqlColumn("ID", "NUMBER")]),
+        ]),
+    ]);
+
+    private static SqlCatalog CreateMultiDatabaseCatalog() => new(
+    [
+        new SqlDatabaseSchema("shop", []),
+        new SqlDatabaseSchema("archive",
+        [
+            new SqlSchemaObject("archive", "orders", SqlSchemaObjectKind.Table, [new SqlColumn("Id", "int")]),
         ]),
     ]);
 }

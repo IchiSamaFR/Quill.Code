@@ -29,7 +29,8 @@ public static class SqlLexer
                 continue;
             }
 
-            if ((c == '-' && next == '-') || (c == '#' && dialect.HashLineComments))
+            if ((c == '-' && next == '-' && StartsLineComment(text, i, dialect))
+                || (c == '#' && dialect.HashLineComments))
             {
                 i = text.IndexOf('\n', i);
                 if (i < 0)
@@ -52,7 +53,7 @@ public static class SqlLexer
                 if (c is 'N' or 'n')
                     i++;
 
-                var closed = SkipDelimited(text, ref i, c == '"' ? '"' : '\'');
+                var closed = SkipDelimited(text, ref i, c == '"' ? '"' : '\'', dialect.BackslashEscapesInStrings);
                 tokens.Add(new SqlToken(SqlTokenKind.String, start, i - start, closed));
                 continue;
             }
@@ -122,6 +123,10 @@ public static class SqlLexer
     private static int TrimCarriageReturn(string text, int start, int end)
         => end > start && text[end - 1] == '\r' ? end - 1 : end;
 
+    private static bool StartsLineComment(string text, int index, SqlDialect dialect)
+        => !dialect.DoubleDashRequiresWhitespace
+            || index + 2 < text.Length && (char.IsWhiteSpace(text[index + 2]) || char.IsControl(text[index + 2]));
+
     private static SqlIdentifierQuote? FindIdentifierQuote(SqlDialect dialect, char c)
     {
         foreach (var quote in dialect.IdentifierQuotes)
@@ -185,11 +190,17 @@ public static class SqlLexer
     }
 
     /// <summary>Doubled delimiter = escaped character ('' in a string, ]] in an identifier).</summary>
-    private static bool SkipDelimited(string text, ref int i, char closing)
+    private static bool SkipDelimited(string text, ref int i, char closing, bool backslashEscapes = false)
     {
         i++;
         while (i < text.Length)
         {
+            if (backslashEscapes && text[i] == '\\' && i + 1 < text.Length)
+            {
+                i += 2;
+                continue;
+            }
+
             if (text[i] == closing)
             {
                 if (i + 1 < text.Length && text[i + 1] == closing)

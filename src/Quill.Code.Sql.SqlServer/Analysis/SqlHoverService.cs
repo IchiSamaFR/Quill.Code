@@ -116,6 +116,11 @@ internal sealed class SqlHoverService : ICodeHover
                     if (current?.Find(null, owner) is { } table)
                         return ColumnOf(table, name);
 
+                    if (_options.Dialect.SchemaIsDatabase
+                        && await _catalog.IsDatabaseAsync(owner, cancellationToken).ConfigureAwait(false)
+                        && (await _catalog.GetDatabaseAsync(owner, cancellationToken).ConfigureAwait(false))?.Find(null, name) is { } remoteTable)
+                        return DescribeObject(remoteTable, null);
+
                     if (await _catalog.IsDatabaseAsync(owner, cancellationToken).ConfigureAwait(false)
                         && (await _catalog.GetDatabaseAsync(owner, cancellationToken).ConfigureAwait(false))?.HasSchema(name) == true)
                         return ($"(schema) {owner}.{name}", $"Database {owner}");
@@ -125,6 +130,11 @@ internal sealed class SqlHoverService : ICodeHover
 
             case 2:
                 {
+                    if (_options.Dialect.SchemaIsDatabase
+                        && await _catalog.IsDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false)
+                        && (await _catalog.GetDatabaseAsync(qualifier[0], cancellationToken).ConfigureAwait(false))?.Find(null, qualifier[1]) is { } remoteTable)
+                        return ColumnOf(remoteTable, name);
+
                     var current = await _catalog.GetDatabaseAsync(scope.Database, cancellationToken).ConfigureAwait(false);
                     if (current?.Find(qualifier[0], qualifier[1]) is { } table)
                         return ColumnOf(table, name);
