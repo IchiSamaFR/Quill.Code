@@ -2,7 +2,7 @@
 	<!-- Settings shared by all projects: each csproj only keeps what is specific to it. -->
 	<PropertyGroup>
 		<!-- Next published version: bump after each tag. Published version pinned by -p:Version=<tag>. -->
-		<VersionPrefix>0.1.0</VersionPrefix>
+		<VersionPrefix>0.2.0</VersionPrefix>
 		<Authors>IchiSamaFR</Authors>
 		<Company>IchiSamaFR</Company>
 		<Product>Quill.Code</Product>
